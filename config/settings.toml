@@ -1,4 +1,14 @@
 [default]
-txt_location = "./sample/sample_data/example_file.txt"
+checkpoint_dir='data/checkpoint'
+layout_lm_base = 'data/models/layoutlm-base-uncased'
+bert_model = 'data/models/bert-base-uncased'
+model_dir = 'data/models/model_dir'
+index_dir = 'data/index_dir'
+[default.rico_sca]
+    train='data/OpenBookQA-V1-Sep2018/Data/Main/train.jsonl'
+    dev='data/OpenBookQA-V1-Sep2018/Data/Main/dev.jsonl'
+    test='data/OpenBookQA-V1-Sep2018/Data/Main/test.jsonl'
+    main_facts='data/OpenBookQA-V1-Sep2018/Data/Main/openbook.txt'
+    additional_facts='data/OpenBookQA-V1-Sep2018/Data/Additional/crowdsourced-facts.txt'
 [test]
-txt_location = "./tests/sample_data/example_file.txt"
+sample_rico_sca = 'tests/sample_data/rico_sca_5_examples.json'
