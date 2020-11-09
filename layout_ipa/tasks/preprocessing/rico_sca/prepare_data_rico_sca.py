@@ -6,8 +6,27 @@ import json
 
 class PrepareRicoSca(Task):
     def run(self, file_location):
+        """Parses the RicoSCA dataset.
+
+        Args:
+            file_location (str): location of the RicoSCA dataset
+
+        Returns:
+            Dict: preprocessed dict in the following format:
+            
+            {instruction: NL intruction,
+            ui: DICT:
+                    text: text of the ui element,
+                    x0: bounding box x0,
+                    x1: bouding box x1,
+                    y0: bounding box y0,
+                    y1: bounding box y1,
+            label: 1 if UI element is refered in the instruction, 0 otherwise
+            }
+        """
+
         parsed_data = dict()
-        logger.info("Running Sample Task")
+        logger.info("Preprocessing Rico SCA dataset")
         with open(file_location, "r") as f:
             input_data = json.load(f)
 
@@ -18,13 +37,16 @@ class PrepareRicoSca(Task):
         for id_input, screen_info in input_data.items():
             ui_elements_dict = dict()
             index_ui_element = 0
+
             for ui_element in screen_info["ui_obj_str_seq"]:
                 ui_elements_dict[index_ui_element] = {
                     "text": ui_element,
-                    "x0": screen_info["ui_obj_cord_x_seq"][index_ui_element * 2],
-                    "x1": screen_info["ui_obj_cord_x_seq"][(2 * index_ui_element) + 1],
-                    "y0": screen_info["ui_obj_cord_y_seq"][index_ui_element * 2],
-                    "y1": screen_info["ui_obj_cord_y_seq"][(2 * index_ui_element) + 1],
+                    "x0": screen_info["ui_obj_cord_x_seq"][index_ui_element * 2] * 1000,
+                    "x1": screen_info["ui_obj_cord_x_seq"][(2 * index_ui_element) + 1]
+                    * 1000,
+                    "y0": screen_info["ui_obj_cord_y_seq"][index_ui_element * 2] * 1000,
+                    "y1": screen_info["ui_obj_cord_y_seq"][(2 * index_ui_element) + 1]
+                    * 1000,
                 }
                 index_ui_element = index_ui_element + 1
 
@@ -54,4 +76,4 @@ class PrepareRicoSca(Task):
         logger.info(f"Total negative pairs: {total_negative_pairs}")
         logger.info(f"Total positive pairs: {total_positive_pairs}")
 
-        return input_data
+        return parsed_data

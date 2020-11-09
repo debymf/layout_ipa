@@ -4,6 +4,7 @@ layout_lm_base = 'data/models/layoutlm-base-uncased'
 bert_model = 'data/models/bert-base-uncased'
 model_dir = 'data/models/model_dir'
 index_dir = 'data/index_dir'
+sample_rico_sca = 'tests/sample_data/rico_sca_5_examples.json'
 [default.rico_sca]
     train='data/OpenBookQA-V1-Sep2018/Data/Main/train.jsonl'
     dev='data/OpenBookQA-V1-Sep2018/Data/Main/dev.jsonl'
