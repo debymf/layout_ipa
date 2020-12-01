@@ -7,20 +7,23 @@ import pandas as pd
 from tqdm import tqdm
 from transformers import AutoTokenizer, BertTokenizer, RobertaTokenizer
 from torch.utils.data import Dataset
+import torch
 
 tokenizer_model = settings["layout_lm_base"]
 
 
-class PrepareRicoLayoutLM(Task):
-    def run(self, input_data, largest=128):
+class PrepareRicoLayoutLMSelect(Task):
+    def run(self, input_data, largest=512):
         logger.info("*** Preprocessing Data for LayoutLM ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
         tokenizer_instruction = BertTokenizer.from_pretrained("bert-base-uncased")
         entries = dict()
         for id_d, content in tqdm(input_data.items()):
+
             encoded_ui = self.convert_ui_to_feature(
                 content["ui"], largest, tokenizer_layout,
             )
+
             encoded_instruction = tokenizer_instruction.encode_plus(
                 content["instruction"], padding="max_length", max_length=largest
             )
@@ -40,7 +43,7 @@ class PrepareRicoLayoutLM(Task):
 
     @staticmethod
     def convert_ui_to_feature(
-        example,
+        examples,
         max_seq_length,
         tokenizer,
         cls_token_at_end=False,
@@ -65,9 +68,14 @@ class PrepareRicoLayoutLM(Task):
             `cls_token_segment_id` define the segment id associated to the CLS token (0 for BERT, 2 for XLNet)
         """
 
-        box = [example["x0"], example["y0"], example["x1"], example["y1"]]
-        tokens = tokenizer.tokenize(example["text"])
-        token_boxes = [box] * len(tokens)
+        tokens = []
+        token_boxes = []
+        for _, example in examples.items():
+            box = [example["x0"], example["y0"], example["x1"], example["y1"]]
+            tokenised_word = tokenizer.tokenize(example["text"])
+            tokens.extend(tokenised_word)
+            token_boxes.extend([box] * len(tokenised_word))
+
         special_tokens_count = 3 if sep_token_extra else 2
         if len(tokens) > max_seq_length - special_tokens_count:
             tokens = tokens[: (max_seq_length - special_tokens_count)]
@@ -117,10 +125,10 @@ class PrepareRicoLayoutLM(Task):
         assert len(token_boxes) == max_seq_length
 
         features = {
-            "ui_input_ids": input_ids,
-            "ui_input_mask": input_mask,
-            "ui_segment_ids": segment_ids,
-            "ui_boxes": token_boxes,
+            "ui_input_ids": torch.LongTensor(input_ids),
+            "ui_input_mask": torch.LongTensor(input_mask),
+            "ui_segment_ids": torch.LongTensor(segment_ids),
+            "ui_boxes": torch.LongTensor(token_boxes),
         }
 
         return features
