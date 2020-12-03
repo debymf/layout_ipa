@@ -1,37 +1,33 @@
-import json
 import os
 import random
-
+import torch.nn as nn
 import numpy as np
 import torch
-
 from loguru import logger
 from overrides import overrides
 from prefect import Task
-from sklearn.metrics import precision_recall_fscore_support
 from torch.utils.data import DataLoader
 from tqdm import tqdm, trange
 from transformers import (
-    AutoTokenizer,
-    AutoModelForMultipleChoice,
+    AdamW,
     AutoConfig,
     AutoModel,
-)
-from transformers import (
-    AdamW,
-    BertConfig,
-    BertForSequenceClassification,
+    AutoModelForSequenceClassification,
     get_linear_schedule_with_warmup,
 )
+from torch.utils.data import WeightedRandomSampler
+import json
+from sklearn.metrics import precision_recall_fscore_support
+from layout_ipa.models import LayoutIpa
 
 
-class SelectionTransformerTrainer(Task):
+class SelectionLayoutIPATrainer(Task):
     def __init__(self, **kwargs):
-        super(SelectionTransformerTrainer, self).__init__(**kwargs)
-        self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 6)
+        super(SelectionLayoutIPATrainer, self).__init__(**kwargs)
+        self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 4)
         self.cuda = kwargs.get("cuda", True)
         self.gradient_accumulation_steps = kwargs.get("gradient_accumulation_steps", 1)
-        self.num_train_epochs = kwargs.get("num_train_epochs", 10)
+        self.num_train_epochs = kwargs.get("num_train_epochs", 30)
         self.learning_rate = kwargs.get("learning_rate", 1e-5)
         self.weight_decay = kwargs.get("weight_decay", 0.0)
         self.adam_epsilon = kwargs.get("adam_epsilon", 1e-8)
@@ -40,7 +36,7 @@ class SelectionTransformerTrainer(Task):
         self.logging_steps = kwargs.get("logging_steps", 5)
         self.args = kwargs
 
-    def set_seed(self, n_gpu, seed=1500):
+    def set_seed(self, n_gpu, seed=42):
         random.seed(seed)
         np.random.seed(seed)
         torch.manual_seed(seed)
@@ -56,7 +52,7 @@ class SelectionTransformerTrainer(Task):
         task_name,
         output_dir,
         bert_model="bert-base-uncased",
-        num_labels=261,
+        num_labels=2,
         mode="train",
         eval_fn=None,
         save_optimizer=False,
@@ -69,29 +65,24 @@ class SelectionTransformerTrainer(Task):
 
         n_gpu = torch.cuda.device_count()
         self.logger.info(f"GPUs used {n_gpu}")
+
         train_batch_size = self.per_gpu_batch_size * max(1, n_gpu)
 
         train_dataloader = DataLoader(
-            train_dataset, batch_size=train_batch_size, shuffle=True
+            train_dataset, batch_size=train_batch_size, shuffle=True,
         )
         dev_dataloader = DataLoader(
-            dev_dataset, batch_size=train_batch_size, shuffle=False
+            dev_dataset, batch_size=train_batch_size, shuffle=True,
         )
 
         self.set_seed(n_gpu)
+
+        criterion = nn.CrossEntropyLoss()
+
         outputs = {}
         if mode == "train":
             logger.info("Running train mode")
-            if ("bert-base" in bert_model or "bert-large" in bert_model) and "snli" not in bert_model:
-                bert_config = AutoConfig.from_pretrained(
-                    bert_model, num_labels=num_labels
-                )
-                model = AutoModelForMultipleChoice.from_pretrained(
-                    bert_model, config=bert_config
-                )
-            else:
-                model = AutoModelForMultipleChoice.from_pretrained(bert_model)
-
+            model = LayoutIpa(train_batch_size)
             model = model.to(device)
             if n_gpu > 1:
                 model = torch.nn.DataParallel(model)
@@ -101,27 +92,26 @@ class SelectionTransformerTrainer(Task):
                 dev_dataloader,
                 dev_dataset,
                 device,
+                criterion,
                 n_gpu,
                 eval_fn,
                 f"{output_dir}/{task_name}",
                 save_optimizer,
                 eval_params,
+                bert_model=bert_model,
             )
             outputs["epoch_results "] = epoch_results
-        logger.info("Running evalutaion mode")
+        logger.info("Running evaluation mode")
         logger.info(f"Loading from {output_dir}/{task_name}")
-        if ("bert-base" in bert_model or "bert-large" in bert_model) and "snli" not in bert_model:
-            bert_config = AutoConfig.from_pretrained(f"{output_dir}/{task_name}")
-            model = AutoModelForMultipleChoice.from_pretrained(
-                f"{output_dir}/{task_name}", config=bert_config
-            )
-        else:
-            model = AutoModelForMultipleChoice.from_pretrained(
-                f"{output_dir}/{task_name}"
-            )
+        model = LayoutIpa(train_batch_size)
+        model.load_state_dict(
+            torch.load(os.path.join(f"{output_dir}/{task_name}", "training_args.bin"))
+        )
+
 
         model.to(device)
         score = self.eval(
+            criterion,
             model,
             dev_dataloader,
             dev_dataset,
@@ -130,6 +120,7 @@ class SelectionTransformerTrainer(Task):
             eval_fn,
             eval_params,
             mode="dev",
+            bert_model=bert_model,
         )
         outputs["dev"] = {
             "score": score,
@@ -139,6 +130,7 @@ class SelectionTransformerTrainer(Task):
                 test_dataset, batch_size=train_batch_size, shuffle=False
             )
             score = self.eval(
+                criterion,
                 model,
                 test_data_loader,
                 test_dataset,
@@ -147,6 +139,7 @@ class SelectionTransformerTrainer(Task):
                 eval_fn,
                 eval_params,
                 mode="test",
+                bert_model=bert_model,
             )
             outputs["test"] = {
                 "score": score,
@@ -161,11 +154,13 @@ class SelectionTransformerTrainer(Task):
         dev_dataloader,
         dev_dataset,
         device,
+        criterion,
         n_gpu,
         eval_fn,
         output_dir,
         save_optimizer,
         eval_params,
+        bert_model,
     ):
         results = {}
         best_score = 0.0
@@ -201,7 +196,6 @@ class SelectionTransformerTrainer(Task):
         scheduler = get_linear_schedule_with_warmup(
             optimizer, num_warmup_steps=self.warmup_steps, num_training_steps=t_total,
         )
-        # criterion = torch.nn.CrossEntropyLoss()
 
         global_step = 0
         epochs_trained = 0
@@ -212,6 +206,7 @@ class SelectionTransformerTrainer(Task):
         train_iterator = trange(
             epochs_trained, int(self.num_train_epochs), desc="Epoch",
         )
+
         for epoch in train_iterator:
             epoch_iterator = tqdm(train_dataloader, desc="Iteration")
             for step, batch in enumerate(epoch_iterator):
@@ -222,21 +217,26 @@ class SelectionTransformerTrainer(Task):
                     continue
 
                 model.train()
+
                 batch = tuple(t.to(device) for t in batch)
-                inputs = {
+                inputs_inst = {
                     "input_ids": batch[0],
                     "attention_mask": batch[1],
                     "token_type_ids": batch[2],
-                    "labels": batch[3],
                 }
 
-                print(inputs["labels"].shape)
-                print(inputs["attention_mask"].shape)
-                print(inputs["input_ids"].shape)
-                print(inputs["token_type_ids"].shape)
-                outputs = model(**inputs)
+                inputs_ui = {
+                    "input_ids": batch[3],
+                    "position_ids": batch[4],
+                    "token_type_ids": batch[5],
+                    "bbox": batch[6],
+                }
 
-                loss = outputs[0]
+                outputs = model(inputs_inst, inputs_ui)
+
+                labels = batch[7]
+
+                loss = criterion(outputs, labels)
 
                 if n_gpu > 1:
                     loss = (
@@ -266,6 +266,7 @@ class SelectionTransformerTrainer(Task):
                         )
                         logging_loss = tr_loss
             score = self.eval(
+                criterion,
                 model,
                 dev_dataloader,
                 dev_dataset,
@@ -274,6 +275,7 @@ class SelectionTransformerTrainer(Task):
                 eval_fn,
                 eval_params,
                 mode="dev",
+                bert_model=bert_model,
             )
             results[epoch] = score
             with torch.no_grad():
@@ -284,28 +286,40 @@ class SelectionTransformerTrainer(Task):
                     model_to_save = (
                         model.module if hasattr(model, "module") else model
                     )  # Take care of distributed/parallel training
-                    model_to_save.save_pretrained(output_dir)
 
-                    torch.save(self.args, os.path.join(output_dir, "training_args.bin"))
+                    torch.save(
+                        model_to_save.state_dict(),
+                        os.path.join(output_dir, "training_args.bin"),
+                    )
                     logger.info(f"Saving model checkpoint to {output_dir}")
-                    if save_optimizer:
-                        torch.save(
-                            optimizer.state_dict(),
-                            os.path.join(output_dir, "optimizer.pt"),
-                        )
-                        torch.save(
-                            scheduler.state_dict(),
-                            os.path.join(output_dir, "scheduler.pt"),
-                        )
-                        logger.info(
-                            "Saving optimizer and scheduler states to %s", output_dir
-                        )
+                    # if save_optimizer:
+                    #     torch.save(
+                    #         optimizer.state_dict(),
+                    #         os.path.join(output_dir, "optimizer.pt"),
+                    #     )
+                    #     torch.save(
+                    #         scheduler.state_dict(),
+                    #         os.path.join(output_dir, "scheduler.pt"),
+                    #     )
+                    #     logger.info(
+                    #         "Saving optimizer and scheduler states to %s", output_dir
+                    #     )
                     best_score = score
 
-        return results
+        # return results
 
     def eval(
-        self, model, dataloader, dataset, device, n_gpu, eval_fn, eval_params, mode
+        self,
+        criterion,
+        model,
+        dataloader,
+        dataset,
+        device,
+        n_gpu,
+        eval_fn,
+        eval_params,
+        mode,
+        bert_model="bert",
     ):
         if n_gpu > 1 and not isinstance(model, torch.nn.DataParallel):
             model = torch.nn.DataParallel(model)
@@ -318,26 +332,38 @@ class SelectionTransformerTrainer(Task):
             batch = tuple(t.to(device) for t in batch)
 
             with torch.no_grad():
-                inputs = {
+                inputs_inst = {
                     "input_ids": batch[0],
                     "attention_mask": batch[1],
                     "token_type_ids": batch[2],
-                    "labels": batch[3],
                 }
-                outputs = model(**inputs)
-                tmp_eval_loss, logits = outputs[:2]
+
+                inputs_ui = {
+                    "input_ids": batch[3],
+                    "position_ids": batch[4],
+                    "token_type_ids": batch[5],
+                    "bbox": batch[6],
+                }
+
+                outputs = model(inputs_inst, inputs_ui)
+
+                labels = batch[7]
+
+                loss = criterion(outputs, labels)
 
                 eval_loss += outputs[0].mean().item()
+
             nb_eval_steps += 1
             if preds is None:
-                preds = logits.detach().cpu().numpy()
-                out_label_ids = inputs["labels"].detach().cpu().numpy()
-            else:
-                preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
-                out_label_ids = np.append(
-                    out_label_ids, inputs["labels"].detach().cpu().numpy(), axis=0
-                )
+                preds = outputs.detach().cpu().numpy()
+                out_label_ids = labels.detach().cpu().numpy()
 
+            else:
+                preds = np.append(preds, outputs.detach().cpu().numpy(), axis=0)
+
+                out_label_ids = np.append(
+                    out_label_ids, labels.detach().cpu().numpy(), axis=0
+                )
 
         eval_loss = eval_loss / nb_eval_steps
 
@@ -345,14 +371,11 @@ class SelectionTransformerTrainer(Task):
         if eval_fn is not None:
             preds = np.argmax(preds, axis=1)
             score = eval_fn(preds, out_label_ids)
-            if mode == "test":
+            # if mode == "test":
+            #     out_preds = {"preds": preds.tolist(), "gold": out_label_ids.tolist()}
+            #     with open(f"./cache/output/bin_preds.json", "w") as fp:
+            #         json.dump(out_preds, fp)
 
-                out_preds = {
-                    "preds": np.argmax(preds, axis=1).tolist(),
-                    "gold": out_label_ids.tolist(),
-                }
-                with open("./cache/bin_preds_bert.json", "w") as fp:
-                    json.dump(out_preds, fp)
+            logger.info(f"Score:{score}")
 
-        logger.info(f"Score:{score}")
         return score

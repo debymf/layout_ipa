@@ -29,7 +29,7 @@ class LayoutIpa(nn.Module):
         self.model_ui = LayoutlmModel.from_pretrained(
             LAYOUT_LM_MODEL, config=layout_lm_config
         )
-        self.linear_layer = nn.Linear(768 * 4, 200)
+        self.linear_layer = nn.Linear(768 * 4, 261)
 
     def forward(self, input_instructions, input_ui):
 

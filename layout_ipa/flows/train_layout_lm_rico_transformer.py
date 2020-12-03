@@ -8,9 +8,9 @@ from prefect.engine.flow_runner import FlowRunner
 from prefect.engine.results import LocalResult
 from layout_ipa.tasks.preprocessing.rico_sca import (
     PrepareRicoScaSelect,
-    PrepareRicoLayoutLMSelect,
+    PrepareRicoTransformerSelect,
 )
-from layout_ipa.tasks.models import SelectionLayoutIPATrainer
+from layout_ipa.tasks.models import SelectionTransformerTrainer
 from sklearn.metrics import accuracy_score
 
 layout_lm_model = settings["layout_lm_base"]
@@ -25,20 +25,20 @@ cache_args = dict(
     result=LocalResult(dir=f"./cache/datasets/rico/"),
 )
 prepare_rico_task = PrepareRicoScaSelect(**cache_args)
-prepare_rico_layout_task = PrepareRicoLayoutLMSelect(**cache_args)
-transformer_trainer_task = SelectionLayoutIPATrainer()
+prepare_rico_transformer_task = PrepareRicoTransformerSelect(**cache_args)
+transformer_trainer_task = SelectionTransformerTrainer()
 
 
 with Flow("Running the task with the RicoSCA dataset") as flow1:
     with tags("train"):
         train_input = prepare_rico_task(train_path)
-        train_dataset = prepare_rico_layout_task(train_input)
+        train_dataset = prepare_rico_transformer_task(train_input, bert_model="bert-base-uncased")
     with tags("dev"):
         dev_input = prepare_rico_task(train_path)
-        dev_dataset = prepare_rico_layout_task(train_input)
+        dev_dataset = prepare_rico_transformer_task(train_input, bert_model="bert-base-uncased",)
     with tags("test"):
         test_input = prepare_rico_task(test_path)
-        test_dataset = prepare_rico_layout_task(test_input)
+        test_dataset = prepare_rico_transformer_task(test_input, bert_model="bert-base-uncased",)
     transformer_trainer_task(
         train_dataset=train_dataset,
         dev_dataset=dev_dataset,

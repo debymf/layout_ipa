@@ -1,2 +1,3 @@
 from .seq_trainer import SeqTransformerTrainer
+from .selection_layoutipa_trainer import SelectionLayoutIPATrainer
 from .selection_trainer import SelectionTransformerTrainer
