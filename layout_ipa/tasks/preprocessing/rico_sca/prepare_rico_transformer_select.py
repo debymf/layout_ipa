@@ -20,12 +20,15 @@ class PrepareRicoTransformerSelect(Task):
         entries = dict()
         
         for id_d, content in tqdm(input_data.items()):
-            
-            
+            ui_elements = []
+            encoding_instruction = []
+            for id_ui, ui_element in content["ui"].items():    
+                ui_elements.append(ui_element["text"])
 
-            for id_ui, ui_element in content["ui"].items():
-                ui_elements = []
-                encoded_element = tokenizer_instruction.encode_plus(
+            if len(ui_elements)<num_choices:
+                ui_elements.append(""*num_choices-len(ui_elements))
+            
+            encoded_element = tokenizer_instruction.encode_plus(
                     content["instruction"], ui_element["text"], padding="max_length", max_length=largest, truncation=True
                 )
 
