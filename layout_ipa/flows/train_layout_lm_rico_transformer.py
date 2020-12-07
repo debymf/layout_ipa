@@ -15,17 +15,20 @@ from sklearn.metrics import accuracy_score
 
 layout_lm_model = settings["layout_lm_base"]
 
-train_path = settings["rico_sca_sample"]["train"]
-dev_path = settings["rico_sca_sample"]["dev"]
-test_path = settings["rico_sca_sample"]["test"]
+train_path = settings["rico_sca"]["train"]
+dev_path = settings["rico_sca"]["dev"]
+test_path = settings["rico_sca"]["test"]
+# train_path = settings["sample_rico_sca"]
+# dev_path = settings["sample_rico_sca"]
+# test_path = settings["sample_rico_sca"]
 
 cache_args = dict(
     target="{task_name}-{task_tags}.pkl",
     checkpoint=True,
     result=LocalResult(dir=f"./cache/datasets/rico/"),
 )
-prepare_rico_task = PrepareRicoScaSelect(**cache_args)
-prepare_rico_transformer_task = PrepareRicoTransformerSelect(**cache_args)
+prepare_rico_task = PrepareRicoScaSelect()
+prepare_rico_transformer_task = PrepareRicoTransformerSelect()
 transformer_trainer_task = SelectionTransformerTrainer()
 
 
@@ -34,8 +37,8 @@ with Flow("Running the task with the RicoSCA dataset") as flow1:
         train_input = prepare_rico_task(train_path)
         train_dataset = prepare_rico_transformer_task(train_input, bert_model="bert-base-uncased")
     with tags("dev"):
-        dev_input = prepare_rico_task(train_path)
-        dev_dataset = prepare_rico_transformer_task(train_input, bert_model="bert-base-uncased",)
+        dev_input = prepare_rico_task(dev_path)
+        dev_dataset = prepare_rico_transformer_task(dev_input, bert_model="bert-base-uncased",)
     with tags("test"):
         test_input = prepare_rico_task(test_path)
         test_dataset = prepare_rico_transformer_task(test_input, bert_model="bert-base-uncased",)

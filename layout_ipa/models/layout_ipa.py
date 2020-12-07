@@ -6,7 +6,7 @@ from transformers import AutoModel, AutoConfig
 from torch.autograd import Variable
 from dynaconf import settings
 from .layoutlm import LayoutlmConfig, LayoutlmEmbeddings, LayoutlmModel
-
+from .bidaf import BidafAttn
 torch.utils.backcompat.broadcast_warning.enabled = True
 torch.set_printoptions(threshold=5000)
 
@@ -29,34 +29,32 @@ class LayoutIpa(nn.Module):
         self.model_ui = LayoutlmModel.from_pretrained(
             LAYOUT_LM_MODEL, config=layout_lm_config
         )
-        self.linear_layer = nn.Linear(768 * 4, 261)
+
+        self.bidaf_layer = BidafAttn(768)
+        self.linear_layer1 = nn.Linear(768 * 4, 1)
+        self.linear_layer2 = nn.Linear(512, 261)
 
     def forward(self, input_instructions, input_ui):
 
         output_instruction_model = self.model_instruction(**input_instructions)
         instruction_representation = output_instruction_model[1]
 
+
         output_ui_model = self.model_ui(**input_ui)
+
 
         ui_representation = output_ui_model[1]
 
-        # print("instruction")
-        # print(instruction_representation)
-        # input()
-        # print("ui representation")
-        # print(ui_representation)
-        # input()
-        both_representations = torch.cat(
-            [
-                instruction_representation,
-                ui_representation,
-                torch.abs(instruction_representation - ui_representation),
-                instruction_representation * ui_representation,
-            ],
-            dim=1,
-        )
 
-        output = self.linear_layer(both_representations)
+        #both_representations = self.bidaf_layer(ui_representation, instruction_representation)
+
+        both_representations = self.linear_layer1(both_representations).squeeze()
+
+        output = self.linear_layer2(both_representations)
+
+        output = output.view(-1, 261)
+        
+        
 
         return output
 

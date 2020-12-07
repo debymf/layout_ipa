@@ -19,10 +19,14 @@ train_path = settings["rico_sca_sample"]["train"]
 dev_path = settings["rico_sca_sample"]["dev"]
 test_path = settings["rico_sca_sample"]["test"]
 
+# train_path = settings["sample_rico_sca"]
+# dev_path = settings["sample_rico_sca"]
+# test_path = settings["sample_rico_sca"]
+
 cache_args = dict(
     target="{task_name}-{task_tags}.pkl",
     checkpoint=True,
-    result=LocalResult(dir=f"./cache/datasets/rico/"),
+    result=LocalResult(dir=f"./cache/datasets/rico/layout_ipa"),
 )
 prepare_rico_task = PrepareRicoScaSelect(**cache_args)
 prepare_rico_layout_task = PrepareRicoLayoutLMSelect(**cache_args)
@@ -34,17 +38,17 @@ with Flow("Running the task with the RicoSCA dataset") as flow1:
         train_input = prepare_rico_task(train_path)
         train_dataset = prepare_rico_layout_task(train_input)
     with tags("dev"):
-        dev_input = prepare_rico_task(train_path)
-        dev_dataset = prepare_rico_layout_task(train_input)
+        dev_input = prepare_rico_task(dev_path)
+        dev_dataset = prepare_rico_layout_task(dev_input)
     with tags("test"):
         test_input = prepare_rico_task(test_path)
         test_dataset = prepare_rico_layout_task(test_input)
     transformer_trainer_task(
         train_dataset=train_dataset,
-        dev_dataset=dev_dataset,
+        dev_dataset=train_dataset,
         test_dataset=test_dataset,
-        task_name="span_vtds",
-        output_dir="./cache/span_vtds/",
+        task_name="layout_ipa_inference_concat",
+        output_dir="./cache/layout_ipa/",
         eval_fn=accuracy_score,
     )
 
