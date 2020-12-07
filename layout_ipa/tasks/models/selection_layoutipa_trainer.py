@@ -64,6 +64,8 @@ class SelectionLayoutIPATrainer(Task):
         )
 
         n_gpu = torch.cuda.device_count()
+        n_gpu = 0
+        device = "cpu"
         self.logger.info(f"GPUs used {n_gpu}")
 
         train_batch_size = self.per_gpu_batch_size * max(1, n_gpu)
@@ -107,7 +109,6 @@ class SelectionLayoutIPATrainer(Task):
         model.load_state_dict(
             torch.load(os.path.join(f"{output_dir}/{task_name}", "training_args.bin"))
         )
-
 
         model.to(device)
         score = self.eval(

@@ -7,6 +7,7 @@ from torch.autograd import Variable
 from dynaconf import settings
 from .layoutlm import LayoutlmConfig, LayoutlmEmbeddings, LayoutlmModel
 from .bidaf import BidafAttn
+
 torch.utils.backcompat.broadcast_warning.enabled = True
 torch.set_printoptions(threshold=5000)
 
@@ -37,24 +38,21 @@ class LayoutIpa(nn.Module):
     def forward(self, input_instructions, input_ui):
 
         output_instruction_model = self.model_instruction(**input_instructions)
-        instruction_representation = output_instruction_model[1]
-
+        instruction_representation = output_instruction_model[0]
 
         output_ui_model = self.model_ui(**input_ui)
 
+        ui_representation = output_ui_model[0]
 
-        ui_representation = output_ui_model[1]
-
-
-        #both_representations = self.bidaf_layer(ui_representation, instruction_representation)
+        both_representations = self.bidaf_layer(
+            ui_representation, instruction_representation
+        )
 
         both_representations = self.linear_layer1(both_representations).squeeze()
 
         output = self.linear_layer2(both_representations)
 
         output = output.view(-1, 261)
-        
-        
 
         return output
 

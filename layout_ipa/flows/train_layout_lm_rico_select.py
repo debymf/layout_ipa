@@ -15,21 +15,21 @@ from sklearn.metrics import accuracy_score
 
 layout_lm_model = settings["layout_lm_base"]
 
-train_path = settings["rico_sca_sample"]["train"]
-dev_path = settings["rico_sca_sample"]["dev"]
-test_path = settings["rico_sca_sample"]["test"]
+# train_path = settings["rico_sca_sample"]["train"]
+# dev_path = settings["rico_sca_sample"]["dev"]
+# test_path = settings["rico_sca_sample"]["test"]
 
-# train_path = settings["sample_rico_sca"]
-# dev_path = settings["sample_rico_sca"]
-# test_path = settings["sample_rico_sca"]
+train_path = settings["sample_rico_sca"]
+dev_path = settings["sample_rico_sca"]
+test_path = settings["sample_rico_sca"]
 
 cache_args = dict(
     target="{task_name}-{task_tags}.pkl",
     checkpoint=True,
     result=LocalResult(dir=f"./cache/datasets/rico/layout_ipa"),
 )
-prepare_rico_task = PrepareRicoScaSelect(**cache_args)
-prepare_rico_layout_task = PrepareRicoLayoutLMSelect(**cache_args)
+prepare_rico_task = PrepareRicoScaSelect()
+prepare_rico_layout_task = PrepareRicoLayoutLMSelect()
 transformer_trainer_task = SelectionLayoutIPATrainer()
 
 

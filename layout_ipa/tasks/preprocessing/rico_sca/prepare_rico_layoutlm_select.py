@@ -74,7 +74,9 @@ class PrepareRicoLayoutLMSelect(Task):
             box = [example["x0"], example["y0"], example["x1"], example["y1"]]
             tokenised_word = tokenizer.tokenize(example["text"])
             tokens.extend(tokenised_word)
+            tokens.append("[SEP]")
             token_boxes.extend([box] * len(tokenised_word))
+            token_boxes.append(sep_token_box)
 
         special_tokens_count = 3 if sep_token_extra else 2
         if len(tokens) > max_seq_length - special_tokens_count:
