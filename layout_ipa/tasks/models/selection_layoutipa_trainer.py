@@ -29,7 +29,7 @@ class SelectionLayoutIPATrainer(Task):
         self.gradient_accumulation_steps = kwargs.get("gradient_accumulation_steps", 1)
         self.num_train_epochs = kwargs.get("num_train_epochs", 20)
         self.learning_rate = kwargs.get("learning_rate", 1e-5)
-        self.weight_decay = kwargs.get("weight_decay", 0.0)
+        self.weight_decay = kwargs.get("weight_decay", 0.1)
         self.adam_epsilon = kwargs.get("adam_epsilon", 1e-8)
         self.warmup_steps = kwargs.get("warmup_steps", 0)
         self.max_grad_norm = kwargs.get("max_grad_norm", 1.0)
@@ -64,8 +64,8 @@ class SelectionLayoutIPATrainer(Task):
         )
 
         n_gpu = torch.cuda.device_count()
-        n_gpu = 0
-        device = "cpu"
+        #n_gpu = 0
+        #device = "cpu"
         self.logger.info(f"GPUs used {n_gpu}")
 
         train_batch_size = self.per_gpu_batch_size * max(1, n_gpu)
@@ -293,18 +293,6 @@ class SelectionLayoutIPATrainer(Task):
                         os.path.join(output_dir, "training_args.bin"),
                     )
                     logger.info(f"Saving model checkpoint to {output_dir}")
-                    # if save_optimizer:
-                    #     torch.save(
-                    #         optimizer.state_dict(),
-                    #         os.path.join(output_dir, "optimizer.pt"),
-                    #     )
-                    #     torch.save(
-                    #         scheduler.state_dict(),
-                    #         os.path.join(output_dir, "scheduler.pt"),
-                    #     )
-                    #     logger.info(
-                    #         "Saving optimizer and scheduler states to %s", output_dir
-                    #     )
                     best_score = score
 
         # return results
@@ -348,11 +336,12 @@ class SelectionLayoutIPATrainer(Task):
 
                 outputs = model(inputs_inst, inputs_ui)
 
+
                 labels = batch[7]
 
-                loss = criterion(outputs, labels)
+                #loss = criterion(outputs, labels)
 
-                eval_loss += outputs[0].mean().item()
+                #eval_loss += outputs[0].mean().item()
 
             nb_eval_steps += 1
             if preds is None:
@@ -366,11 +355,15 @@ class SelectionLayoutIPATrainer(Task):
                     out_label_ids, labels.detach().cpu().numpy(), axis=0
                 )
 
-        eval_loss = eval_loss / nb_eval_steps
+        #eval_loss = eval_loss / nb_eval_steps
 
         score = None
         if eval_fn is not None:
             preds = np.argmax(preds, axis=1)
+            print("PREDS")
+            print(preds)
+            print("OUT_LABEL_IDS")
+            print(out_label_ids)
             score = eval_fn(preds, out_label_ids)
             # if mode == "test":
             #     out_preds = {"preds": preds.tolist(), "gold": out_label_ids.tolist()}
