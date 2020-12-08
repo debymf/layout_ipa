@@ -78,7 +78,7 @@ class PrepareRicoLayoutLMSelect(Task):
             token_boxes.extend([box] * len(tokenised_word))
             token_boxes.append(sep_token_box)
 
-        special_tokens_count = 3 if sep_token_extra else 2
+        special_tokens_count = 2 if sep_token_extra else 1
         if len(tokens) > max_seq_length - special_tokens_count:
             tokens = tokens[: (max_seq_length - special_tokens_count)]
             token_boxes = token_boxes[: (max_seq_length - special_tokens_count)]
