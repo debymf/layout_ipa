@@ -46,7 +46,7 @@ class PrepareRicoLayoutLMSelect(Task):
         examples,
         max_seq_length,
         tokenizer,
-        cls_token_at_end=False,
+        cls_token_at_end=True,
         cls_token="[CLS]",
         cls_token_segment_id=1,
         sep_token="[SEP]",
@@ -71,7 +71,12 @@ class PrepareRicoLayoutLMSelect(Task):
         tokens = []
         token_boxes = []
         for _, example in examples.items():
-            box = [example["x0"], example["y0"], example["x1"], example["y1"]]
+            box = [
+                int(example["x0"]),
+                int(example["y0"]),
+                int(example["x1"]),
+                int(example["y1"]),
+            ]
             tokenised_word = tokenizer.tokenize(example["text"])
             tokens.extend(tokenised_word)
             tokens.append("[SEP]")
@@ -83,12 +88,12 @@ class PrepareRicoLayoutLMSelect(Task):
             tokens = tokens[: (max_seq_length - special_tokens_count)]
             token_boxes = token_boxes[: (max_seq_length - special_tokens_count)]
 
-        tokens += [sep_token]
-        token_boxes += [sep_token_box]
-        if sep_token_extra:
-            # roberta uses an extra separator b/w pairs of sentences
-            tokens += [sep_token]
-            token_boxes += [sep_token_box]
+        # tokens += [sep_token]
+        # token_boxes += [sep_token_box]
+        # if sep_token_extra:
+        #     # roberta uses an extra separator b/w pairs of sentences
+        #     tokens += [sep_token]
+        #     token_boxes += [sep_token_box]
         segment_ids = [sequence_a_segment_id] * len(tokens)
 
         if cls_token_at_end:
