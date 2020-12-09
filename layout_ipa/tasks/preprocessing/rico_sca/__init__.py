@@ -4,3 +4,4 @@ from .prepare_rico_layoutlm import PrepareRicoLayoutLM
 from .prepare_rico_layoutlm_select import PrepareRicoLayoutLMSelect
 from .prepare_rico_layoutlm_only import PrepareRicoLayoutLMOnly
 from .prepare_rico_transformer_select import PrepareRicoTransformerSelect
+from .prepare_rico_transformer_select_element import PrepareRicoLayoutLMSelectElement
