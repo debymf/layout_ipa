@@ -124,11 +124,27 @@ class LayoutIpa(nn.Module):
         # output = output.view(-1, 261)
 
         output_instruction_model = self.model_instruction(**input_instructions)
+
         instruction_representation = output_instruction_model[1]
         output1 = self.dropout1(instruction_representation)
+
+        input_ui["input_ids"] = input_ui["input_ids"].view(
+            -1, input_ui["input_ids"].size(-1)
+        )
+        input_ui["position_ids"] = input_ui["position_ids"].view(
+            -1, input_ui["position_ids"].size(-1)
+        )
+        input_ui["token_type_ids"] = input_ui["token_type_ids"].view(
+            -1, input_ui["token_type_ids"].size(-1)
+        )
+        input_ui["bbox"] = input_ui["bbox"].view(-1, input_ui["bbox"].size(-2), 4)
+
         output_ui_model = self.model_ui(**input_ui)
 
         ui_representation = output_ui_model[1]
+
+        print(ui_representation.shape)
+        input()
         output2 = self.dropout2(ui_representation)
         # both_representations = torch.cat(
         #     (ui_representation, instruction_representation), dim=1
@@ -139,6 +155,8 @@ class LayoutIpa(nn.Module):
             [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
         )
         both_representations = self.linear_layer1(both_representations)
+
+        print(both_representations)
         # both_representations = self.dropout2(both_representations)
         # output = self.linear_layer2(both_representations)
 

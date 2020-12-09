@@ -13,14 +13,23 @@ tokenizer_model = settings["layout_lm_base"]
 
 
 class PrepareRicoLayoutLMSelectElement(Task):
-    def run(self, input_data, largest=512):
+    def run(self, input_data, largest=512, max_ui_elements=20):
         logger.info("*** Preprocessing Data for LayoutLM ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
         tokenizer_instruction = BertTokenizer.from_pretrained("bert-base-uncased")
         entries = dict()
         for id_d, content in tqdm(input_data.items()):
-
-            encoded_ui = self.convert_ui_to_feature(
+            if len(content["ui"]) < max_ui_elements:
+                to_add = max_ui_elements - len(content["ui"])
+                for _ in range(0, to_add):
+                    index_to_add = len(content["ui"])
+                    content["ui"][index_to_add] = dict()
+                    content["ui"][index_to_add]["text"] = ""
+                    content["ui"][index_to_add]["x0"] = 0
+                    content["ui"][index_to_add]["y0"] = 0
+                    content["ui"][index_to_add]["x1"] = 0
+                    content["ui"][index_to_add]["y1"] = 0
+            encoded_ui = self.convert_examples_to_features(
                 content["ui"], largest, tokenizer_layout,
             )
 
@@ -42,11 +51,11 @@ class PrepareRicoLayoutLMSelectElement(Task):
         return TorchDataset(entries)
 
     @staticmethod
-    def convert_ui_to_feature(
+    def convert_examples_to_features(
         examples,
         max_seq_length,
         tokenizer,
-        cls_token_at_end=True,
+        cls_token_at_end=False,
         cls_token="[CLS]",
         cls_token_segment_id=1,
         sep_token="[SEP]",
@@ -68,75 +77,81 @@ class PrepareRicoLayoutLMSelectElement(Task):
             `cls_token_segment_id` define the segment id associated to the CLS token (0 for BERT, 2 for XLNet)
         """
 
-        tokens = []
-        token_boxes = []
-        for _, example in examples.items():
+        features = dict()
+        features["ui_input_ids"] = list()
+        features["ui_input_mask"] = list()
+        features["ui_segment_ids"] = list()
+        features["ui_boxes"] = list()
+        for (_, example) in examples.items():
+            tokens = []
+            token_boxes = []
             box = [
                 int(example["x0"]),
                 int(example["y0"]),
                 int(example["x1"]),
                 int(example["y1"]),
             ]
-            tokenised_word = tokenizer.tokenize(example["text"])
-            tokens.extend(tokenised_word)
-            tokens.append("[SEP]")
-            token_boxes.extend([box] * len(tokenised_word))
-            token_boxes.append(sep_token_box)
+            word_tokens = tokenizer.tokenize(example["text"])
+            tokens.extend(word_tokens)
+            token_boxes.extend([box] * len(word_tokens))
+            # Account for [CLS] and [SEP] with "- 2" and with "- 3" for RoBERTa.
+            special_tokens_count = 3 if sep_token_extra else 2
+            if len(tokens) > max_seq_length - special_tokens_count:
+                tokens = tokens[: (max_seq_length - special_tokens_count)]
+                token_boxes = token_boxes[: (max_seq_length - special_tokens_count)]
+                actual_bboxes = actual_bboxes[: (max_seq_length - special_tokens_count)]
+                label_ids = label_ids[: (max_seq_length - special_tokens_count)]
 
-        special_tokens_count = 2 if sep_token_extra else 1
-        if len(tokens) > max_seq_length - special_tokens_count:
-            tokens = tokens[: (max_seq_length - special_tokens_count)]
-            token_boxes = token_boxes[: (max_seq_length - special_tokens_count)]
+            tokens += [sep_token]
+            token_boxes += [sep_token_box]
 
-        # tokens += [sep_token]
-        # token_boxes += [sep_token_box]
-        # if sep_token_extra:
-        #     # roberta uses an extra separator b/w pairs of sentences
-        #     tokens += [sep_token]
-        #     token_boxes += [sep_token_box]
-        segment_ids = [sequence_a_segment_id] * len(tokens)
+            if sep_token_extra:
+                # roberta uses an extra separator b/w pairs of sentences
+                tokens += [sep_token]
+                token_boxes += [sep_token_box]
 
-        if cls_token_at_end:
-            tokens += [cls_token]
-            token_boxes += [cls_token_box]
-            segment_ids += [cls_token_segment_id]
-        else:
-            tokens = [cls_token] + tokens
-            token_boxes = [cls_token_box] + token_boxes
-            segment_ids = [cls_token_segment_id] + segment_ids
+            segment_ids = [sequence_a_segment_id] * len(tokens)
 
-        input_ids = tokenizer.convert_tokens_to_ids(tokens)
+            if cls_token_at_end:
+                tokens += [cls_token]
+                token_boxes += [cls_token_box]
+                segment_ids += [cls_token_segment_id]
+            else:
+                tokens = [cls_token] + tokens
+                token_boxes = [cls_token_box] + token_boxes
+                segment_ids = [cls_token_segment_id] + segment_ids
 
-        # The mask has 1 for real tokens and 0 for padding tokens. Only real
-        # tokens are attended to.
-        input_mask = [1 if mask_padding_with_zero else 0] * len(input_ids)
+            input_ids = tokenizer.convert_tokens_to_ids(tokens)
 
-        # Zero-pad up to the sequence length.
-        padding_length = max_seq_length - len(input_ids)
-        if pad_on_left:
-            input_ids = ([pad_token] * padding_length) + input_ids
-            input_mask = (
-                [0 if mask_padding_with_zero else 1] * padding_length
-            ) + input_mask
-            segment_ids = ([pad_token_segment_id] * padding_length) + segment_ids
-            token_boxes = ([pad_token_box] * padding_length) + token_boxes
-        else:
-            input_ids += [pad_token] * padding_length
-            input_mask += [0 if mask_padding_with_zero else 1] * padding_length
-            segment_ids += [pad_token_segment_id] * padding_length
-            token_boxes += [pad_token_box] * padding_length
+            # The mask has 1 for real tokens and 0 for padding tokens. Only real
+            # tokens are attended to.
+            input_mask = [1 if mask_padding_with_zero else 0] * len(input_ids)
 
-        assert len(input_ids) == max_seq_length
-        assert len(input_mask) == max_seq_length
-        assert len(segment_ids) == max_seq_length
-        assert len(token_boxes) == max_seq_length
+            # Zero-pad up to the sequence length.
+            padding_length = max_seq_length - len(input_ids)
+            if pad_on_left:
+                input_ids = ([pad_token] * padding_length) + input_ids
+                input_mask = (
+                    [0 if mask_padding_with_zero else 1] * padding_length
+                ) + input_mask
+                segment_ids = ([pad_token_segment_id] * padding_length) + segment_ids
+                label_ids = ([pad_token_label_id] * padding_length) + label_ids
+                token_boxes = ([pad_token_box] * padding_length) + token_boxes
+            else:
+                input_ids += [pad_token] * padding_length
+                input_mask += [0 if mask_padding_with_zero else 1] * padding_length
+                segment_ids += [pad_token_segment_id] * padding_length
+                token_boxes += [pad_token_box] * padding_length
 
-        features = {
-            "ui_input_ids": torch.LongTensor(input_ids),
-            "ui_input_mask": torch.LongTensor(input_mask),
-            "ui_segment_ids": torch.LongTensor(segment_ids),
-            "ui_boxes": torch.LongTensor(token_boxes),
-        }
+            assert len(input_ids) == max_seq_length
+            assert len(input_mask) == max_seq_length
+            assert len(segment_ids) == max_seq_length
+            assert len(token_boxes) == max_seq_length
+
+            features["ui_input_ids"].append(input_ids)
+            features["ui_input_mask"].append(input_mask)
+            features["ui_segment_ids"].append(segment_ids)
+            features["ui_boxes"].append(token_boxes)
 
         return features
 

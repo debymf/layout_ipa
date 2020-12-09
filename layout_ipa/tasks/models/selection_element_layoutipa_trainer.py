@@ -64,8 +64,8 @@ class SelectionElementLayoutIPATrainer(Task):
         )
 
         n_gpu = torch.cuda.device_count()
-        # n_gpu = 0
-        # device = "cpu"
+        n_gpu = 0
+        device = "cpu"
         self.logger.info(f"GPUs used {n_gpu}")
 
         train_batch_size = self.per_gpu_batch_size * max(1, n_gpu)
