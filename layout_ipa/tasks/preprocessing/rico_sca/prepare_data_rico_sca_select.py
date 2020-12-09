@@ -34,11 +34,18 @@ class PrepareRicoScaSelect(Task):
         total_screen_elements = 0
         total_entries = 0
         largest = 0
+        removed_entry = 0
 
         for _, screen_info in input_data.items():
             ui_elements_dict = dict()
             index_ui_element = 0
+            if len(screen_info["ui_obj_str_seq"]) > 20:
+                removed_entry = removed_entry + 1
+                continue
 
+            total_screen_elements = (
+                len(screen_info["ui_obj_str_seq"]) + total_screen_elements
+            )
             for ui_element in screen_info["ui_obj_str_seq"]:
                 ui_elements_dict[index_ui_element] = {
                     "text": ui_element,
@@ -54,15 +61,16 @@ class PrepareRicoScaSelect(Task):
             index_instruction = 0
             for instruction in screen_info["instruction_str"]:
                 selected_ui_element = screen_info["ui_target_id_seq"][index_instruction]
+
                 parsed_data[total_entries] = {
                     "instruction": instruction,
                     "ui": ui_elements_dict,
                     "label": selected_ui_element,
                 }
 
-                if selected_ui_element>largest:
-                    largest = selected_ui_element
-                
+                if len(screen_info["ui_obj_str_seq"]) > largest:
+                    largest = len(screen_info["ui_obj_str_seq"])
+
                 total_entries = total_entries + 1
 
                 index_instruction = index_instruction + 1
@@ -70,5 +78,6 @@ class PrepareRicoScaSelect(Task):
         logger.info(f"Largest index of selected UI element:{largest}")
         logger.info(f"Number of different screens: {number_of_screens}.")
         logger.info(f"Total Entries: {total_entries}")
+        logger.info(f"Number of removed entries: {removed_entry}")
 
         return parsed_data

@@ -34,9 +34,9 @@ class LayoutIpa(nn.Module):
         self.dropout1 = nn.Dropout(p=0.5)
         self.dropout2 = nn.Dropout(p=0.5)
         self.bidaf_layer = BidafAttn(768)
-        self.linear_layer1 = nn.Linear(768 * 2, 261)
-        #self.linear_layer1 = nn.Linear(768 * 4, 1)
-        self.linear_layer2 = nn.Linear(512, 261)
+        self.linear_layer1 = nn.Linear(768 * 2, 20)
+        # self.linear_layer1 = nn.Linear(768 * 4, 1)
+        self.linear_layer2 = nn.Linear(512, 20)
 
     def forward(self, input_instructions, input_ui):
 
@@ -68,13 +68,13 @@ class LayoutIpa(nn.Module):
             (ui_representation, instruction_representation), dim=1
         )
 
-        #print(both_representations.shape)
+        # print(both_representations.shape)
 
         both_representations = self.linear_layer1(both_representations)
         both_representations = self.dropout2(both_representations)
-        #output = self.linear_layer2(both_representations)
+        # output = self.linear_layer2(both_representations)
 
-        #output = output.view(-1, 261)
+        # output = output.view(-1, 261)
 
         return both_representations
 

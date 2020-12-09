@@ -64,8 +64,8 @@ class SelectionLayoutIPATrainer(Task):
         )
 
         n_gpu = torch.cuda.device_count()
-        #n_gpu = 0
-        #device = "cpu"
+        # n_gpu = 0
+        # device = "cpu"
         self.logger.info(f"GPUs used {n_gpu}")
 
         train_batch_size = self.per_gpu_batch_size * max(1, n_gpu)
@@ -237,7 +237,6 @@ class SelectionLayoutIPATrainer(Task):
 
                 labels = batch[7]
 
-
                 preds = outputs.detach().cpu().numpy()
                 preds = np.argmax(preds, axis=1)
 
@@ -356,13 +355,11 @@ class SelectionLayoutIPATrainer(Task):
 
                 outputs = model(inputs_inst, inputs_ui)
 
-
                 labels = batch[7]
 
+                # loss = criterion(outputs, labels)
 
-                #loss = criterion(outputs, labels)
-
-                #eval_loss += outputs[0].mean().item()
+                # eval_loss += outputs[0].mean().item()
 
             nb_eval_steps += 1
             if preds is None:
@@ -376,7 +373,7 @@ class SelectionLayoutIPATrainer(Task):
                     out_label_ids, labels.detach().cpu().numpy(), axis=0
                 )
 
-        #eval_loss = eval_loss / nb_eval_steps
+        # eval_loss = eval_loss / nb_eval_steps
 
         score = None
         if eval_fn is not None:
