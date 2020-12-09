@@ -1,30 +1,38 @@
+import json
 import os
 import random
-import torch.nn as nn
+
 import numpy as np
 import torch
+from dynaconf import settings
 from loguru import logger
 from overrides import overrides
 from prefect import Task
+from sklearn.metrics import precision_recall_fscore_support
 from torch.utils.data import DataLoader
 from tqdm import tqdm, trange
 from transformers import (
-    AdamW,
+    AutoTokenizer,
+    AutoModelForSequenceClassification,
     AutoConfig,
     AutoModel,
-    AutoModelForSequenceClassification,
+)
+
+from layout_ipa.models import LayoutlmForSequenceClassification,  LayoutlmConfig
+from transformers import (
+    AdamW,
+    BertConfig,
+    BertForSequenceClassification,
     get_linear_schedule_with_warmup,
 )
-from torch.utils.data import WeightedRandomSampler
-import json
-from sklearn.metrics import precision_recall_fscore_support
-from layout_ipa.models import LayoutIpa
+
+LAYOUT_LM_MODEL = settings["layout_lm_base"]
 
 
-class SelectionLayoutIPATrainer(Task):
+class SelectionLayoutLMTrainer(Task):
     def __init__(self, **kwargs):
-        super(SelectionLayoutIPATrainer, self).__init__(**kwargs)
-        self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 4)
+        super(SelectionLayoutLMTrainer, self).__init__(**kwargs)
+        self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 16)
         self.cuda = kwargs.get("cuda", True)
         self.gradient_accumulation_steps = kwargs.get("gradient_accumulation_steps", 1)
         self.num_train_epochs = kwargs.get("num_train_epochs", 20)
@@ -36,7 +44,7 @@ class SelectionLayoutIPATrainer(Task):
         self.logging_steps = kwargs.get("logging_steps", 5)
         self.args = kwargs
 
-    def set_seed(self, n_gpu, seed=42):
+    def set_seed(self, n_gpu, seed=1500):
         random.seed(seed)
         np.random.seed(seed)
         torch.manual_seed(seed)
@@ -52,7 +60,7 @@ class SelectionLayoutIPATrainer(Task):
         task_name,
         output_dir,
         bert_model="bert-base-uncased",
-        num_labels=2,
+        num_labels=261,
         mode="train",
         eval_fn=None,
         save_optimizer=False,
@@ -64,27 +72,24 @@ class SelectionLayoutIPATrainer(Task):
         )
 
         n_gpu = torch.cuda.device_count()
-        #n_gpu = 0
-        #device = "cpu"
         self.logger.info(f"GPUs used {n_gpu}")
-
         train_batch_size = self.per_gpu_batch_size * max(1, n_gpu)
 
         train_dataloader = DataLoader(
-            train_dataset, batch_size=train_batch_size, shuffle=True,
+            train_dataset, batch_size=train_batch_size, shuffle=True
         )
         dev_dataloader = DataLoader(
-            dev_dataset, batch_size=train_batch_size, shuffle=True,
+            dev_dataset, batch_size=train_batch_size, shuffle=False
         )
 
         self.set_seed(n_gpu)
-
-        criterion = nn.CrossEntropyLoss()
-
         outputs = {}
         if mode == "train":
-            logger.info("Running train mode")
-            model = LayoutIpa(train_batch_size)
+            bert_config =  LayoutlmConfig.from_pretrained(LAYOUT_LM_MODEL, num_labels=num_labels)
+            model = LayoutlmForSequenceClassification.from_pretrained(
+                LAYOUT_LM_MODEL, config=bert_config
+            )
+            
             model = model.to(device)
             if n_gpu > 1:
                 model = torch.nn.DataParallel(model)
@@ -94,25 +99,24 @@ class SelectionLayoutIPATrainer(Task):
                 dev_dataloader,
                 dev_dataset,
                 device,
-                criterion,
                 n_gpu,
                 eval_fn,
                 f"{output_dir}/{task_name}",
                 save_optimizer,
                 eval_params,
-                bert_model=bert_model,
             )
             outputs["epoch_results "] = epoch_results
-        logger.info("Running evaluation mode")
+        logger.info("Running evalutaion mode")
         logger.info(f"Loading from {output_dir}/{task_name}")
-        model = LayoutIpa(train_batch_size)
-        model.load_state_dict(
-            torch.load(os.path.join(f"{output_dir}/{task_name}", "training_args.bin"))
+
+        bert_config =  LayoutlmConfig.from_pretrained(f"{output_dir}/{task_name}", num_labels=num_labels)
+        model = LayoutlmForSequenceClassification.from_pretrained(
+                f"{output_dir}/{task_name}", config=bert_config
         )
+
 
         model.to(device)
         score = self.eval(
-            criterion,
             model,
             dev_dataloader,
             dev_dataset,
@@ -121,7 +125,6 @@ class SelectionLayoutIPATrainer(Task):
             eval_fn,
             eval_params,
             mode="dev",
-            bert_model=bert_model,
         )
         outputs["dev"] = {
             "score": score,
@@ -131,7 +134,6 @@ class SelectionLayoutIPATrainer(Task):
                 test_dataset, batch_size=train_batch_size, shuffle=False
             )
             score = self.eval(
-                criterion,
                 model,
                 test_data_loader,
                 test_dataset,
@@ -140,7 +142,6 @@ class SelectionLayoutIPATrainer(Task):
                 eval_fn,
                 eval_params,
                 mode="test",
-                bert_model=bert_model,
             )
             outputs["test"] = {
                 "score": score,
@@ -155,13 +156,11 @@ class SelectionLayoutIPATrainer(Task):
         dev_dataloader,
         dev_dataset,
         device,
-        criterion,
         n_gpu,
         eval_fn,
         output_dir,
         save_optimizer,
         eval_params,
-        bert_model,
     ):
         results = {}
         best_score = 0.0
@@ -197,6 +196,7 @@ class SelectionLayoutIPATrainer(Task):
         scheduler = get_linear_schedule_with_warmup(
             optimizer, num_warmup_steps=self.warmup_steps, num_training_steps=t_total,
         )
+        # criterion = torch.nn.CrossEntropyLoss()
 
         global_step = 0
         epochs_trained = 0
@@ -207,7 +207,6 @@ class SelectionLayoutIPATrainer(Task):
         train_iterator = trange(
             epochs_trained, int(self.num_train_epochs), desc="Epoch",
         )
-
         for epoch in train_iterator:
             epoch_iterator = tqdm(train_dataloader, desc="Iteration")
             for step, batch in enumerate(epoch_iterator):
@@ -218,47 +217,37 @@ class SelectionLayoutIPATrainer(Task):
                     continue
 
                 model.train()
-
                 batch = tuple(t.to(device) for t in batch)
-                inputs_inst = {
+                inputs = {
                     "input_ids": batch[0],
-                    "attention_mask": batch[1],
+                    "position_ids": batch[1],
                     "token_type_ids": batch[2],
+                    "bbox": batch[3],
+                    "labels": batch[4]
                 }
 
-                inputs_ui = {
-                    "input_ids": batch[3],
-                    "position_ids": batch[4],
-                    "token_type_ids": batch[5],
-                    "bbox": batch[6],
-                }
 
-                outputs = model(inputs_inst, inputs_ui)
+                outputs = model(**inputs)
 
-                labels = batch[7]
+                loss, logits = outputs[:2]
 
-
-                preds = outputs.detach().cpu().numpy()
+                preds = logits.detach().cpu().numpy()
                 preds = np.argmax(preds, axis=1)
 
-                print("\n\n")
                 print("=====================================")
                 print("*** PREDS ****")
                 print(preds)
                 print("\n\n")
 
                 print("**** LABEL *****")
-                print(labels.detach().cpu().numpy())
+                print(inputs["labels"].detach().cpu().numpy())
                 print("\n\n")
 
                 print("**** SCORE ******")
-                score = eval_fn(preds, labels.detach().cpu().numpy())
+                score = eval_fn(preds, inputs["labels"].detach().cpu().numpy())
                 print(score)
                 print("\n\n")
-                print("\n\n")
-
-                loss = criterion(outputs, labels)
-
+                print("=====================================")
                 if n_gpu > 1:
                     loss = (
                         loss.mean()
@@ -287,7 +276,6 @@ class SelectionLayoutIPATrainer(Task):
                         )
                         logging_loss = tr_loss
             score = self.eval(
-                criterion,
                 model,
                 dev_dataloader,
                 dev_dataset,
@@ -296,7 +284,6 @@ class SelectionLayoutIPATrainer(Task):
                 eval_fn,
                 eval_params,
                 mode="dev",
-                bert_model=bert_model,
             )
             results[epoch] = score
             with torch.no_grad():
@@ -307,28 +294,28 @@ class SelectionLayoutIPATrainer(Task):
                     model_to_save = (
                         model.module if hasattr(model, "module") else model
                     )  # Take care of distributed/parallel training
+                    model_to_save.save_pretrained(output_dir)
 
-                    torch.save(
-                        model_to_save.state_dict(),
-                        os.path.join(output_dir, "training_args.bin"),
-                    )
+                    torch.save(self.args, os.path.join(output_dir, "training_args.bin"))
                     logger.info(f"Saving model checkpoint to {output_dir}")
+                    if save_optimizer:
+                        torch.save(
+                            optimizer.state_dict(),
+                            os.path.join(output_dir, "optimizer.pt"),
+                        )
+                        torch.save(
+                            scheduler.state_dict(),
+                            os.path.join(output_dir, "scheduler.pt"),
+                        )
+                        logger.info(
+                            "Saving optimizer and scheduler states to %s", output_dir
+                        )
                     best_score = score
 
-        # return results
+        return results
 
     def eval(
-        self,
-        criterion,
-        model,
-        dataloader,
-        dataset,
-        device,
-        n_gpu,
-        eval_fn,
-        eval_params,
-        mode,
-        bert_model="bert",
+        self, model, dataloader, dataset, device, n_gpu, eval_fn, eval_params, mode
     ):
         if n_gpu > 1 and not isinstance(model, torch.nn.DataParallel):
             model = torch.nn.DataParallel(model)
@@ -341,56 +328,53 @@ class SelectionLayoutIPATrainer(Task):
             batch = tuple(t.to(device) for t in batch)
 
             with torch.no_grad():
-                inputs_inst = {
+                inputs = {
                     "input_ids": batch[0],
-                    "attention_mask": batch[1],
+                    "position_ids": batch[1],
                     "token_type_ids": batch[2],
+                    "bbox": batch[3],
+                    "labels": batch[4]
                 }
+                outputs = model(**inputs)
+                tmp_eval_loss, logits = outputs[:2]
 
-                inputs_ui = {
-                    "input_ids": batch[3],
-                    "position_ids": batch[4],
-                    "token_type_ids": batch[5],
-                    "bbox": batch[6],
-                }
-
-                outputs = model(inputs_inst, inputs_ui)
-
-
-                labels = batch[7]
-
-
-                #loss = criterion(outputs, labels)
-
-                #eval_loss += outputs[0].mean().item()
-
+                eval_loss += outputs[0].mean().item()
             nb_eval_steps += 1
             if preds is None:
-                preds = outputs.detach().cpu().numpy()
-                out_label_ids = labels.detach().cpu().numpy()
-
+                preds = logits.detach().cpu().numpy()
+                out_label_ids = inputs["labels"].detach().cpu().numpy()
             else:
-                preds = np.append(preds, outputs.detach().cpu().numpy(), axis=0)
-
+                preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
                 out_label_ids = np.append(
-                    out_label_ids, labels.detach().cpu().numpy(), axis=0
+                    out_label_ids, inputs["labels"].detach().cpu().numpy(), axis=0
                 )
 
-        #eval_loss = eval_loss / nb_eval_steps
+
+        eval_loss = eval_loss / nb_eval_steps
 
         score = None
         if eval_fn is not None:
             preds = np.argmax(preds, axis=1)
-            print("PREDS")
+            print("\n\n")
+            print("=================================")
+            print("**** PREDS ****")
             print(preds)
-            print("OUT_LABEL_IDS")
+
+            print("***OUT LABEL IDS***")
             print(out_label_ids)
+
+            
+            print("=================================")
+            print("\n\n")
             score = eval_fn(preds, out_label_ids)
             # if mode == "test":
-            #     out_preds = {"preds": preds.tolist(), "gold": out_label_ids.tolist()}
-            #     with open(f"./cache/output/bin_preds.json", "w") as fp:
+
+            #     out_preds = {
+            #         "preds": np.argmax(preds, axis=1).tolist(),
+            #         "gold": out_label_ids.tolist(),
+            #     }
+            #     with open("./cache/bin_preds_bert.json", "w") as fp:
             #         json.dump(out_preds, fp)
 
-            logger.info(f"Score:{score}")
-
+        logger.info(f"Score:{score}")
         return score

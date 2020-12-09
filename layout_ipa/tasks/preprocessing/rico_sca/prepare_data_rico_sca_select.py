@@ -31,6 +31,7 @@ class PrepareRicoScaSelect(Task):
             input_data = json.load(f)
 
         number_of_screens = len(input_data)
+        total_screen_elements = 0
         total_entries = 0
         largest = 0
 
