@@ -13,7 +13,7 @@ tokenizer_model = settings["layout_lm_base"]
 
 
 class PrepareRicoLayoutLMSelectElement(Task):
-    def run(self, input_data, largest=512, max_ui_elements=20):
+    def run(self, input_data, largest=128, max_ui_elements=20):
         logger.info("*** Preprocessing Data for LayoutLM ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
         tokenizer_instruction = BertTokenizer.from_pretrained("bert-base-uncased")
