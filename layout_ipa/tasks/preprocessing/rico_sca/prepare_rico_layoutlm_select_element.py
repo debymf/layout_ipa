@@ -9,11 +9,11 @@ from transformers import AutoTokenizer, BertTokenizer, RobertaTokenizer
 from torch.utils.data import Dataset
 import torch
 
-tokenizer_model = settings["layout_lm_base"]
+tokenizer_model = "microsoft/layoutlm-base-uncased"
 
 
 class PrepareRicoLayoutLMSelectElement(Task):
-    def run(self, input_data, largest=512, max_ui_elements=20):
+    def run(self, input_data, largest=128, max_ui_elements=20):
         logger.info("*** Preprocessing Data for LayoutLM ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
         tokenizer_instruction = BertTokenizer.from_pretrained("bert-base-uncased")
@@ -99,8 +99,7 @@ class PrepareRicoLayoutLMSelectElement(Task):
             if len(tokens) > max_seq_length - special_tokens_count:
                 tokens = tokens[: (max_seq_length - special_tokens_count)]
                 token_boxes = token_boxes[: (max_seq_length - special_tokens_count)]
-                actual_bboxes = actual_bboxes[: (max_seq_length - special_tokens_count)]
-                label_ids = label_ids[: (max_seq_length - special_tokens_count)]
+                
 
             tokens += [sep_token]
             token_boxes += [sep_token_box]

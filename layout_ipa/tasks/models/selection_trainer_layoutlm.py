@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm, trange
 from transformers import (
     AutoTokenizer,
-    AutoModelForSequenceClassification,
+    AutoModelForMultipleChoice,
     AutoConfig,
     AutoModel,
 )
@@ -32,7 +32,7 @@ LAYOUT_LM_MODEL = settings["layout_lm_base"]
 class SelectionLayoutLMTrainer(Task):
     def __init__(self, **kwargs):
         super(SelectionLayoutLMTrainer, self).__init__(**kwargs)
-        self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 16)
+        self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 4)
         self.cuda = kwargs.get("cuda", True)
         self.gradient_accumulation_steps = kwargs.get("gradient_accumulation_steps", 1)
         self.num_train_epochs = kwargs.get("num_train_epochs", 20)
@@ -85,8 +85,8 @@ class SelectionLayoutLMTrainer(Task):
         self.set_seed(n_gpu)
         outputs = {}
         if mode == "train":
-            bert_config =  LayoutlmConfig.from_pretrained(LAYOUT_LM_MODEL, num_labels=num_labels)
-            model = LayoutlmForSequenceClassification.from_pretrained(
+            bert_config =  AutoConfig.from_pretrained(LAYOUT_LM_MODEL, num_labels=num_labels)
+            model =AutoModelForMultipleChoice.from_pretrained(
                 LAYOUT_LM_MODEL, config=bert_config
             )
             
@@ -109,8 +109,8 @@ class SelectionLayoutLMTrainer(Task):
         logger.info("Running evalutaion mode")
         logger.info(f"Loading from {output_dir}/{task_name}")
 
-        bert_config =  LayoutlmConfig.from_pretrained(f"{output_dir}/{task_name}", num_labels=num_labels)
-        model = LayoutlmForSequenceClassification.from_pretrained(
+        bert_config =  AutoConfig.from_pretrained(f"{output_dir}/{task_name}", num_labels=num_labels)
+        model = AutoModelForMultipleChoice.from_pretrained(
                 f"{output_dir}/{task_name}", config=bert_config
         )
 
@@ -231,23 +231,7 @@ class SelectionLayoutLMTrainer(Task):
 
                 loss, logits = outputs[:2]
 
-                preds = logits.detach().cpu().numpy()
-                preds = np.argmax(preds, axis=1)
-
-                print("=====================================")
-                print("*** PREDS ****")
-                print(preds)
-                print("\n\n")
-
-                print("**** LABEL *****")
-                print(inputs["labels"].detach().cpu().numpy())
-                print("\n\n")
-
-                print("**** SCORE ******")
-                score = eval_fn(preds, inputs["labels"].detach().cpu().numpy())
-                print(score)
-                print("\n\n")
-                print("=====================================")
+                
                 if n_gpu > 1:
                     loss = (
                         loss.mean()
@@ -355,17 +339,7 @@ class SelectionLayoutLMTrainer(Task):
         score = None
         if eval_fn is not None:
             preds = np.argmax(preds, axis=1)
-            print("\n\n")
-            print("=================================")
-            print("**** PREDS ****")
-            print(preds)
-
-            print("***OUT LABEL IDS***")
-            print(out_label_ids)
-
             
-            print("=================================")
-            print("\n\n")
             score = eval_fn(preds, out_label_ids)
             # if mode == "test":
 

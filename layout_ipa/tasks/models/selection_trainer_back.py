@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm, trange
 from transformers import (
     AutoTokenizer,
-    AutoModelForMultipleChoice,
+    AutoModelForSequenceClassification,
     AutoConfig,
     AutoModel,
 )
@@ -28,10 +28,10 @@ from transformers import (
 class SelectionTransformerTrainer(Task):
     def __init__(self, **kwargs):
         super(SelectionTransformerTrainer, self).__init__(**kwargs)
-        self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 4)
+        self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 16)
         self.cuda = kwargs.get("cuda", True)
         self.gradient_accumulation_steps = kwargs.get("gradient_accumulation_steps", 1)
-        self.num_train_epochs = kwargs.get("num_train_epochs", 10)
+        self.num_train_epochs = kwargs.get("num_train_epochs", 20)
         self.learning_rate = kwargs.get("learning_rate", 1e-5)
         self.weight_decay = kwargs.get("weight_decay", 0.0)
         self.adam_epsilon = kwargs.get("adam_epsilon", 1e-8)
@@ -56,7 +56,7 @@ class SelectionTransformerTrainer(Task):
         task_name,
         output_dir,
         bert_model="bert-base-uncased",
-        num_labels=20,
+        num_labels=261,
         mode="train",
         eval_fn=None,
         save_optimizer=False,
@@ -86,11 +86,11 @@ class SelectionTransformerTrainer(Task):
                 bert_config = AutoConfig.from_pretrained(
                     bert_model, num_labels=num_labels
                 )
-                model = AutoModelForMultipleChoice.from_pretrained(
+                model = AutoModelForSequenceClassification.from_pretrained(
                     bert_model, config=bert_config
                 )
             else:
-                model = AutoModelForMultipleChoice.from_pretrained(bert_model)
+                model = AutoModelForSequenceClassification.from_pretrained(bert_model)
 
             model = model.to(device)
             if n_gpu > 1:
@@ -111,12 +111,12 @@ class SelectionTransformerTrainer(Task):
         logger.info("Running evalutaion mode")
         logger.info(f"Loading from {output_dir}/{task_name}")
         if ("bert-base" in bert_model or "bert-large" in bert_model) and "snli" not in bert_model:
-            bert_config = AutoConfig.from_pretrained(f"{output_dir}/{task_name}")
-            model = AutoModelForMultipleChoice.from_pretrained(
+            bert_config = AutoConfig.from_pretrained(f"{output_dir}/{task_name}", num_labels=261)
+            model = AutoModelForSequenceClassification.from_pretrained(
                 f"{output_dir}/{task_name}", config=bert_config
             )
         else:
-            model = AutoModelForMultipleChoice.from_pretrained(
+            model = AutoModelForSequenceClassificationfrom_pretrained(
                 f"{output_dir}/{task_name}"
             )
 
@@ -229,7 +229,6 @@ class SelectionTransformerTrainer(Task):
                     "token_type_ids": batch[2],
                     "labels": batch[3],
                 }
-
 
                 outputs = model(**inputs)
 
