@@ -87,24 +87,25 @@ class LayoutIpa(nn.Module):
     ):
         super(LayoutIpa, self).__init__()
 
-        bert_config = AutoConfig.from_pretrained(BERT_MODEL)
+
+        self.model_instruction = model_instruction
+        self.model_ui = model_ui
+        # bert_config = AutoConfig.from_pretrained(BERT_MODEL)
         # self.model_instruction = AutoModel.from_pretrained(
         #     BERT_MODEL, config=bert_config
         # )
-        self.model_instruction  = model_instruction
 
-        layout_lm_config = LayoutlmConfig.from_pretrained(LAYOUT_LM_MODEL)
+        # layout_lm_config = LayoutlmConfig.from_pretrained(LAYOUT_LM_MODEL)
         # self.model_ui = LayoutlmModel.from_pretrained(
         #     LAYOUT_LM_MODEL, config=layout_lm_config
         # )
-        self.model_ui = model_ui
 
-        self.dropout1 = nn.Dropout(p=0.1)
-        self.dropout2 = nn.Dropout(p=0.1)
+        self.dropout1 = nn.Dropout(p=0.5)
+        self.dropout2 = nn.Dropout(p=0.5)
         self.bidaf_layer = BidafAttn(768)
         self.linear_layer1 = nn.Linear(768 * 2, 1)
         # self.linear_layer1 = nn.Linear(768 * 4, 1)
-        #self.linear_layer2 = nn.Linear(512, 20)
+        self.linear_layer2 = nn.Linear(512, 20)
 
     def forward(self, input_instructions, input_ui):
 
@@ -112,7 +113,7 @@ class LayoutIpa(nn.Module):
         output_instruction_model = self.model_instruction(**input_instructions)
 
         instruction_representation = output_instruction_model[1]
-        instruction_representation = self.dropout1(instruction_representation)
+        output1 = self.dropout1(instruction_representation)
 
         input_ui["input_ids"] = input_ui["input_ids"].view(
             -1, input_ui["input_ids"].size(-1)
@@ -129,19 +130,19 @@ class LayoutIpa(nn.Module):
         output_ui_model = self.model_ui(**input_ui)
         ui_representation = output_ui_model[1]
         ui_representation = self.dropout2(ui_representation)
-        instruction_representation =  torch.repeat_interleave(instruction_representation, num_choices, dim =0)  
 
-        
+        instruction_representation = instruction_representation.repeat(num_choices,1)
+
+
         both_representations = torch.cat((ui_representation, instruction_representation), dim=1)
-        #both_representations = torch.cat(
-        #     [ui_representation, instruction_representation,
-        #      torch.abs(ui_representation - instruction_representation),
-        #       ui_representation * instruction_representation], dim=1
+        # both_representations = torch.cat(
+        #     [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
         # )
         #both_representations = output1 * output2
         
 
         both_representations = self.linear_layer1(both_representations)
+        both_representations = self.dropout2(both_representations)
 
         both_representations = both_representations.view(-1, num_choices)
 

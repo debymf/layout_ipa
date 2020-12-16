@@ -2,9 +2,39 @@ from prefect import Task
 from loguru import logger
 from dynaconf import settings
 import json
+import random
 
-
+NUM_CHOICES = 20
+SHUFFLE = False
 class PrepareRicoScaSelect(Task):
+
+    def shuffle_dict(self,entries):
+        new_dict = dict()
+
+        keys =  list(entries.keys())
+        random.shuffle(keys)
+
+        mapping = dict()
+        for key in keys:
+            index_dict = len(new_dict)
+            new_dict[index_dict] = entries[key]
+            mapping[key] = index_dict
+
+
+        # print("*** DICT ***")
+        # print(new_dict)
+
+        # print("*** NEW DICT ***")
+        # print(entries)
+
+        # print("*** MAPPING ***")
+        # print(mapping)
+        # input()
+
+
+        return new_dict, mapping
+
+
     def run(self, file_location):
         """Parses the RicoSCA dataset.
 
@@ -39,7 +69,7 @@ class PrepareRicoScaSelect(Task):
         for _, screen_info in input_data.items():
             ui_elements_dict = dict()
             index_ui_element = 0
-            if len(screen_info["ui_obj_str_seq"]) > 20:
+            if len(screen_info["ui_obj_str_seq"]) > NUM_CHOICES:
                 removed_entry = removed_entry + 1
                 continue
 
@@ -47,6 +77,7 @@ class PrepareRicoScaSelect(Task):
                 len(screen_info["ui_obj_str_seq"]) + total_screen_elements
             )
             for ui_element in screen_info["ui_obj_str_seq"]:
+
                 ui_elements_dict[index_ui_element] = {
                     "text": ui_element,
                     "x0": screen_info["ui_obj_cord_x_seq"][index_ui_element * 2] * 1000,
@@ -57,21 +88,36 @@ class PrepareRicoScaSelect(Task):
                     * 1000,
                 }
                 index_ui_element = index_ui_element + 1
+            # print("*** BEFORE ***")
+            # print(ui_elements_dict)
+            # input()
+            if SHUFFLE:
+                ui_elements_dict, mapping_ui_elements = self.shuffle_dict(ui_elements_dict) 
 
+                # print("*** AFTER ***")
+                # print(ui_elements_dict)
+                # print(mapping_ui_elements)
+                # input()
             index_instruction = 0
             for instruction in screen_info["instruction_str"]:
-                selected_ui_element = screen_info["ui_target_id_seq"][index_instruction]
+                if SHUFFLE:
+                    selected_ui_element = mapping_ui_elements[screen_info["ui_target_id_seq"][index_instruction]]
+                else:
+                    selected_ui_element = screen_info["ui_target_id_seq"][index_instruction]
+                #if True:
+                #if screen_info["instruction_rule_id"][index_instruction] == 0 or screen_info["instruction_rule_id"][index_instruction] == 3:
+                if screen_info["instruction_rule_id"][index_instruction] == 2:
+                    parsed_data[total_entries] = {
+                        "instruction": instruction,
+                        "ui": ui_elements_dict,
+                        "label": selected_ui_element,
+                    }
+                    #print(parsed_data[total_entries])
 
-                parsed_data[total_entries] = {
-                    "instruction": instruction,
-                    "ui": ui_elements_dict,
-                    "label": selected_ui_element,
-                }
+                    if len(screen_info["ui_obj_str_seq"]) > largest:
+                        largest = len(screen_info["ui_obj_str_seq"])
 
-                if len(screen_info["ui_obj_str_seq"]) > largest:
-                    largest = len(screen_info["ui_obj_str_seq"])
-
-                total_entries = total_entries + 1
+                    total_entries = total_entries + 1
 
                 index_instruction = index_instruction + 1
 

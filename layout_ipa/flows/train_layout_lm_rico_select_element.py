@@ -28,6 +28,7 @@ cache_args = dict(
     checkpoint=True,
     result=LocalResult(dir=f"./cache/datasets/rico/layout_ipa"),
 )
+
 prepare_rico_task = PrepareRicoScaSelect()
 prepare_rico_layout_task = PrepareRicoLayoutLMSelectElement()
 transformer_trainer_task = SelectionElementLayoutIPATrainer()

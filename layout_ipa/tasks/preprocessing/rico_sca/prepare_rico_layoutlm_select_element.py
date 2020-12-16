@@ -9,7 +9,7 @@ from transformers import AutoTokenizer, BertTokenizer, RobertaTokenizer
 from torch.utils.data import Dataset
 import torch
 
-tokenizer_model = settings["layout_lm_base"]
+tokenizer_model = "microsoft/layoutlm-base-uncased"
 
 
 class PrepareRicoLayoutLMSelectElement(Task):
@@ -99,8 +99,7 @@ class PrepareRicoLayoutLMSelectElement(Task):
             if len(tokens) > max_seq_length - special_tokens_count:
                 tokens = tokens[: (max_seq_length - special_tokens_count)]
                 token_boxes = token_boxes[: (max_seq_length - special_tokens_count)]
-                actual_bboxes = actual_bboxes[: (max_seq_length - special_tokens_count)]
-                label_ids = label_ids[: (max_seq_length - special_tokens_count)]
+                
 
             tokens += [sep_token]
             token_boxes += [sep_token_box]

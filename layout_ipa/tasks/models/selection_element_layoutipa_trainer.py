@@ -8,18 +8,23 @@ from overrides import overrides
 from prefect import Task
 from torch.utils.data import DataLoader
 from tqdm import tqdm, trange
+from torch.optim import Adam
 from transformers import (
     AdamW,
     AutoConfig,
     AutoModel,
     AutoModelForSequenceClassification,
-    get_linear_schedule_with_warmup,
+    get_linear_schedule_with_warmup, BertModel, BertConfig
 )
+from pytorch_pretrained_bert.optimization import BertAdam
+from dynaconf import settings
+from layout_ipa.models.layoutlm import LayoutlmConfig, LayoutlmEmbeddings, LayoutlmModel
 from torch.utils.data import WeightedRandomSampler
 import json
 from sklearn.metrics import precision_recall_fscore_support
 from layout_ipa.models import LayoutIpa
-
+BERT_MODEL = "bert-base-uncased"
+LAYOUT_LM_MODEL = "microsoft/layoutlm-base-uncased"
 
 class SelectionElementLayoutIPATrainer(Task):
     def __init__(self, **kwargs):
@@ -27,11 +32,11 @@ class SelectionElementLayoutIPATrainer(Task):
         self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 16)
         self.cuda = kwargs.get("cuda", True)
         self.gradient_accumulation_steps = kwargs.get("gradient_accumulation_steps", 1)
-        self.num_train_epochs = kwargs.get("num_train_epochs", 20)
-        self.learning_rate = kwargs.get("learning_rate", 1e-5)
-        self.weight_decay = kwargs.get("weight_decay", 0.0)
+        self.num_train_epochs = kwargs.get("num_train_epochs", 50)
+        self.learning_rate = kwargs.get("learning_rate", 1e-6)
+        self.weight_decay = kwargs.get("weight_decay", 0.2)
         self.adam_epsilon = kwargs.get("adam_epsilon", 1e-8)
-        self.warmup_steps = kwargs.get("warmup_steps", 0)
+        self.warmup_steps = kwargs.get("warmup_steps", 0.1)
         self.max_grad_norm = kwargs.get("max_grad_norm", 1.0)
         self.logging_steps = kwargs.get("logging_steps", 5)
         self.args = kwargs
@@ -64,8 +69,6 @@ class SelectionElementLayoutIPATrainer(Task):
         )
 
         n_gpu = torch.cuda.device_count()
-        n_gpu = 0
-        device = "cpu"
         self.logger.info(f"GPUs used {n_gpu}")
 
         train_batch_size = self.per_gpu_batch_size * max(1, n_gpu)
@@ -74,7 +77,7 @@ class SelectionElementLayoutIPATrainer(Task):
             train_dataset, batch_size=train_batch_size, shuffle=True,
         )
         dev_dataloader = DataLoader(
-            dev_dataset, batch_size=train_batch_size, shuffle=True,
+            dev_dataset, batch_size=train_batch_size, shuffle=False,
         )
 
         self.set_seed(n_gpu)
@@ -83,13 +86,10 @@ class SelectionElementLayoutIPATrainer(Task):
 
         outputs = {}
         if mode == "train":
-            logger.info("Running train mode")
-            model = LayoutIpa(train_batch_size)
-            model = model.to(device)
-            if n_gpu > 1:
-                model = torch.nn.DataParallel(model)
+            
             epoch_results = self.train(
-                model,
+                train_dataset,
+                train_batch_size,
                 train_dataloader,
                 dev_dataloader,
                 dev_dataset,
@@ -103,17 +103,30 @@ class SelectionElementLayoutIPATrainer(Task):
                 bert_model=bert_model,
             )
             outputs["epoch_results "] = epoch_results
+
+        
         logger.info("Running evaluation mode")
         logger.info(f"Loading from {output_dir}/{task_name}")
-        model = LayoutIpa(train_batch_size)
-        model.load_state_dict(
-            torch.load(os.path.join(f"{output_dir}/{task_name}", "training_args.bin"))
+        model_state_dict = torch.load(os.path.join(f"{output_dir}/{task_name}", "training_args.bin"))
+
+        model_instruction = AutoModel.from_pretrained(
+            BERT_MODEL, state_dict=model_state_dict["instruction"]
         )
+        model_ui = AutoModel.from_pretrained(
+           LAYOUT_LM_MODEL, state_dict=model_state_dict["ui"]
+        )
+        model = LayoutIpa(train_batch_size,model_instruction, model_ui)
+        
+        model.load_state_dict(
+            model_state_dict["layoutipa"])
+        
 
         model.to(device)
         score = self.eval(
             criterion,
             model,
+            model_instruction,
+            model_ui,
             dev_dataloader,
             dev_dataset,
             device,
@@ -133,6 +146,8 @@ class SelectionElementLayoutIPATrainer(Task):
             score = self.eval(
                 criterion,
                 model,
+                model_instruction,
+                model_ui,
                 test_data_loader,
                 test_dataset,
                 device,
@@ -150,7 +165,8 @@ class SelectionElementLayoutIPATrainer(Task):
 
     def train(
         self,
-        model,
+        train_dataset,
+        train_batch_size,
         train_dataloader,
         dev_dataloader,
         dev_dataset,
@@ -171,32 +187,51 @@ class SelectionElementLayoutIPATrainer(Task):
             * self.num_train_epochs
         )
 
-        no_decay = ["bias", "LayerNorm.weight"]
+        logger.info("Running train mode")
+        bert_config = AutoConfig.from_pretrained(BERT_MODEL)
+        model_instruction = AutoModel.from_pretrained(
+            BERT_MODEL, config=bert_config
+        )
+        # Prepare optimizer for Sys1
+        param_optimizer = list(model_instruction.named_parameters())
+    
+        no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
         optimizer_grouped_parameters = [
-            {
-                "params": [
-                    p
-                    for n, p in model.named_parameters()
-                    if not any(nd in n for nd in no_decay)
-                ],
-                "weight_decay": self.weight_decay,
-            },
-            {
-                "params": [
-                    p
-                    for n, p in model.named_parameters()
-                    if any(nd in n for nd in no_decay)
-                ],
-                "weight_decay": 0.0,
-            },
+                {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+                {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
         ]
 
-        optimizer = AdamW(
-            optimizer_grouped_parameters, lr=self.learning_rate, eps=self.adam_epsilon,
+        model_instruction_opt = BertAdam(optimizer_grouped_parameters, lr = self.learning_rate, warmup = 0.1, t_total=t_total)
+        model_instruction.to(device)
+        model_instruction.train()
+
+        layout_lm_config = AutoConfig.from_pretrained(LAYOUT_LM_MODEL)
+        model_ui = AutoModel.from_pretrained(
+            LAYOUT_LM_MODEL, config=layout_lm_config
         )
+
+        param_optimizer = list(model_ui.named_parameters())
+    
+        no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+        optimizer_grouped_parameters = [
+            {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+            {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+        ]
+
+        model_ui_opt = BertAdam(optimizer_grouped_parameters, lr = self.learning_rate, warmup = 0.1, t_total=t_total)
+        model_ui.to(device)
+        model_ui.train()
+
+
+        model = LayoutIpa(train_batch_size, model_instruction, model_ui)
+        optimizer = Adam(model.parameters(), lr=self.learning_rate)
         scheduler = get_linear_schedule_with_warmup(
             optimizer, num_warmup_steps=self.warmup_steps, num_training_steps=t_total,
         )
+
+        model = model.to(device)
+        if n_gpu > 1:
+            model = torch.nn.DataParallel(model)
 
         global_step = 0
         epochs_trained = 0
@@ -204,9 +239,12 @@ class SelectionElementLayoutIPATrainer(Task):
 
         tr_loss, logging_loss = 0.0, 0.0
         model.zero_grad()
+        model_ui.zero_grad()
+        model_instruction.zero_grad()
         train_iterator = trange(
             epochs_trained, int(self.num_train_epochs), desc="Epoch",
         )
+
 
         for epoch in train_iterator:
             epoch_iterator = tqdm(train_dataloader, desc="Iteration")
@@ -218,6 +256,8 @@ class SelectionElementLayoutIPATrainer(Task):
                     continue
 
                 model.train()
+                model_instruction.train()
+                model_ui.train()
 
                 batch = tuple(t.to(device) for t in batch)
                 inputs_inst = {
@@ -237,24 +277,24 @@ class SelectionElementLayoutIPATrainer(Task):
 
                 labels = batch[7]
 
-                preds = outputs.detach().cpu().numpy()
-                preds = np.argmax(preds, axis=1)
+                # preds = outputs.detach().cpu().numpy()
+                # preds = np.argmax(preds, axis=1)
 
-                print("\n\n")
-                print("=====================================")
-                print("*** PREDS ****")
-                print(preds)
-                print("\n\n")
+                # print("\n\n")
+                # print("=====================================")
+                # print("*** PREDS ****")
+                # print(preds)
+                # print("\n\n")
 
-                print("**** LABEL *****")
-                print(labels.detach().cpu().numpy())
-                print("\n\n")
+                # print("**** LABEL *****")
+                # print(labels.detach().cpu().numpy())
+                # print("\n\n")
 
-                print("**** SCORE ******")
-                score = eval_fn(preds, labels.detach().cpu().numpy())
-                print(score)
-                print("\n\n")
-                print("\n\n")
+                # print("**** SCORE ******")
+                # score = eval_fn(preds, labels.detach().cpu().numpy())
+                # print(score)
+                # print("\n\n")
+                # print("\n\n")
 
                 loss = criterion(outputs, labels)
 
@@ -274,8 +314,13 @@ class SelectionElementLayoutIPATrainer(Task):
                     )
 
                     optimizer.step()
+                    model_ui_opt.step()
+                    model_instruction_opt.step()
                     scheduler.step()  # Update learning rate schedule
+
                     model.zero_grad()
+                    model_instruction.zero_grad()
+                    model_ui.zero_grad()
                     global_step += 1
 
                     if self.logging_steps > 0 and global_step % self.logging_steps == 0:
@@ -285,9 +330,28 @@ class SelectionElementLayoutIPATrainer(Task):
                             f"Loss :{loss_scalar} LR: {learning_rate_scalar}"
                         )
                         logging_loss = tr_loss
+            
+            print("\n\n****** TRAINING SCORES ********\n\n")
             score = self.eval(
                 criterion,
                 model,
+                model_instruction,
+                model_ui,
+                train_dataloader,
+                train_dataset,
+                device,
+                n_gpu,
+                eval_fn,
+                eval_params,
+                mode="dev",
+                bert_model=bert_model,
+            )
+
+            score = self.eval(
+                criterion,
+                model,
+                model_instruction,
+                model_ui,
                 dev_dataloader,
                 dev_dataset,
                 device,
@@ -300,26 +364,34 @@ class SelectionElementLayoutIPATrainer(Task):
             results[epoch] = score
             with torch.no_grad():
                 if score > best_score:
-                    logger.success(f"Storing the new model with score: {score}")
-                    if not os.path.exists(output_dir):
-                        os.makedirs(output_dir)
                     model_to_save = (
                         model.module if hasattr(model, "module") else model
                     )  # Take care of distributed/parallel training
+                    model_ui_to_save = (
+                        model_ui.module if hasattr(model_ui, "module") else model_ui
+                    )  # Take care of distributed/parallel training
+                    model_instruction_to_save = (
+                        model_instruction.module if hasattr(model_instruction, "module") else model_instruction
+                    )  # Take care of distributed/parallel training
+                    logger.success(f"Storing the new model with score: {score}")
+                    if not os.path.exists(output_dir):
+                        os.makedirs(output_dir)
+                    saved_dict = {'instruction' : model_instruction_to_save.state_dict()}
+                    saved_dict['ui'] = model_ui_to_save.state_dict()
+                    saved_dict['layoutipa'] = model_to_save.state_dict()
+                    torch.save(saved_dict, os.path.join(output_dir, "training_args.bin"))
 
-                    torch.save(
-                        model_to_save.state_dict(),
-                        os.path.join(output_dir, "training_args.bin"),
-                    )
-                    logger.info(f"Saving model checkpoint to {output_dir}")
+                    
                     best_score = score
 
-        # return results
+        return results
 
     def eval(
         self,
         criterion,
         model,
+        model_instruction,
+        model_ui,
         dataloader,
         dataset,
         device,
@@ -337,6 +409,8 @@ class SelectionElementLayoutIPATrainer(Task):
         out_label_ids = None
         for batch in tqdm(dataloader, desc="Evaluating"):
             model.eval()
+            model_instruction.eval()
+            model_ui.eval()
             batch = tuple(t.to(device) for t in batch)
 
             with torch.no_grad():
@@ -378,10 +452,10 @@ class SelectionElementLayoutIPATrainer(Task):
         score = None
         if eval_fn is not None:
             preds = np.argmax(preds, axis=1)
-            print("PREDS")
-            print(preds)
-            print("OUT_LABEL_IDS")
-            print(out_label_ids)
+            # print("PREDS")
+            # print(preds)
+            # print("OUT_LABEL_IDS")
+            # print(out_label_ids)
             score = eval_fn(preds, out_label_ids)
             # if mode == "test":
             #     out_preds = {"preds": preds.tolist(), "gold": out_label_ids.tolist()}

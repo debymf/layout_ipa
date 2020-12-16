@@ -13,62 +13,28 @@ tokenizer_model = settings["layout_lm_base"]
 
 
 class PrepareRicoTransformerSelect(Task):
-    # def run(self, input_data, bert_model, num_choices=261,largest=512):
-    #     logger.info("*** Preprocessing Data for Transformer-Based ***")
-    #     tokenizer= AutoTokenizer.from_pretrained(bert_model)
-    #     tokenizer_instruction = BertTokenizer.from_pretrained("bert-base-uncased")
-    #     entries = dict()
-        
-    #     for id_d, content in tqdm(input_data.items()):
-    #         ui_elements = []
-    #         encoding_instruction = []
-    #         for id_ui, ui_element in content["ui"].items():    
-    #             ui_elements.append(ui_element["text"])
-
-    #         if len(ui_elements)<num_choices:
-    #             ui_elements.extend([""]*(num_choices-len(ui_elements)))
-
-            
-    #         instruction_list = [content["instruction"]] * num_choices
-
-
-            
-
-    #         encoded_element = tokenizer_instruction(
-    #                 instruction_list, ui_elements, padding="max_length", max_length=largest, truncation=True
-    #         )
-    #         print(encoded_element)
-    #         input()
-
-    #         entries[id_d] = {
-    #             "input_ids": encoded_element["input_ids"],
-    #             "att_mask": encoded_element["attention_mask"],
-    #             "token_ids": encoded_element["token_type_ids"],
-    #             "label": content["label"],
-    #         }
-
-    #     return TorchDataset(entries)
-
-
-    def run(self, input_data, bert_model, largest=512):
+    def run(self, input_data, bert_model, num_choices=30,largest=128):
         logger.info("*** Preprocessing Data for Transformer-Based ***")
         tokenizer= AutoTokenizer.from_pretrained(bert_model)
         tokenizer_instruction = BertTokenizer.from_pretrained("bert-base-uncased")
         entries = dict()
         
         for id_d, content in tqdm(input_data.items()):
-            ui_elements = ""
-            for id_ui, ui_item in content["ui"].items():    
-                if ui_elements == "":
-                    ui_elements = ui_item["text"]
-                else:
-                    ui_elements = ui_elements + " [SEP] " + ui_item["text"]
+            ui_elements = []
+            encoding_instruction = []
+            for id_ui, ui_element in content["ui"].items():    
+                ui_elements.append(ui_element["text"])
+
+            if len(ui_elements)<num_choices:
+                ui_elements.extend([""]*(num_choices-len(ui_elements)))
+
+            
+            instruction_list = [content["instruction"]] * num_choices
 
 
-            encoded_element = tokenizer_instruction.encode_plus(
-                    content["instruction"], ui_elements, padding="max_length", max_length=largest, truncation=True
+            encoded_element = tokenizer_instruction(
+                    instruction_list, ui_elements, padding="max_length", max_length=largest, truncation=True
             )
-
 
             entries[id_d] = {
                 "input_ids": encoded_element["input_ids"],
@@ -78,6 +44,36 @@ class PrepareRicoTransformerSelect(Task):
             }
 
         return TorchDataset(entries)
+
+
+    # def run(self, input_data, bert_model, largest=512):
+    #     logger.info("*** Preprocessing Data for Transformer-Based ***")
+    #     tokenizer= AutoTokenizer.from_pretrained(bert_model)
+    #     tokenizer_instruction = BertTokenizer.from_pretrained("bert-base-uncased")
+    #     entries = dict()
+        
+    #     for id_d, content in tqdm(input_data.items()):
+    #         ui_elements = ""
+    #         for id_ui, ui_item in content["ui"].items():    
+    #             if ui_elements == "":
+    #                 ui_elements = ui_item["text"]
+    #             else:
+    #                 ui_elements = ui_elements + " [SEP] " + ui_item["text"]
+
+
+    #         encoded_element = tokenizer_instruction.encode_plus(
+    #                 content["instruction"], ui_elements, padding="max_length", max_length=largest, truncation=True
+    #         )
+
+
+    #         entries[id_d] = {
+    #             "input_ids": encoded_element["input_ids"],
+    #             "att_mask": encoded_element["attention_mask"],
+    #             "token_ids": encoded_element["token_type_ids"],
+    #             "label": content["label"],
+    #         }
+
+    #     return TorchDataset(entries)
 
 class TorchDataset(Dataset):
     def __init__(self, dataset):
