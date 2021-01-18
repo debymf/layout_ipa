@@ -1,23 +1,13 @@
-# Base code using Task Flow Paradigm
+# Layout IPA - Using Layout structures for Intelligent Process Automation
 
-Prefect (https://docs.prefect.io/) Task Flow paradigm base code for data science research
+TODO: Add proper description.
 
 ## Installing the requirements
 
-``` 
+```
 pip install -r requirements.txt
 pip install -r requirements-dev.txt
-``` 
-### Running the tests
-
-Example test:
-
 ```
-ENV_FOR_DYNACONF=test nosetests tests/tasks/sample_task/sample_task_test.py 
-```
-
-### Running the flows
-
 
 In order for the cache mechanism to work, run the following:
 
@@ -29,8 +19,46 @@ or add it to .bashrc:
 
 ```
 echo 'export PREFECT__FLOWS__CHECKPOINTING=true' >> ~/.bashrc 
+```
+
+## Running Baselines
+
+### BERT
+
+#### Pair Classification
 
 ```
+python -m  layout_ipa.flows.transformers_based.transformers_train_pair_classification
+```
+
+#### Element Selection
+
+
+#### Embedding
+
+
+### LayoutLM
+
+#### Pair Classification
+
+
+#### Element Selection
+
+
+#### Embedding
+
+
+### Running the flows
+
+#### Pair Classification
+
+
+#### Element Selection
+
+
+#### Embedding
+
+
 
 Running the example flow:
 

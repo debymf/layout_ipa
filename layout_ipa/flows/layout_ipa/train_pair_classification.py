@@ -1,0 +1,56 @@
+import prefect
+from dynaconf import settings
+from loguru import logger
+from prefect import Flow, tags
+from prefect.engine.flow_runner import FlowRunner
+from prefect.engine.results import LocalResult
+from layout_ipa.tasks.datasets_parse.rico_sca import PrepareRicoScaPair
+from layout_ipa.tasks.datasets_parse.rico_sca import PrepareRicoScaSelection
+from layout_ipa.tasks.datasets_parse.rico_sca import PrepareRicoScaEmbedding
+
+layout_lm_model = settings["layout_lm_base"]
+
+train_path = settings["rico_sca_sample"]["train"]
+dev_path = settings["rico_sca_sample"]["dev"]
+test_path = settings["rico_sca_sample"]["test"]
+# train_path = settings["sample_rico_sca"]
+# dev_path = settings["sample_rico_sca"]
+# test_path = settings["sample_rico_sca"]
+
+cache_args = dict(
+    target="{task_name}-{task_tags}.pkl",
+    checkpoint=True,
+    result=LocalResult(dir=f"./cache/datasets/rico/"),
+)
+prepare_rico_task = PrepareRicoScaPair()
+prepare_rico_transformer_task = PrepareRicoTransformerSelect()
+transformer_trainer_task = SelectionTransformerTrainer()
+
+
+with Flow("Running the task with the RicoSCA dataset") as flow1:
+    with tags("train"):
+        train_input = prepare_rico_task(train_path)
+        train_dataset = prepare_rico_transformer_task(
+            train_input, bert_model="bert-base-uncased"
+        )
+    with tags("dev"):
+        dev_input = prepare_rico_task(dev_path)
+        dev_dataset = prepare_rico_transformer_task(
+            dev_input, bert_model="bert-base-uncased",
+        )
+    with tags("test"):
+        test_input = prepare_rico_task(test_path)
+        test_dataset = prepare_rico_transformer_task(
+            test_input, bert_model="bert-base-uncased",
+        )
+    transformer_trainer_task(
+        train_dataset=train_dataset,
+        dev_dataset=dev_dataset,
+        test_dataset=test_dataset,
+        task_name="span_vtds",
+        output_dir="./cache/span_vtds/",
+        eval_fn=accuracy_score,
+    )
+
+
+FlowRunner(flow=flow1).run()
