@@ -82,16 +82,14 @@ LAYOUT_LM_MODEL = settings["layout_lm_base"]
 
 
 class LayoutIpa(nn.Module):
-    def __init__(
-        self, batch_size, model_instruction, model_ui
-    ):
+    def __init__(self, batch_size, model_instruction, model_ui):
         super(LayoutIpa, self).__init__()
 
         bert_config = AutoConfig.from_pretrained(BERT_MODEL)
         # self.model_instruction = AutoModel.from_pretrained(
         #     BERT_MODEL, config=bert_config
         # )
-        self.model_instruction  = model_instruction
+        self.model_instruction = model_instruction
 
         layout_lm_config = LayoutlmConfig.from_pretrained(LAYOUT_LM_MODEL)
         # self.model_ui = LayoutlmModel.from_pretrained(
@@ -104,7 +102,7 @@ class LayoutIpa(nn.Module):
         self.bidaf_layer = BidafAttn(768)
         self.linear_layer1 = nn.Linear(768 * 2, 1)
         # self.linear_layer1 = nn.Linear(768 * 4, 1)
-        #self.linear_layer2 = nn.Linear(512, 20)
+        # self.linear_layer2 = nn.Linear(512, 20)
 
     def forward(self, input_instructions, input_ui):
 
@@ -125,26 +123,24 @@ class LayoutIpa(nn.Module):
         )
         input_ui["bbox"] = input_ui["bbox"].view(-1, input_ui["bbox"].size(-2), 4)
 
-        
         output_ui_model = self.model_ui(**input_ui)
         ui_representation = output_ui_model[1]
         ui_representation = self.dropout2(ui_representation)
-        instruction_representation =  torch.repeat_interleave(instruction_representation, num_choices, dim =0)  
+        # instruction_representation =  torch.repeat_interleave(instruction_representation, num_choices, dim =0)
 
-        
-        both_representations = torch.cat((ui_representation, instruction_representation), dim=1)
-        #both_representations = torch.cat(
+        both_representations = torch.cat(
+            (ui_representation, instruction_representation), dim=1
+        )
+        # both_representations = torch.cat(
         #     [ui_representation, instruction_representation,
         #      torch.abs(ui_representation - instruction_representation),
         #       ui_representation * instruction_representation], dim=1
         # )
-        #both_representations = output1 * output2
-        
+        # both_representations = output1 * output2
 
         both_representations = self.linear_layer1(both_representations)
 
         both_representations = both_representations.view(-1, num_choices)
-
 
         # output = self.linear_layer2(both_representations)
 

@@ -6,12 +6,13 @@ import random
 
 NUM_CHOICES = 20
 SHUFFLE = False
-class PrepareRicoScaSelect(Task):
 
-    def shuffle_dict(self,entries):
+
+class PrepareRicoScaSelect(Task):
+    def shuffle_dict(self, entries):
         new_dict = dict()
 
-        keys =  list(entries.keys())
+        keys = list(entries.keys())
         random.shuffle(keys)
 
         mapping = dict()
@@ -19,7 +20,6 @@ class PrepareRicoScaSelect(Task):
             index_dict = len(new_dict)
             new_dict[index_dict] = entries[key]
             mapping[key] = index_dict
-
 
         # print("*** DICT ***")
         # print(new_dict)
@@ -31,9 +31,7 @@ class PrepareRicoScaSelect(Task):
         # print(mapping)
         # input()
 
-
         return new_dict, mapping
-
 
     def run(self, file_location):
         """Parses the RicoSCA dataset.
@@ -92,7 +90,9 @@ class PrepareRicoScaSelect(Task):
             # print(ui_elements_dict)
             # input()
             if SHUFFLE:
-                ui_elements_dict, mapping_ui_elements = self.shuffle_dict(ui_elements_dict) 
+                ui_elements_dict, mapping_ui_elements = self.shuffle_dict(
+                    ui_elements_dict
+                )
 
                 # print("*** AFTER ***")
                 # print(ui_elements_dict)
@@ -101,18 +101,22 @@ class PrepareRicoScaSelect(Task):
             index_instruction = 0
             for instruction in screen_info["instruction_str"]:
                 if SHUFFLE:
-                    selected_ui_element = mapping_ui_elements[screen_info["ui_target_id_seq"][index_instruction]]
+                    selected_ui_element = mapping_ui_elements[
+                        screen_info["ui_target_id_seq"][index_instruction]
+                    ]
                 else:
-                    selected_ui_element = screen_info["ui_target_id_seq"][index_instruction]
-                #if True:
-                #if screen_info["instruction_rule_id"][index_instruction] == 0 or screen_info["instruction_rule_id"][index_instruction] == 3:
-                if screen_info["instruction_rule_id"][index_instruction] == 2:
+                    selected_ui_element = screen_info["ui_target_id_seq"][
+                        index_instruction
+                    ]
+                if True:
+                    # if screen_info["instruction_rule_id"][index_instruction] == 0 or screen_info["instruction_rule_id"][index_instruction] == 3:
+                    # if screen_info["instruction_rule_id"][index_instruction] == 3:
                     parsed_data[total_entries] = {
                         "instruction": instruction,
                         "ui": ui_elements_dict,
                         "label": selected_ui_element,
                     }
-                    #print(parsed_data[total_entries])
+                    # print(parsed_data[total_entries])
 
                     if len(screen_info["ui_obj_str_seq"]) > largest:
                         largest = len(screen_info["ui_obj_str_seq"])

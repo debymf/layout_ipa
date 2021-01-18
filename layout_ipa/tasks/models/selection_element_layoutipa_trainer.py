@@ -14,17 +14,20 @@ from transformers import (
     AutoConfig,
     AutoModel,
     AutoModelForSequenceClassification,
-    get_linear_schedule_with_warmup, BertModel, BertConfig
+    get_linear_schedule_with_warmup,
+    BertModel,
+    BertConfig,
 )
-from pytorch_pretrained_bert.optimization import BertAdam
 from dynaconf import settings
 from layout_ipa.models.layoutlm import LayoutlmConfig, LayoutlmEmbeddings, LayoutlmModel
 from torch.utils.data import WeightedRandomSampler
 import json
 from sklearn.metrics import precision_recall_fscore_support
 from layout_ipa.models import LayoutIpa
+
 BERT_MODEL = "bert-base-uncased"
 LAYOUT_LM_MODEL = "microsoft/layoutlm-base-uncased"
+
 
 class SelectionElementLayoutIPATrainer(Task):
     def __init__(self, **kwargs):
@@ -86,7 +89,7 @@ class SelectionElementLayoutIPATrainer(Task):
 
         outputs = {}
         if mode == "train":
-            
+
             epoch_results = self.train(
                 train_dataset,
                 train_batch_size,
@@ -104,22 +107,21 @@ class SelectionElementLayoutIPATrainer(Task):
             )
             outputs["epoch_results "] = epoch_results
 
-        
         logger.info("Running evaluation mode")
         logger.info(f"Loading from {output_dir}/{task_name}")
-        model_state_dict = torch.load(os.path.join(f"{output_dir}/{task_name}", "training_args.bin"))
+        model_state_dict = torch.load(
+            os.path.join(f"{output_dir}/{task_name}", "training_args.bin")
+        )
 
         model_instruction = AutoModel.from_pretrained(
             BERT_MODEL, state_dict=model_state_dict["instruction"]
         )
         model_ui = AutoModel.from_pretrained(
-           LAYOUT_LM_MODEL, state_dict=model_state_dict["ui"]
+            LAYOUT_LM_MODEL, state_dict=model_state_dict["ui"]
         )
-        model = LayoutIpa(train_batch_size,model_instruction, model_ui)
-        
-        model.load_state_dict(
-            model_state_dict["layoutipa"])
-        
+        model = LayoutIpa(train_batch_size, model_instruction, model_ui)
+
+        model.load_state_dict(model_state_dict["layoutipa"])
 
         model.to(device)
         score = self.eval(
@@ -189,42 +191,71 @@ class SelectionElementLayoutIPATrainer(Task):
 
         logger.info("Running train mode")
         bert_config = AutoConfig.from_pretrained(BERT_MODEL)
-        model_instruction = AutoModel.from_pretrained(
-            BERT_MODEL, config=bert_config
-        )
+        model_instruction = AutoModel.from_pretrained(BERT_MODEL, config=bert_config)
         # Prepare optimizer for Sys1
         param_optimizer = list(model_instruction.named_parameters())
-    
-        no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+
+        no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
         optimizer_grouped_parameters = [
-                {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
-                {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+            {
+                "params": [
+                    p for n, p in param_optimizer if not any(nd in n for nd in no_decay)
+                ],
+                "weight_decay": 0.01,
+            },
+            {
+                "params": [
+                    p for n, p in param_optimizer if any(nd in n for nd in no_decay)
+                ],
+                "weight_decay": 0.0,
+            },
         ]
 
-        model_instruction_opt = BertAdam(optimizer_grouped_parameters, lr = self.learning_rate, warmup = 0.1, t_total=t_total)
+        model_instruction_opt = AdamW(
+            model_instruction.parameters(), lr=self.learning_rate
+        )
+        scheduler = get_linear_schedule_with_warmup(
+            model_instruction_opt,
+            num_warmup_steps=self.warmup_steps,
+            num_training_steps=t_total,
+        )
+
         model_instruction.to(device)
         model_instruction.train()
 
         layout_lm_config = AutoConfig.from_pretrained(LAYOUT_LM_MODEL)
-        model_ui = AutoModel.from_pretrained(
-            LAYOUT_LM_MODEL, config=layout_lm_config
-        )
+        model_ui = AutoModel.from_pretrained(LAYOUT_LM_MODEL, config=layout_lm_config)
 
         param_optimizer = list(model_ui.named_parameters())
-    
-        no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+
+        no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
         optimizer_grouped_parameters = [
-            {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
-            {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+            {
+                "params": [
+                    p for n, p in param_optimizer if not any(nd in n for nd in no_decay)
+                ],
+                "weight_decay": 0.01,
+            },
+            {
+                "params": [
+                    p for n, p in param_optimizer if any(nd in n for nd in no_decay)
+                ],
+                "weight_decay": 0.0,
+            },
         ]
 
-        model_ui_opt = BertAdam(optimizer_grouped_parameters, lr = self.learning_rate, warmup = 0.1, t_total=t_total)
+        model_ui_opt = AdamW(model_ui.parameters(), lr=self.learning_rate)
+        scheduler = get_linear_schedule_with_warmup(
+            model_ui_opt,
+            num_warmup_steps=self.warmup_steps,
+            num_training_steps=t_total,
+        )
+
         model_ui.to(device)
         model_ui.train()
 
-
         model = LayoutIpa(train_batch_size, model_instruction, model_ui)
-        optimizer = Adam(model.parameters(), lr=self.learning_rate)
+        optimizer = AdamW(model.parameters(), lr=self.learning_rate)
         scheduler = get_linear_schedule_with_warmup(
             optimizer, num_warmup_steps=self.warmup_steps, num_training_steps=t_total,
         )
@@ -244,7 +275,6 @@ class SelectionElementLayoutIPATrainer(Task):
         train_iterator = trange(
             epochs_trained, int(self.num_train_epochs), desc="Epoch",
         )
-
 
         for epoch in train_iterator:
             epoch_iterator = tqdm(train_dataloader, desc="Iteration")
@@ -330,7 +360,7 @@ class SelectionElementLayoutIPATrainer(Task):
                             f"Loss :{loss_scalar} LR: {learning_rate_scalar}"
                         )
                         logging_loss = tr_loss
-            
+
             print("\n\n****** TRAINING SCORES ********\n\n")
             score = self.eval(
                 criterion,
@@ -371,17 +401,20 @@ class SelectionElementLayoutIPATrainer(Task):
                         model_ui.module if hasattr(model_ui, "module") else model_ui
                     )  # Take care of distributed/parallel training
                     model_instruction_to_save = (
-                        model_instruction.module if hasattr(model_instruction, "module") else model_instruction
+                        model_instruction.module
+                        if hasattr(model_instruction, "module")
+                        else model_instruction
                     )  # Take care of distributed/parallel training
                     logger.success(f"Storing the new model with score: {score}")
                     if not os.path.exists(output_dir):
                         os.makedirs(output_dir)
-                    saved_dict = {'instruction' : model_instruction_to_save.state_dict()}
-                    saved_dict['ui'] = model_ui_to_save.state_dict()
-                    saved_dict['layoutipa'] = model_to_save.state_dict()
-                    torch.save(saved_dict, os.path.join(output_dir, "training_args.bin"))
+                    saved_dict = {"instruction": model_instruction_to_save.state_dict()}
+                    saved_dict["ui"] = model_ui_to_save.state_dict()
+                    saved_dict["layoutipa"] = model_to_save.state_dict()
+                    torch.save(
+                        saved_dict, os.path.join(output_dir, "training_args.bin")
+                    )
 
-                    
                     best_score = score
 
         return results
