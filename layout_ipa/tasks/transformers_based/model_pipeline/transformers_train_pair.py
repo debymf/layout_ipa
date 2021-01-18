@@ -346,9 +346,11 @@ class TransformerPair(Task):
 
             print("OUT LABEL IDS")
             print(out_label_ids)
+            print(len(out_label_ids))
             input()
             print("PREDICTED ARGMAX")
             print(predicted_argmax)
+            print(len(predicted_argmax))
             input()
 
             score = eval_fn(y_pred=predicted_argmax, y_true=out_label_ids)
