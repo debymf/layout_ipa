@@ -342,7 +342,16 @@ class TransformerPair(Task):
         score = None
         if eval_fn is not None:
 
-            score = eval_fn(y_pred=np.argmax(preds, axis=1), y_true=out_label_ids)
+            predicted_argmax = np.argmax(preds, axis=1)
+
+            print("OUT LABEL IDS")
+            print(out_label_ids)
+            input()
+            print("PREDICTED ARGMAX")
+            print(predicted_argmax)
+            input()
+
+            score = eval_fn(y_pred=predicted_argmax, y_true=out_label_ids)
             if mode == "test":
                 logger.info(f"Score:{score}")
                 logger.info(
