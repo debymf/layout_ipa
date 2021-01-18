@@ -1,7 +1,6 @@
 dynaconf[all]
 prefect
 loguru
-json
 transformers
 pandas
 torch
