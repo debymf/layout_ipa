@@ -21,7 +21,7 @@ from sklearn.metrics import precision_recall_fscore_support
 class TransformerPair(Task):
     def __init__(self, **kwargs):
         super(TransformerPair, self).__init__(**kwargs)
-        self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 4)
+        self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 32)
         self.cuda = kwargs.get("cuda", True)
         self.gradient_accumulation_steps = kwargs.get("gradient_accumulation_steps", 1)
         self.num_train_epochs = kwargs.get("num_train_epochs", 3)
@@ -341,17 +341,7 @@ class TransformerPair(Task):
 
         score = None
         if eval_fn is not None:
-
             predicted_argmax = np.argmax(preds, axis=1)
-
-            print("OUT LABEL IDS")
-            print(out_label_ids)
-            print(len(out_label_ids))
-            input()
-            print("PREDICTED ARGMAX")
-            print(predicted_argmax)
-            print(len(predicted_argmax))
-            input()
 
             score = eval_fn(y_pred=predicted_argmax, y_true=out_label_ids)
             if mode == "test":
