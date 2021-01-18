@@ -7,6 +7,7 @@ from prefect.engine.results import LocalResult
 from layout_ipa.tasks.datasets_parse.rico_sca import PrepareRicoScaPair
 from layout_ipa.tasks.transformers_based.data_prep import PrepareTransformersPairTask
 from layout_ipa.tasks.transformers_based.model_pipeline import TransformerPair
+from sklearn.metrics import f1_score
 
 prepare_rico_task = PrepareRicoScaPair()
 
@@ -15,6 +16,7 @@ layout_lm_model = settings["layout_lm_base"]
 # train_path = settings["rico_sca_sample"]["train"]
 # dev_path = settings["rico_sca_sample"]["dev"]
 # test_path = settings["rico_sca_sample"]["test"]
+
 train_path = settings["sample_rico_sca"]
 dev_path = settings["sample_rico_sca"]
 test_path = settings["sample_rico_sca"]
@@ -46,6 +48,7 @@ with Flow("Running the Transformers for Pair Classification") as flow1:
         test_dataset=test_dataset,
         task_name="transformer_pair_rico",
         output_dir="./cache/transformer_pair_rico/",
+        eval_fn=f1_score,
     )
 
 
