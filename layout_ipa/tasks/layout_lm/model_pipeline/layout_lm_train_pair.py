@@ -82,6 +82,7 @@ class LayoutLMPair(Task):
                 bert_model,
                 config=bert_config,
                 cache_dir="/nobackup/projects/bdman04/cache_transformers",
+                from_tf=True,
             )
             model = model.to(device)
             if n_gpu > 1:
