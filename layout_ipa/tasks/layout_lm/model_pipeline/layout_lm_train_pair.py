@@ -12,19 +12,20 @@ from transformers import (
     AutoConfig,
     AutoModel,
     AutoModelForSequenceClassification,
+    LayoutLMForSequenceClassification,
     get_linear_schedule_with_warmup,
 )
 import json
 from sklearn.metrics import precision_recall_fscore_support
 
 
-class TransformerPair(Task):
+class LayoutLMPair(Task):
     def __init__(self, **kwargs):
-        super(TransformerPair, self).__init__(**kwargs)
+        super(LayoutLMPair, self).__init__(**kwargs)
         self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 32)
         self.cuda = kwargs.get("cuda", True)
         self.gradient_accumulation_steps = kwargs.get("gradient_accumulation_steps", 1)
-        self.num_train_epochs = kwargs.get("num_train_epochs", 5)
+        self.num_train_epochs = kwargs.get("num_train_epochs", 20)
         self.learning_rate = kwargs.get("learning_rate", 1e-5)
         self.weight_decay = kwargs.get("weight_decay", 0.0)
         self.adam_epsilon = kwargs.get("adam_epsilon", 1e-8)
@@ -48,7 +49,7 @@ class TransformerPair(Task):
         test_dataset,
         task_name,
         output_dir,
-        bert_model="bert-base-uncased",
+        bert_model="microsoft/layoutlm-base-uncased",
         num_labels=2,
         mode="train",
         eval_fn=None,
@@ -76,7 +77,7 @@ class TransformerPair(Task):
         if mode == "train":
             logger.info("Running train mode")
             bert_config = AutoConfig.from_pretrained(bert_model, num_labels=num_labels)
-            model = AutoModelForSequenceClassification.from_pretrained(
+            model = LayoutLMForSequenceClassification.from_pretrained(
                 bert_model, config=bert_config
             )
             model = model.to(device)
@@ -99,7 +100,7 @@ class TransformerPair(Task):
         logger.info("Running evaluation mode")
         logger.info(f"Loading from {output_dir}/{task_name}")
         bert_config = AutoConfig.from_pretrained(f"{output_dir}/{task_name}")
-        model = AutoModelForSequenceClassification.from_pretrained(
+        model = LayoutLMForSequenceClassification.from_pretrained(
             f"{output_dir}/{task_name}", config=bert_config
         )
         model.to(device)
@@ -209,11 +210,11 @@ class TransformerPair(Task):
                 batch = tuple(t.to(device) for t in batch)
                 inputs = {
                     "input_ids": batch[0],
-                    "attention_mask": batch[1],
-                    "labels": batch[3],
+                    "position_ids": batch[1],
+                    "token_type_ids": batch[2],
+                    "bbox": batch[3],
+                    "labels": batch[4],
                 }
-                if "roberta" not in bert_model:
-                    inputs["token_type_ids"] = batch[2]
 
                 outputs = model(**inputs)
                 loss = outputs[
@@ -312,12 +313,11 @@ class TransformerPair(Task):
             with torch.no_grad():
                 inputs = {
                     "input_ids": batch[0],
-                    "attention_mask": batch[1],
-                    # "token_type_ids": batch[2],
-                    "labels": batch[3],
+                    "position_ids": batch[1],
+                    "token_type_ids": batch[2],
+                    "bbox": batch[3],
+                    "labels": batch[4],
                 }
-                if "roberta" not in bert_model:
-                    inputs["token_type_ids"] = batch[2]
                 outputs = model(**inputs)
                 tmp_eval_loss, logits = outputs[:2]
 
