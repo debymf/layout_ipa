@@ -12,7 +12,6 @@ from transformers import (
     AutoConfig,
     AutoModel,
     AutoModelForSequenceClassification,
-    LayoutLMForSequenceClassification,
     get_linear_schedule_with_warmup,
 )
 import json
