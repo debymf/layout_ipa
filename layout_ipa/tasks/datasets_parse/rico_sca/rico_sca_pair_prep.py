@@ -19,7 +19,9 @@ class PrepareRicoScaPair(Task):
         Returns:
             Dict: preprocessed dict in the following format:
             
-            {instruction: NL intruction,
+            {
+            "id_query": id of the query (instruction)    
+            instruction: NL intruction,
             ui: DICT:
                     text: text of the ui element,
                     x0: bounding box x0,
@@ -28,6 +30,11 @@ class PrepareRicoScaPair(Task):
                     y1: bounding box y1,
             label: 1 if UI element is refered in the instruction, 0 otherwise
             }
+
+            mapping_query: Dict:
+            {query_id: expected_selected_ui_element
+            }
+
         """
 
         parsed_data = dict()
@@ -39,6 +46,8 @@ class PrepareRicoScaPair(Task):
         total_pairs = 0
         total_negative_pairs = 0
         total_positive_pairs = 0
+        index_query = 0
+        mapping_query = dict()
         for _, screen_info in input_data.items():
             ui_elements_dict = dict()
             index_ui_element = 0
@@ -57,13 +66,15 @@ class PrepareRicoScaPair(Task):
                 index_ui_element = index_ui_element + 1
 
             index_instruction = 0
+
             for instruction in screen_info["instruction_str"]:
                 selected_ui_element = screen_info["ui_target_id_seq"][index_instruction]
-
+                mapping_query[index_query] = selected_ui_element
                 if (
                     screen_info["instruction_rule_id"][index_instruction]
                     in type_instructions
                 ):
+
                     for ui_index, ui_element in ui_elements_dict.items():
 
                         if ui_index == selected_ui_element:
@@ -74,12 +85,15 @@ class PrepareRicoScaPair(Task):
                             label_ui = 0
 
                         parsed_data[total_pairs] = {
+                            "id_query": index_query,
+                            "ui_position": ui_index,
                             "instruction": instruction,
                             "ui": ui_element,
                             "label": label_ui,
                         }
                         total_pairs = total_pairs + 1
 
+                    index_query = index_query + 1
                     index_instruction = index_instruction + 1
 
         logger.info(f"Number of different screens: {number_of_screens}.")
@@ -87,4 +101,4 @@ class PrepareRicoScaPair(Task):
         logger.info(f"Total negative pairs: {total_negative_pairs}")
         logger.info(f"Total positive pairs: {total_positive_pairs}")
 
-        return parsed_data
+        return {"data": parsed_data, "mapping": mapping_query}

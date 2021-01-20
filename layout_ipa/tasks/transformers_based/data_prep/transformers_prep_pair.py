@@ -30,10 +30,12 @@ class PrepareTransformersPairTask(Task):
             )
 
             entries[id_d] = {
+                "id_query": content["id_query"],
                 "input_ids": encoded_element["input_ids"],
                 "att_mask": encoded_element["attention_mask"],
                 "token_ids": encoded_element["token_type_ids"],
                 "label": content["label"],
+                "ui_position": content["ui_position"],
             }
 
         return TorchDataset(entries)
@@ -52,6 +54,8 @@ class TorchDataset(Dataset):
             torch.LongTensor(instance["token_ids"]),
             instance["label"],
             index,
+            instance["id_query"],
+            instance["ui_position"],
         )
 
     def get_id(self, index):
