@@ -28,6 +28,8 @@ class PrepareLayoutLMPairTask(Task):
                 "ui_token_ids": encoded_element["ui_segment_ids"],
                 "ui_boxes": encoded_element["ui_boxes"],
                 "label": content["label"],
+                "ui_position": content["ui_position"],
+                "id_query": content["id_query"],
             }
 
         return TorchDataset(entries)

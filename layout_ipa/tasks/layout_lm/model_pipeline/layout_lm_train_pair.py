@@ -109,6 +109,7 @@ class LayoutLMPair(Task):
             model,
             dev_dataloader,
             dev_dataset,
+            mapping_dev,
             device,
             n_gpu,
             eval_fn,
@@ -127,6 +128,7 @@ class LayoutLMPair(Task):
                 model,
                 test_data_loader,
                 test_dataset,
+                mapping_test,
                 device,
                 n_gpu,
                 eval_fn,
@@ -253,6 +255,7 @@ class LayoutLMPair(Task):
                 model,
                 dev_dataloader,
                 dev_dataset,
+                mapping_dev,
                 device,
                 n_gpu,
                 eval_fn,
@@ -294,6 +297,7 @@ class LayoutLMPair(Task):
         model,
         dataloader,
         dataset,
+        mapping,
         device,
         n_gpu,
         eval_fn,
@@ -312,6 +316,8 @@ class LayoutLMPair(Task):
             batch = tuple(t.to(device) for t in batch)
 
             with torch.no_grad():
+                query_ids = batch[5]
+                ui_positions = batch[6]
                 inputs = {
                     "input_ids": batch[0],
                     "position_ids": batch[1],
@@ -325,29 +331,33 @@ class LayoutLMPair(Task):
                 eval_loss += outputs[0].mean().item()
             nb_eval_steps += 1
             if preds is None:
+                index_queries = query_ids.detach().cpu().numpy()
                 preds = logits.detach().cpu().numpy()
                 out_label_ids = inputs["labels"].detach().cpu().numpy()
                 all_index = batch[4].detach().cpu().numpy()
+                all_ui = ui_positions.detach().cpu().numpy()
             else:
                 preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
 
                 out_label_ids = np.append(
                     out_label_ids, inputs["labels"].detach().cpu().numpy(), axis=0
                 )
+                index_queries = np.append(
+                    index_queries, query_ids.detach().cpu().numpy(), axis=0
+                )
 
                 all_index = np.append(
                     all_index, batch[4].detach().cpu().numpy(), axis=0
                 )
+
+                all_ui = np.append(all_ui, ui_positions.detach().cpu().numpy(), axis=0)
         eval_loss = eval_loss / nb_eval_steps
 
         score = None
-        if eval_fn is not None:
-            predicted_argmax = np.argmax(preds, axis=1)
 
-            score = eval_fn(y_pred=predicted_argmax, y_true=out_label_ids)
+        if eval_fn is not None:
+            score = eval_fn(preds, index_queries, all_ui, mapping)
             if mode == "test":
-                logger.info(f"Score:{score}")
-                logger.info(
-                    f"Scores: {precision_recall_fscore_support(y_true=out_label_ids, y_pred= np.argmax(preds, axis=1), average='binary')}"
-                )
+                logger.info(f"Accuracy:{score}")
+
         return score
