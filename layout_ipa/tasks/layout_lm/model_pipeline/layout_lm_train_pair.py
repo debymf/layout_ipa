@@ -12,6 +12,7 @@ from transformers import (
     AutoConfig,
     AutoModel,
     AutoModelForSequenceClassification,
+    LayoutLMForSequenceClassification,
     get_linear_schedule_with_warmup,
 )
 import json
@@ -76,7 +77,7 @@ class LayoutLMPair(Task):
         if mode == "train":
             logger.info("Running train mode")
             bert_config = AutoConfig.from_pretrained(bert_model, num_labels=num_labels)
-            model = AutoModelForSequenceClassification.from_pretrained(
+            model = LayoutLMForSequenceClassification.from_pretrained(
                 bert_model, config=bert_config
             )
             model = model.to(device)
@@ -99,7 +100,7 @@ class LayoutLMPair(Task):
         logger.info("Running evaluation mode")
         logger.info(f"Loading from {output_dir}/{task_name}")
         bert_config = AutoConfig.from_pretrained(f"{output_dir}/{task_name}")
-        model = AutoModelForSequenceClassification.from_pretrained(
+        model = LayoutLMForSequenceClassification.from_pretrained(
             f"{output_dir}/{task_name}", config=bert_config
         )
         model.to(device)
