@@ -77,7 +77,7 @@ class LayoutLMPair(Task):
         if mode == "train":
             logger.info("Running train mode")
             bert_config = AutoConfig.from_pretrained(bert_model, num_labels=num_labels)
-            model = LayoutLMForSequenceClassification.from_pretrained(
+            model = AutoModelForSequenceClassification.from_pretrained(
                 bert_model, config=bert_config
             )
             model = model.to(device)
@@ -100,7 +100,7 @@ class LayoutLMPair(Task):
         logger.info("Running evaluation mode")
         logger.info(f"Loading from {output_dir}/{task_name}")
         bert_config = AutoConfig.from_pretrained(f"{output_dir}/{task_name}")
-        model = LayoutLMForSequenceClassification.from_pretrained(
+        model = AutoModelForSequenceClassification.from_pretrained(
             f"{output_dir}/{task_name}", config=bert_config
         )
         model.to(device)
