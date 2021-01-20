@@ -319,8 +319,8 @@ class LayoutLMPair(Task):
             batch = tuple(t.to(device) for t in batch)
 
             with torch.no_grad():
-                query_ids = batch[5]
-                ui_positions = batch[6]
+                query_ids = batch[6]
+                ui_positions = batch[7]
                 inputs = {
                     "input_ids": batch[0],
                     "position_ids": batch[1],
@@ -337,7 +337,7 @@ class LayoutLMPair(Task):
                 index_queries = query_ids.detach().cpu().numpy()
                 preds = logits.detach().cpu().numpy()
                 out_label_ids = inputs["labels"].detach().cpu().numpy()
-                all_index = batch[4].detach().cpu().numpy()
+                all_index = batch[5].detach().cpu().numpy()
                 all_ui = ui_positions.detach().cpu().numpy()
             else:
                 preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
@@ -350,7 +350,7 @@ class LayoutLMPair(Task):
                 )
 
                 all_index = np.append(
-                    all_index, batch[4].detach().cpu().numpy(), axis=0
+                    all_index, batch[5].detach().cpu().numpy(), axis=0
                 )
 
                 all_ui = np.append(all_ui, ui_positions.detach().cpu().numpy(), axis=0)

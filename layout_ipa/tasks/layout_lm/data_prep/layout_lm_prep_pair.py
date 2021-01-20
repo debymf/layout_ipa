@@ -156,6 +156,8 @@ class TorchDataset(Dataset):
             torch.LongTensor(instance["ui_boxes"]),
             instance["label"],
             index,
+            instance["id_query"],
+            instance["ui_position"],
         )
 
     def get_id(self, index):
