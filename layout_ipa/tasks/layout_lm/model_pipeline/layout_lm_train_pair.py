@@ -77,9 +77,11 @@ class LayoutLMPair(Task):
         outputs = {}
         if mode == "train":
             logger.info("Running train mode")
-            bert_config = AutoConfig.from_pretrained(bert_model, num_labels=num_labels)
+            bert_config = AutoConfig.from_pretrained(bert_model, num_labels=num_labels,)
             model = AutoModelForSequenceClassification.from_pretrained(
-                bert_model, config=bert_config
+                bert_model,
+                config=bert_config,
+                cache_dir="/nobackup/projects/bdman04/cache_transformers",
             )
             model = model.to(device)
             if n_gpu > 1:

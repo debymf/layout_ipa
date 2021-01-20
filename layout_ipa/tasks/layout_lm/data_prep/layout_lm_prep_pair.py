@@ -14,7 +14,7 @@ tokenizer_model = "microsoft/layoutlm-base-uncased"
 
 class PrepareLayoutLMPairTask(Task):
     def run(self, input_data, largest=256):
-        logger.info("*** Preprocessing Data for Transformer-Based ***")
+        logger.info("*** Preprocessing Data for LayoutLM  ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
         entries = dict()
         for id_d, content in tqdm(input_data.items()):
