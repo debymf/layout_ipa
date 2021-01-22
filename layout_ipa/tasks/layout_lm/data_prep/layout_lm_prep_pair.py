@@ -76,22 +76,13 @@ class PrepareLayoutLMPairTask(Task):
             int(example["x1"]),
             int(example["y1"]),
         ]
-
-        tokens = tokenizer(
-            instruction,
-            example["text"],
-            padding="max_length",
-            max_length=max_seq_length,
-            truncation=True,
-        )
-
-        # instruction_tokens = tokenizer.tokenize(instruction)
-        # tokens.extend(instruction_tokens)
-        # tokens.append("[SEP]")
-        # word_tokens = tokenizer.tokenize(example["text"])
-        # tokens.extend(word_tokens)
+        instruction_tokens = tokenizer.tokenize(instruction)
+        tokens.extend(instruction_tokens)
+        tokens.append("[SEP]")
+        word_tokens = tokenizer.tokenize(example["text"])
+        tokens.extend(word_tokens)
         token_boxes.extend([box] * len(tokens))
-        # # Account for [CLS] and [SEP] with "- 2" and with "- 3" for RoBERTa.
+        # Account for [CLS] and [SEP] with "- 2" and with "- 3" for RoBERTa.
         special_tokens_count = 3 if sep_token_extra else 2
         if len(tokens) > max_seq_length - special_tokens_count:
             tokens = tokens[: (max_seq_length - special_tokens_count)]
