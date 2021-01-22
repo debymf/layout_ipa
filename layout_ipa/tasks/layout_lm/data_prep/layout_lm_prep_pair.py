@@ -13,7 +13,7 @@ tokenizer_model = "microsoft/layoutlm-base-uncased"
 
 
 class PrepareLayoutLMPairTask(Task):
-    def run(self, input_data, largest=256):
+    def run(self, input_data, largest=512):
         logger.info("*** Preprocessing Data for LayoutLM  ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
         entries = dict()
@@ -76,13 +76,22 @@ class PrepareLayoutLMPairTask(Task):
             int(example["x1"]),
             int(example["y1"]),
         ]
-        instruction_tokens = tokenizer.tokenize(instruction)
-        tokens.extend(instruction_tokens)
-        tokens.append("[SEP]")
-        word_tokens = tokenizer.tokenize(example["text"])
-        tokens.extend(word_tokens)
+
+        tokens = tokenizer(
+            instruction,
+            example["text"],
+            padding="max_length",
+            max_length=max_seq_length,
+            truncation=True,
+        )
+
+        # instruction_tokens = tokenizer.tokenize(instruction)
+        # tokens.extend(instruction_tokens)
+        # tokens.append("[SEP]")
+        # word_tokens = tokenizer.tokenize(example["text"])
+        # tokens.extend(word_tokens)
         token_boxes.extend([box] * len(tokens))
-        # Account for [CLS] and [SEP] with "- 2" and with "- 3" for RoBERTa.
+        # # Account for [CLS] and [SEP] with "- 2" and with "- 3" for RoBERTa.
         special_tokens_count = 3 if sep_token_extra else 2
         if len(tokens) > max_seq_length - special_tokens_count:
             tokens = tokens[: (max_seq_length - special_tokens_count)]

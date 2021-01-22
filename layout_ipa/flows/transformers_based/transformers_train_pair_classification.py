@@ -13,13 +13,13 @@ from layout_ipa.util.evaluation import pair_evaluation
 prepare_rico_task = PrepareRicoScaPair()
 
 
-train_path = settings["rico_sca"]["train"]
-dev_path = settings["rico_sca"]["dev"]
-test_path = settings["rico_sca"]["test"]
+# train_path = settings["rico_sca"]["train"]
+# dev_path = settings["rico_sca"]["dev"]
+# test_path = settings["rico_sca"]["test"]
 
-# train_path = settings["sample_rico_sca"]
-# dev_path = settings["sample_rico_sca"]
-# test_path = settings["sample_rico_sca"]
+train_path = settings["sample_rico_sca"]
+dev_path = settings["sample_rico_sca"]
+test_path = settings["sample_rico_sca"]
 
 cache_args = dict(
     target="{task_name}-{task_tags}.pkl",
