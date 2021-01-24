@@ -51,6 +51,7 @@ with Flow("Running the Transformers for Pair Classification") as flow1:
         mapping_test=test_input["mapping"],
         task_name="layout_lm_pair_rico",
         output_dir="./cache/layout_lm_pair_rico/",
+        mode="test",
         eval_fn=pair_evaluation,
     )
 
