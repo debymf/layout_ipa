@@ -121,6 +121,7 @@ class TransformerPair(Task):
         outputs["dev"] = {
             "score": score,
         }
+        logger.info(f"DEV SCORE: {score}")
         if test_dataset is not None:
             test_data_loader = DataLoader(
                 test_dataset, batch_size=train_batch_size, shuffle=False
@@ -140,6 +141,7 @@ class TransformerPair(Task):
             outputs["test"] = {
                 "score": score,
             }
+            logger.info(f"TEST SCORE: {score}")
 
         return outputs
 
