@@ -39,7 +39,7 @@ INSTRUCTION_TYPE = [2]
 
 with Flow("Running the Transformers for Pair Classification") as flow1:
     with tags("train"):
-        train_input = prepare_rico_task(train_path)
+        train_input = prepare_rico_task(train_path, type_instructions=INSTRUCTION_TYPE)
         train_dataset = prepare_rico_layout_lm_task(train_input["data"])
     with tags("dev"):
         dev_input = prepare_rico_task(dev_path, type_instructions=INSTRUCTION_TYPE)
