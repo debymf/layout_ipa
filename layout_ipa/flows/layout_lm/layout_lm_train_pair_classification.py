@@ -32,7 +32,7 @@ prepare_rico_task = PrepareRicoScaPair()
 prepare_rico_layout_lm_task = PrepareLayoutLMPairTask()
 layout_lm_trainer_task = LayoutLMPair()
 
-INSTRUCTION_TYPE = [1]
+INSTRUCTION_TYPE = [2]
 #  where: 0 and 3 - Lexical Matching
 #             1 - Spatial (Relative to screen)
 #             2 - Spatial (Relative to other elements)
