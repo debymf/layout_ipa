@@ -12,15 +12,15 @@ import torch
 tokenizer_model = "microsoft/layoutlm-base-uncased"
 
 
-class PrepareRicoLayoutLMSelect(Task):
-    def run(self, input_data, largest=512):
-        logger.info("*** Preprocessing Data for LayoutLM ***")
+class PrepareLayoutIpaSimple(Task):
+    def run(self, input_data, bert_model="bert-base-uncased", largest=512):
+        logger.info("*** Preprocessing Data for Layout IPA (simple) ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
-        tokenizer_instruction = BertTokenizer.from_pretrained("bert-base-uncased")
+        tokenizer_instruction = BertTokenizer.from_pretrained(bert_model)
         entries = dict()
         for id_d, content in tqdm(input_data.items()):
 
-            encoded_ui = self.convert_ui_to_feature(
+            encoded_ui = self.convert_examples_to_features(
                 content["ui"], largest, tokenizer_layout,
             )
 
@@ -42,11 +42,11 @@ class PrepareRicoLayoutLMSelect(Task):
         return TorchDataset(entries)
 
     @staticmethod
-    def convert_ui_to_feature(
-        examples,
+    def convert_examples_to_features(
+        example,
         max_seq_length,
         tokenizer,
-        cls_token_at_end=True,
+        cls_token_at_end=False,
         cls_token="[CLS]",
         cls_token_segment_id=1,
         sep_token="[SEP]",
@@ -68,32 +68,33 @@ class PrepareRicoLayoutLMSelect(Task):
             `cls_token_segment_id` define the segment id associated to the CLS token (0 for BERT, 2 for XLNet)
         """
 
+        features = dict()
+
         tokens = []
         token_boxes = []
-        for _, example in examples.items():
-            box = [
-                int(example["x0"]),
-                int(example["y0"]),
-                int(example["x1"]),
-                int(example["y1"]),
-            ]
-            tokenised_word = tokenizer.tokenize(example["text"])
-            tokens.extend(tokenised_word)
-            tokens.append("[SEP]")
-            token_boxes.extend([box] * len(tokenised_word))
-            token_boxes.append(sep_token_box)
-
-        special_tokens_count = 2 if sep_token_extra else 1
+        box = [
+            int(example["x0"]),
+            int(example["y0"]),
+            int(example["x1"]),
+            int(example["y1"]),
+        ]
+        word_tokens = tokenizer.tokenize(example["text"])
+        tokens.extend(word_tokens)
+        token_boxes.extend([box] * len(word_tokens))
+        # Account for [CLS] and [SEP] with "- 2" and with "- 3" for RoBERTa.
+        special_tokens_count = 3 if sep_token_extra else 2
         if len(tokens) > max_seq_length - special_tokens_count:
             tokens = tokens[: (max_seq_length - special_tokens_count)]
             token_boxes = token_boxes[: (max_seq_length - special_tokens_count)]
 
-        # tokens += [sep_token]
-        # token_boxes += [sep_token_box]
-        # if sep_token_extra:
-        #     # roberta uses an extra separator b/w pairs of sentences
-        #     tokens += [sep_token]
-        #     token_boxes += [sep_token_box]
+        tokens += [sep_token]
+        token_boxes += [sep_token_box]
+
+        if sep_token_extra:
+            # roberta uses an extra separator b/w pairs of sentences
+            tokens += [sep_token]
+            token_boxes += [sep_token_box]
+
         segment_ids = [sequence_a_segment_id] * len(tokens)
 
         if cls_token_at_end:
@@ -119,6 +120,7 @@ class PrepareRicoLayoutLMSelect(Task):
                 [0 if mask_padding_with_zero else 1] * padding_length
             ) + input_mask
             segment_ids = ([pad_token_segment_id] * padding_length) + segment_ids
+            label_ids = ([pad_token_label_id] * padding_length) + label_ids
             token_boxes = ([pad_token_box] * padding_length) + token_boxes
         else:
             input_ids += [pad_token] * padding_length
@@ -131,12 +133,10 @@ class PrepareRicoLayoutLMSelect(Task):
         assert len(segment_ids) == max_seq_length
         assert len(token_boxes) == max_seq_length
 
-        features = {
-            "ui_input_ids": torch.LongTensor(input_ids),
-            "ui_input_mask": torch.LongTensor(input_mask),
-            "ui_segment_ids": torch.LongTensor(segment_ids),
-            "ui_boxes": torch.LongTensor(token_boxes),
-        }
+        features["ui_input_ids"] = input_ids
+        features["ui_input_mask"] = input_mask
+        features["ui_segment_ids"] = segment_ids
+        features["ui_boxes"] = token_boxes
 
         return features
 

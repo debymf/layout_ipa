@@ -1,0 +1,1 @@
+from .trainer_layoutipa_simple import LayoutIpaSimpleTrainer
