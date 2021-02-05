@@ -30,7 +30,7 @@ class LayoutLMAndBertSimpleConfig(PretrainedConfig):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         assert (
-            "layout_lm_" in kwargs and "bert" in kwargs
+            "layout_lm" in kwargs and "bert" in kwargs
         ), "Layout Lm and Bert required."
         layout_lm_config = kwargs.pop("layout_lm_config")
         layout_lm_config_model_type = layout_lm_config.pop("model_type")

@@ -93,8 +93,8 @@ class LayoutIpaSimpleTrainer(Task):
             layout_lm_config = AutoConfig.from_pretrained(LAYOUT_LM_MODEL)
 
             config_dict = {
-                "layout_lm_config": layout_lm_config,
-                "bert_config": bert_config,
+                "layout_lm": layout_lm_config,
+                "bert": bert_config,
             }
 
             config = LayoutLMAndBertSimpleConfig.from_layout_lm_bert_configs(
