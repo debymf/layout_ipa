@@ -23,6 +23,8 @@ from layout_ipa.tasks.ipa.models import (
     LayoutLMAndBertSimpleConfig,
 )
 
+np.set_printoptions(threshold=np.inf)
+
 BERT_MODEL = "bert-base-uncased"
 LAYOUT_LM_MODEL = "microsoft/layoutlm-base-uncased"
 
@@ -414,12 +416,20 @@ class LayoutIpaSimpleTrainer(Task):
         score = None
         if eval_fn is not None:
             # preds = np.argmax(preds, axis=1)
+            print("OUTPUTS")
+            print(outputs)
+            input()
+            print("PREDS BEFORE")
+            print(preds)
+            input()
             preds = preds.squeeze(1)
             preds = np.round(preds)
             print("PREDS")
             print(preds)
+            input()
             print("OUT_LABEL_IDS")
             print(out_label_ids)
+            input()
             score = eval_fn(out_label_ids, preds)
             # if mode == "test":
             #     out_preds = {"preds": preds.tolist(), "gold": out_label_ids.tolist()}
