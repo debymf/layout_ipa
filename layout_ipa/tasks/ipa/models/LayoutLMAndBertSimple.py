@@ -78,11 +78,11 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         super().__init__(config)
 
         self.model_instruction = AutoModel.from_pretrained(
-            BERT_MODEL, config=config.bert_config
+            BERT_MODEL, config=config.bert
         )
 
         self.model_ui = AutoModel.from_pretrained(
-            LAYOUT_LM_MODEL, config=config.layout_lm_config
+            LAYOUT_LM_MODEL, config=config.layout_lm
         )
 
         self.dropout1 = nn.Dropout(p=0.5)
