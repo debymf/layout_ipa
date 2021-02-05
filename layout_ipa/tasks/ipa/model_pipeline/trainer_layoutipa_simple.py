@@ -84,7 +84,7 @@ class LayoutIpaSimpleTrainer(Task):
 
         self.set_seed(n_gpu)
 
-        criterion = nn.NLLLoss()
+        criterion = nn.BCEWithLogitsLoss()
 
         outputs = {}
         if mode == "train":
