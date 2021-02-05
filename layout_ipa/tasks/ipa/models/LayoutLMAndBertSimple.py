@@ -39,10 +39,10 @@ class LayoutLMAndBertSimpleConfig(PretrainedConfig):
 
         from transformers import AutoConfig
 
-        self.layout_lm = AutoConfig.for_model(
+        self.layout_lm_config = AutoConfig.for_model(
             layout_lm_config_model_type, **layout_lm_config
         )
-        self.bert = AutoConfig.for_model(bert_config_model_type, **bert_config)
+        self.bert_config = AutoConfig.for_model(bert_config_model_type, **bert_config)
         # self.is_encoder_decoder = True
 
     @classmethod
@@ -62,8 +62,8 @@ class LayoutLMAndBertSimpleConfig(PretrainedConfig):
 
     def to_dict(self):
         output = copy.deepcopy(self.__dict__)
-        output["layout_lm"] = self.layout_lm.to_dict()
-        output["bert"] = self.bert.to_dict()
+        output["layout_lm"] = self.layout_lm_config.to_dict()
+        output["bert"] = self.bert_config.to_dict()
         output["model_type"] = self.__class__.model_type
         return output
 
