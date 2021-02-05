@@ -1,1 +1,1 @@
-from .LayoutLMAndBertSimple import LayoutLMAndBertSimple
+from .LayoutLMAndBertSimple import LayoutLMAndBertSimple, LayoutLMAndBertSimpleConfig

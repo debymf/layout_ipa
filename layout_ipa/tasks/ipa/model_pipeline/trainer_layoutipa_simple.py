@@ -18,7 +18,10 @@ from transformers import (
 from torch.utils.data import WeightedRandomSampler
 import json
 from sklearn.metrics import precision_recall_fscore_support, f1_score
-from layout_ipa.tasks.ipa.models import LayoutLMAndBertSimple
+from layout_ipa.tasks.ipa.models import (
+    LayoutLMAndBertSimple,
+    LayoutLMAndBertSimpleConfig,
+)
 
 BERT_MODEL = "bert-base-uncased"
 LAYOUT_LM_MODEL = "microsoft/layoutlm-base-uncased"
@@ -89,9 +92,16 @@ class LayoutIpaSimpleTrainer(Task):
             bert_config = AutoConfig.from_pretrained(BERT_MODEL)
             layout_lm_config = AutoConfig.from_pretrained(LAYOUT_LM_MODEL)
 
-            model = LayoutLMAndBertSimple(
-                train_batch_size, bert_config, layout_lm_config
+            config_dict = {
+                "layout_lm_config": layout_lm_config,
+                "bert_config": bert_config,
+            }
+
+            config = LayoutLMAndBertSimpleConfig.from_layout_lm_bert_configs(
+                **config_dict
             )
+
+            model = LayoutLMAndBertSimple(config=config)
             model = model.to(device)
             if n_gpu > 1:
                 model = torch.nn.DataParallel(model)
