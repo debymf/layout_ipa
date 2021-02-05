@@ -389,6 +389,7 @@ class LayoutIpaSimpleTrainer(Task):
                 outputs = model(inputs_inst, inputs_ui)
 
                 labels = batch[7]
+                labels = labels.type_as(outputs)
 
                 # loss = criterion(outputs, labels)
 
