@@ -128,7 +128,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         both_representations = torch.cat(
             [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
         )
-        output = self.linear_layer1(instruction_representation)
+        output = self.linear_layer1(both_representations)
         # both_representations = self.dropout2(both_representations)
         # output = self.linear_layer2(both_representations)
 
