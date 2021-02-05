@@ -258,6 +258,7 @@ class LayoutIpaSimpleTrainer(Task):
                 outputs = model(inputs_inst, inputs_ui)
 
                 labels = batch[7]
+                labels = labels.type_as(outputs)
 
                 # preds = outputs.detach().cpu().numpy()
                 # preds = np.argmax(preds, axis=1)
