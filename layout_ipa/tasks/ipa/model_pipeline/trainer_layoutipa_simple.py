@@ -413,6 +413,7 @@ class LayoutIpaSimpleTrainer(Task):
         score = None
         if eval_fn is not None:
             # preds = np.argmax(preds, axis=1)
+            preds = preds.squeeze(1)
             preds = np.round(preds)
             print("PREDS")
             print(preds)
