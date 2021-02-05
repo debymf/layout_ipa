@@ -399,13 +399,11 @@ class LayoutIpaSimpleTrainer(Task):
 
             nb_eval_steps += 1
             if preds is None:
-                preds = torch.sigmoid(outputs).detach().cpu().numpy()
+                preds = outputs.detach().cpu().numpy()
                 out_label_ids = labels.detach().cpu().numpy()
 
             else:
-                preds = np.append(
-                    preds, torch.sigmoid(outputs).detach().cpu().numpy(), axis=0
-                )
+                preds = np.append(preds, outputs.detach().cpu().numpy(), axis=0)
 
                 out_label_ids = np.append(
                     out_label_ids, labels.detach().cpu().numpy(), axis=0
@@ -417,9 +415,10 @@ class LayoutIpaSimpleTrainer(Task):
         if eval_fn is not None:
             # preds = np.argmax(preds, axis=1)
             print("OUTPUTS")
-            print(outputs)
+            print(preds)
             input()
-            print("PREDS BEFORE")
+            print("PREDS")
+            preds = torch.sigmoid(preds)
             print(preds)
             input()
             preds = preds.squeeze(1)
