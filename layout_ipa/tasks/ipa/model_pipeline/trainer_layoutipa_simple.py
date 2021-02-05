@@ -33,7 +33,7 @@ class LayoutIpaSimpleTrainer(Task):
         self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 4)
         self.cuda = kwargs.get("cuda", True)
         self.gradient_accumulation_steps = kwargs.get("gradient_accumulation_steps", 1)
-        self.num_train_epochs = kwargs.get("num_train_epochs", 1)
+        self.num_train_epochs = kwargs.get("num_train_epochs", 10)
         self.learning_rate = kwargs.get("learning_rate", 1e-5)
         self.weight_decay = kwargs.get("weight_decay", 0.0)
         self.adam_epsilon = kwargs.get("adam_epsilon", 1e-8)
@@ -414,7 +414,7 @@ class LayoutIpaSimpleTrainer(Task):
             print(preds)
             print("OUT_LABEL_IDS")
             print(out_label_ids)
-            score = eval_fn(preds, out_label_ids)
+            score = eval_fn(out_label_ids, preds)
             # if mode == "test":
             #     out_preds = {"preds": preds.tolist(), "gold": out_label_ids.tolist()}
             #     with open(f"./cache/output/bin_preds.json", "w") as fp:
