@@ -122,12 +122,14 @@ class LayoutIpaSimpleTrainer(Task):
             outputs["epoch_results "] = epoch_results
         logger.info("Running evaluation mode")
 
-        bert_config = AutoConfig.from_pretrained(f"{output_dir}/{task_name}")
+        model_config = LayoutLMAndBertSimpleConfig.from_pretrained(
+            f"{output_dir}/{task_name}"
+        )
         # layout_lm_config = AutoConfig.from_pretrained(f"{output_dir}/{task_name}")
         logger.info(f"Loading from {output_dir}/{task_name}")
 
         model = LayoutLMAndBertSimple.from_pretrained(
-            f"{output_dir}/{task_name}", config=bert_config
+            f"{output_dir}/{task_name}", config=model_config
         )
 
         model.to(device)
