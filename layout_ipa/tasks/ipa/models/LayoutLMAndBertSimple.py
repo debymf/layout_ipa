@@ -30,8 +30,8 @@ class LayoutLMAndBertSimpleConfig(PretrainedConfig):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         assert (
-            "layout_lm_config" in kwargs and "bert_config" in kwargs
-        ), "Layout Lm config and Bert config required."
+            "layout_lm_" in kwargs and "bert" in kwargs
+        ), "Layout Lm and Bert required."
         layout_lm_config = kwargs.pop("layout_lm_config")
         layout_lm_config_model_type = layout_lm_config.pop("model_type")
         bert_config = kwargs.pop("bert_config")
@@ -57,9 +57,7 @@ class LayoutLMAndBertSimpleConfig(PretrainedConfig):
         # decoder_config.add_cross_attention = True
 
         return cls(
-            layout_lm_config=layout_lm_config.to_dict(),
-            bert_config=bert_config.to_dict(),
-            **kwargs
+            layout_lm=layout_lm_config.to_dict(), bert=bert_config.to_dict(), **kwargs
         )
 
     def to_dict(self):
@@ -74,6 +72,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
     def __init__(self, config, *args, **kwargs):
         super().__init__(config)
 
+        print("aqui")
         self.model_instruction = AutoModel.from_pretrained(
             BERT_MODEL, config=config.bert_config
         )
@@ -133,3 +132,74 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         output = self.act(both_representations)
         return output
+
+    @classmethod
+    def from_layout_lm_bert_pretrained(
+        cls,
+        layout_lm_pretrained_model_name_or_path: str = None,
+        bert_pretrained_model_name_or_path: str = None,
+        *model_args,
+        **kwargs,
+    ) -> PreTrainedModel:
+
+        kwargs_layout_lm = {
+            argument[len("layout_lm_") :]: value
+            for argument, value in kwargs.items()
+            if argument.startswith("layout_lm_")
+        }
+
+        kwargs_bert = {
+            argument[len("bert_") :]: value
+            for argument, value in kwargs.items()
+            if argument.startswith("bert_")
+        }
+
+        for key in kwargs_layout_lm.keys():
+            del kwargs["layout_lm_" + key]
+        for key in kwargs_bert.keys():
+            del kwargs["bert_" + key]
+
+        layout_lm = kwargs_layout_lm.pop("model", None)
+        if layout_lm is None:
+            assert (
+                layout_lm_pretrained_model_name_or_path is not None
+            ), "If `model` is not defined as an argument, a `layout_lm_pretrained_model_name_or_path` has to be defined"
+            from transformers import AutoModel
+
+            if "config" not in kwargs_layout_lm:
+                from transformers import AutoConfig
+
+                layout_lm_config = AutoConfig.from_pretrained(
+                    layout_lm_pretrained_model_name_or_path
+                )
+
+                kwargs_layout_lm["config"] = layout_lm_config
+
+            layout_lm = AutoModel.from_pretrained(
+                layout_lm_pretrained_model_name_or_path, *model_args, **kwargs_layout_lm
+            )
+
+        bert = kwargs_bert.pop("model", None)
+        if bert is None:
+            assert (
+                bert_pretrained_model_name_or_path is not None
+            ), "If `bert_model` is not defined as an argument, a `bert_pretrained_model_name_or_path` has to be defined"
+            from transformers import AutoModel
+
+            if "config" not in kwargs_bert:
+                from transformers import AutoConfig
+
+                bert_config = AutoConfig.from_pretrained(
+                    bert_pretrained_model_name_or_path
+                )
+                kwargs_bert["config"] = bert_config
+
+            bert = AutoModel.from_pretrained(
+                bert_pretrained_model_name_or_path, **kwargs_bert
+            )
+
+        # instantiate config with corresponding kwargs
+        config = LayoutLMAndBertSimpleConfig.from_layout_lm_bert_configs(
+            layout_lm.config, bert.config, **kwargs
+        )
+        return cls(layout_lm=layout_lm, bert=bert, config=config)
