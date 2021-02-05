@@ -32,9 +32,9 @@ class LayoutLMAndBertSimpleConfig(PretrainedConfig):
         assert (
             "layout_lm" in kwargs and "bert" in kwargs
         ), "Layout Lm and Bert required."
-        layout_lm_config = kwargs.pop("layout_lm_config")
+        layout_lm_config = kwargs.pop("layout_lm")
         layout_lm_config_model_type = layout_lm_config.pop("model_type")
-        bert_config = kwargs.pop("bert_config")
+        bert_config = kwargs.pop("bert")
         bert_config_model_type = bert_config.pop("model_type")
 
         from transformers import AutoConfig
@@ -72,7 +72,6 @@ class LayoutLMAndBertSimple(PreTrainedModel):
     def __init__(self, config, *args, **kwargs):
         super().__init__(config)
 
-        print("aqui")
         self.model_instruction = AutoModel.from_pretrained(
             BERT_MODEL, config=config.bert_config
         )
