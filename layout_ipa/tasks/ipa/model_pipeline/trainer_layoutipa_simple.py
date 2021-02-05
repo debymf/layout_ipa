@@ -36,7 +36,7 @@ class LayoutIpaSimpleTrainer(Task):
         self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 4)
         self.cuda = kwargs.get("cuda", True)
         self.gradient_accumulation_steps = kwargs.get("gradient_accumulation_steps", 1)
-        self.num_train_epochs = kwargs.get("num_train_epochs", 10)
+        self.num_train_epochs = kwargs.get("num_train_epochs", 30)
         self.learning_rate = kwargs.get("learning_rate", 1e-6)
         self.weight_decay = kwargs.get("weight_decay", 0.0)
         self.adam_epsilon = kwargs.get("adam_epsilon", 1e-8)
@@ -392,7 +392,6 @@ class LayoutIpaSimpleTrainer(Task):
                 outputs = model(inputs_inst, inputs_ui)
 
                 labels = batch[7]
-                labels = labels.type_as(outputs)
 
                 # loss = criterion(outputs, labels)
 
@@ -414,23 +413,12 @@ class LayoutIpaSimpleTrainer(Task):
 
         score = None
         if eval_fn is not None:
-            # preds = np.argmax(preds, axis=1)
-            print("OUTPUTS")
-            print(preds)
-            input()
-            print("PREDS")
+
             preds = expit(preds)
-            print(preds)
-            input()
             preds = preds.squeeze(1)
-            preds = np.round(preds)
-            print("PREDS")
-            print(preds)
-            input()
-            print("OUT_LABEL_IDS")
-            print(out_label_ids)
-            input()
+            preds = np.round(preds).astype(int)
             score = eval_fn(out_label_ids, preds)
+
             # if mode == "test":
             #     out_preds = {"preds": preds.tolist(), "gold": out_label_ids.tolist()}
             #     with open(f"./cache/output/bin_preds.json", "w") as fp:
