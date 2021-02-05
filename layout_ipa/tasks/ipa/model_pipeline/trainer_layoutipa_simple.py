@@ -15,6 +15,7 @@ from transformers import (
     AutoModelForSequenceClassification,
     get_linear_schedule_with_warmup,
 )
+from scipy.special import expit, logit
 from torch.utils.data import WeightedRandomSampler
 import json
 from sklearn.metrics import precision_recall_fscore_support, f1_score
@@ -418,7 +419,7 @@ class LayoutIpaSimpleTrainer(Task):
             print(preds)
             input()
             print("PREDS")
-            preds = torch.sigmoid(preds)
+            preds = expit(preds)
             print(preds)
             input()
             preds = preds.squeeze(1)
