@@ -278,7 +278,7 @@ class LayoutIpaSimpleTrainer(Task):
                 # print("\n\n")
                 # print("\n\n")
 
-                loss = criterion(outputs, labels)
+                loss = criterion(outputs, labels.unsqueeze(1))
 
                 if n_gpu > 1:
                     loss = (
@@ -395,11 +395,13 @@ class LayoutIpaSimpleTrainer(Task):
 
             nb_eval_steps += 1
             if preds is None:
-                preds = outputs.detach().cpu().numpy()
+                preds = torch.sigmoid(outputs).detach().cpu().numpy()
                 out_label_ids = labels.detach().cpu().numpy()
 
             else:
-                preds = np.append(preds, outputs.detach().cpu().numpy(), axis=0)
+                preds = np.append(
+                    preds, torch.sigmoid(outputs).detach().cpu().numpy(), axis=0
+                )
 
                 out_label_ids = np.append(
                     out_label_ids, labels.detach().cpu().numpy(), axis=0
@@ -409,7 +411,8 @@ class LayoutIpaSimpleTrainer(Task):
 
         score = None
         if eval_fn is not None:
-            preds = np.argmax(preds, axis=1)
+            # preds = np.argmax(preds, axis=1)
+            preds = np.round(preds)
             print("PREDS")
             print(preds)
             print("OUT_LABEL_IDS")
