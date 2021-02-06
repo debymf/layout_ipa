@@ -6,7 +6,7 @@ import random
 
 
 class PrepareRicoScaSelection(Task):
-    def run(self, file_location, type_instructions=[0, 1, 2, 3], num_choices=20):
+    def run(self, file_location, type_instructions=[0, 1, 2, 3]):
         """Parses the RicoSCA dataset for the UI selection task.
 
         Args:
@@ -40,9 +40,9 @@ class PrepareRicoScaSelection(Task):
         for _, screen_info in input_data.items():
             ui_elements_dict = dict()
             index_ui_element = 0
-            if len(screen_info["ui_obj_str_seq"]) > num_choices:
-                removed_entry = removed_entry + 1
-                continue
+            # if len(screen_info["ui_obj_str_seq"]) > num_choices:
+            #     removed_entry = removed_entry + 1
+            #     continue
 
             total_screen_elements = (
                 len(screen_info["ui_obj_str_seq"]) + total_screen_elements
@@ -86,4 +86,4 @@ class PrepareRicoScaSelection(Task):
         logger.info(f"Total Entries: {total_entries}")
         logger.info(f"Number of removed entries: {removed_entry}")
 
-        return parsed_data
+        return {"data": parsed_data, "largest": largest}

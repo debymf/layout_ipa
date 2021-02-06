@@ -1,1 +1,2 @@
 from .layout_lm_prep_pair import PrepareLayoutLMPairTask
+from .layout_lm_prep_select import PrepareLayoutLMSelectTask
