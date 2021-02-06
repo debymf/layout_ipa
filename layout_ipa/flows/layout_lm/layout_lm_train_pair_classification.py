@@ -40,24 +40,24 @@ INSTRUCTION_TYPE = [3]
 with Flow("Running the Transformers for Pair Classification") as flow1:
     with tags("train"):
         train_input = prepare_rico_task(train_path, type_instructions=INSTRUCTION_TYPE)
-        train_dataset = prepare_rico_layout_lm_task(train_input["data"])
+        # train_dataset = prepare_rico_layout_lm_task(train_input["data"])
     with tags("dev"):
         dev_input = prepare_rico_task(dev_path, type_instructions=INSTRUCTION_TYPE)
-        dev_dataset = prepare_rico_layout_lm_task(dev_input["data"])
+        # dev_dataset = prepare_rico_layout_lm_task(dev_input["data"])
     with tags("test"):
         test_input = prepare_rico_task(test_path, type_instructions=INSTRUCTION_TYPE)
-        test_dataset = prepare_rico_layout_lm_task(test_input["data"])
-    layout_lm_trainer_task(
-        train_dataset=train_dataset,
-        dev_dataset=dev_dataset,
-        test_dataset=test_dataset,
-        mapping_dev=dev_input["mapping"],
-        mapping_test=test_input["mapping"],
-        task_name="layout_lm_pair_rico",
-        output_dir="./cache/layout_lm_pair_rico/",
-        mode="test",
-        eval_fn=pair_evaluation,
-    )
+        # test_dataset = prepare_rico_layout_lm_task(test_input["data"])
+    # layout_lm_trainer_task(
+    #     train_dataset=train_dataset,
+    #     dev_dataset=dev_dataset,
+    #     test_dataset=test_dataset,
+    #     mapping_dev=dev_input["mapping"],
+    #     mapping_test=test_input["mapping"],
+    #     task_name="layout_lm_pair_rico",
+    #     output_dir="./cache/layout_lm_pair_rico/",
+    #     mode="test",
+    #     eval_fn=pair_evaluation,
+    # )
 
 
 FlowRunner(flow=flow1).run()

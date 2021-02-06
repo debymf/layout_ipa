@@ -3,6 +3,7 @@ from loguru import logger
 from dynaconf import settings
 import json
 import random
+from transformers import AutoTokenizer
 
 
 class PrepareRicoScaPair(Task):
@@ -47,12 +48,21 @@ class PrepareRicoScaPair(Task):
         total_negative_pairs = 0
         total_positive_pairs = 0
         index_query = 0
+        total_ui_elements = 0
+
+        largest_text = 0
+
+        tokenizer = AutoTokenizer.from_pretrained("microsoft/layoutlm-base-uncased")
         mapping_query = dict()
         for _, screen_info in input_data.items():
             ui_elements_dict = dict()
             index_ui_element = 0
 
             for ui_element in screen_info["ui_obj_str_seq"]:
+                size_ui = len(tokenizer.tokenize(ui_element))
+                if size_ui > 200:
+                    largest_text = largest_text + 1
+                total_ui_elements = total_ui_elements + 1
                 ui_elements_dict[index_ui_element] = {
                     "text": ui_element,
                     "x0": screen_info["ui_obj_cord_x_seq"][index_ui_element * 2] * 1000,
@@ -96,6 +106,8 @@ class PrepareRicoScaPair(Task):
                     index_query = index_query + 1
                     index_instruction = index_instruction + 1
 
+        logger.info(f"******** LARGEST UI TEXT: {largest_text} ********")
+        logger.info(f"***** TOTAL UI ELEMENTS: {total_ui_elements}")
         logger.info(f"Number of different screens: {number_of_screens}.")
         logger.info(f"Total of pairs: {total_pairs}")
         logger.info(f"Total negative pairs: {total_negative_pairs}")
