@@ -348,9 +348,6 @@ class LayoutLMSelect(Task):
         score = None
 
         if eval_fn is not None:
-            print(preds)
-            print(np.argmax(preds, axis=1))
-            print(out_label_ids)
             score = eval_fn(y_pred=np.argmax(preds, axis=1), y_true=out_label_ids)
             if mode == "test":
                 logger.info(f"Accuracy:{score}")
