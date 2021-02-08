@@ -123,7 +123,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         ui_embedding = self.linear_layer_ui(ui_embedding)
         ui_embedding = F.relu(ui_embedding)
         # # output2 = self.dropout2(ui_representation)
-        both_representations = ui_embedding + instruction_embedding
+        both_representations = ui_embedding * instruction_embedding
 
         # # print(both_representations.shape)
         # both_representations = torch.cat(
