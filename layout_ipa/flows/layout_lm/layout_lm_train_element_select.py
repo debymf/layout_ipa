@@ -31,7 +31,7 @@ prepare_rico_task = PrepareRicoScaSelection()
 prepare_rico_layout_lm_task = PrepareLayoutLMSelectTask()
 layout_lm_trainer_task = LayoutLMSelect()
 
-INSTRUCTION_TYPE = [0, 1, 2, 3]
+INSTRUCTION_TYPE = [2]
 #  where: 0 and 3 - Lexical Matching
 #             1 - Spatial (Relative to screen)
 #             2 - Spatial (Relative to other elements)
