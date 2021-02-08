@@ -90,7 +90,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         # self.bidaf_layer = BidafAttn(768)
         self.linear_layer_instruction = nn.Linear(768, 128)
         self.linear_layer_ui = nn.Linear(768, 128)
-        self.linear_layer_output = nn.Linear(128 * 2, 1)
+        self.linear_layer_output = nn.Linear(128 * 1, 1)
         # self.linear_layer1 = nn.Linear(768 * 4, 1)
         # self.linear_layer2 = nn.Linear(512, 1)
 
@@ -123,7 +123,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         ui_embedding = self.linear_layer_ui(ui_embedding)
         ui_embedding = F.relu(ui_embedding)
         # # output2 = self.dropout2(ui_representation)
-        both_representations = torch.cat((ui_embedding, instruction_embedding), dim=1)
+        both_representations = ui_embedding + instruction_embedding
 
         # # print(both_representations.shape)
         # both_representations = torch.cat(
