@@ -59,7 +59,7 @@ class PrepareRicoScaPair(Task):
 
             for ui_element in screen_info["ui_obj_str_seq"]:
                 size_ui = len(tokenizer.tokenize(ui_element))
-                if size_ui > 512:
+                if size_ui > 256:
                     largest_text = largest_text + 1
                 total_ui_elements = total_ui_elements + 1
                 ui_elements_dict[index_ui_element] = {
