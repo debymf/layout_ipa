@@ -17,7 +17,7 @@ class PrepareLayoutIpaSimple(Task):
         self,
         input_data,
         bert_model="bert-base-uncased",
-        largest=512,
+        largest=128,
         largest_instruction=128,
     ):
         logger.info("*** Preprocessing Data for Layout IPA (simple) ***")
@@ -32,7 +32,6 @@ class PrepareLayoutIpaSimple(Task):
 
             encoded_instruction = tokenizer_instruction.encode_plus(
                 content["instruction"],
-                content["ui"]["text"],
                 padding="max_length",
                 max_length=largest_instruction,
             )
