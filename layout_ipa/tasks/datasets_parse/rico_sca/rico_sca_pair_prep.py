@@ -50,6 +50,7 @@ class PrepareRicoScaPair(Task):
         index_query = 0
         total_ui_elements = 0
         largest_instruction = 0
+        largest_instruction_text = ""
         largest_text = 0
 
         tokenizer = AutoTokenizer.from_pretrained("microsoft/layoutlm-base-uncased")
@@ -86,6 +87,7 @@ class PrepareRicoScaPair(Task):
                 ):
                     if len(instruction) > largest_instruction:
                         largest_instruction = len(instruction)
+                        largest_instruction_text = instruction
 
                     for ui_index, ui_element in ui_elements_dict.items():
 
@@ -109,6 +111,9 @@ class PrepareRicoScaPair(Task):
                     index_instruction = index_instruction + 1
 
         logger.info(f"******** LARGEST INSTRUCTION: {largest_instruction} ********")
+        logger.info(
+            f"******** LARGEST INSTRUCTION TEXT: {largest_instruction_text} ********"
+        )
         logger.info(f"******** LARGEST UI TEXT: {largest_text} ********")
         logger.info(f"***** TOTAL UI ELEMENTS: {total_ui_elements}")
         logger.info(f"Number of different screens: {number_of_screens}.")
