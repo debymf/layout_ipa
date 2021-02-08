@@ -51,10 +51,12 @@ with Flow("Running the Transformers for Pair Classification") as flow1:
         train_dataset=train_dataset,
         dev_dataset=dev_dataset,
         test_dataset=test_dataset,
+        mapping_dev=dev_input["mapping"],
+        mapping_test=test_input["mapping"],
         task_name="layout_ipa_simple_pair_rico",
         output_dir="./cache/layout_ipa_simple_pair_rico/",
         mode="train",
-        eval_fn=f1_score,
+        eval_fn=pair_evaluation,
     )
 
 

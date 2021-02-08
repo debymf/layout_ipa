@@ -38,6 +38,8 @@ class PrepareLayoutIpaSimple(Task):
             )
 
             entries[id_d] = {
+                "id_query": content["id_query"],
+                "ui_position": content["ui_position"],
                 "inst_input_ids": encoded_instruction["input_ids"],
                 "inst_att_mask": encoded_instruction["attention_mask"],
                 "inst_token_ids": encoded_instruction["token_type_ids"],
@@ -167,6 +169,8 @@ class TorchDataset(Dataset):
             torch.LongTensor(instance["ui_token_ids"]),
             torch.LongTensor(instance["ui_boxes"]),
             instance["label"],
+            instance["id_query"],
+            instance["ui_position"],
             index,
         )
 

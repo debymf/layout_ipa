@@ -58,6 +58,8 @@ class LayoutIpaSimpleTrainer(Task):
         train_dataset,
         dev_dataset,
         test_dataset,
+        mapping_dev,
+        mapping_test,
         task_name,
         output_dir,
         bert_model="bert-base-uncased",
@@ -113,6 +115,7 @@ class LayoutIpaSimpleTrainer(Task):
                 train_dataloader,
                 dev_dataloader,
                 dev_dataset,
+                mapping_dev,
                 device,
                 criterion,
                 n_gpu,
@@ -141,6 +144,7 @@ class LayoutIpaSimpleTrainer(Task):
             model,
             dev_dataloader,
             dev_dataset,
+            mapping_dev,
             device,
             n_gpu,
             eval_fn,
@@ -160,6 +164,7 @@ class LayoutIpaSimpleTrainer(Task):
                 model,
                 test_data_loader,
                 test_dataset,
+                mapping_test,
                 device,
                 n_gpu,
                 eval_fn,
@@ -179,6 +184,7 @@ class LayoutIpaSimpleTrainer(Task):
         train_dataloader,
         dev_dataloader,
         dev_dataset,
+        mapping_dev,
         device,
         criterion,
         n_gpu,
@@ -316,6 +322,7 @@ class LayoutIpaSimpleTrainer(Task):
                 model,
                 dev_dataloader,
                 dev_dataset,
+                mapping_dev,
                 device,
                 n_gpu,
                 eval_fn,
@@ -358,6 +365,7 @@ class LayoutIpaSimpleTrainer(Task):
         model,
         dataloader,
         dataset,
+        mapping,
         device,
         n_gpu,
         eval_fn,
@@ -376,6 +384,9 @@ class LayoutIpaSimpleTrainer(Task):
             batch = tuple(t.to(device) for t in batch)
 
             with torch.no_grad():
+                query_ids = batch[8]
+                ui_positions = batch[9]
+
                 inputs_inst = {
                     "input_ids": batch[0],
                     "attention_mask": batch[1],
@@ -399,8 +410,11 @@ class LayoutIpaSimpleTrainer(Task):
 
             nb_eval_steps += 1
             if preds is None:
+                index_queries = query_ids.detach().cpu().numpy()
                 preds = outputs.detach().cpu().numpy()
                 out_label_ids = labels.detach().cpu().numpy()
+                all_index = batch[10].detach().cpu().numpy()
+                all_ui = ui_positions.detach().cpu().numpy()
 
             else:
                 preds = np.append(preds, outputs.detach().cpu().numpy(), axis=0)
@@ -409,6 +423,15 @@ class LayoutIpaSimpleTrainer(Task):
                     out_label_ids, labels.detach().cpu().numpy(), axis=0
                 )
 
+                index_queries = np.append(
+                    index_queries, query_ids.detach().cpu().numpy(), axis=0
+                )
+
+                all_index = np.append(
+                    all_index, batch[10].detach().cpu().numpy(), axis=0
+                )
+
+                all_ui = np.append(all_ui, ui_positions.detach().cpu().numpy(), axis=0)
         # eval_loss = eval_loss / nb_eval_steps
 
         score = None
@@ -417,7 +440,7 @@ class LayoutIpaSimpleTrainer(Task):
             preds = expit(preds)
             preds = preds.squeeze(1)
             preds = np.round(preds).astype(int)
-            score = eval_fn(out_label_ids, preds)
+            score = eval_fn(preds, index_queries, all_ui, mapping)
 
             # if mode == "test":
             #     out_preds = {"preds": preds.tolist(), "gold": out_label_ids.tolist()}
