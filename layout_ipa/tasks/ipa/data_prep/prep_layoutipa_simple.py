@@ -17,8 +17,8 @@ class PrepareLayoutIpaSimple(Task):
         self,
         input_data,
         bert_model="bert-base-uncased",
-        largest=256,
-        largest_instruction=128,
+        largest=512,
+        largest_instruction=512,
     ):
         logger.info("*** Preprocessing Data for Layout IPA (simple) ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
@@ -27,11 +27,12 @@ class PrepareLayoutIpaSimple(Task):
         for id_d, content in tqdm(input_data.items()):
 
             encoded_ui = self.convert_examples_to_features(
-                content["ui"], largest, tokenizer_layout,
+                content["instruction"], content["ui"], largest, tokenizer_layout,
             )
 
             encoded_instruction = tokenizer_instruction.encode_plus(
                 content["instruction"],
+                content["ui"]["text"],
                 padding="max_length",
                 max_length=largest_instruction,
             )
@@ -51,6 +52,7 @@ class PrepareLayoutIpaSimple(Task):
 
     @staticmethod
     def convert_examples_to_features(
+        instruction,
         example,
         max_seq_length,
         tokenizer,
@@ -86,7 +88,7 @@ class PrepareLayoutIpaSimple(Task):
             int(example["x1"]),
             int(example["y1"]),
         ]
-        word_tokens = tokenizer.tokenize(example["text"])
+        word_tokens = tokenizer.tokenize(instruction + "[SEP]" + example["text"])
         tokens.extend(word_tokens)
         token_boxes.extend([box] * len(word_tokens))
         # Account for [CLS] and [SEP] with "- 2" and with "- 3" for RoBERTa.
