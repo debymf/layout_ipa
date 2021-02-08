@@ -127,8 +127,9 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         #     [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
         # )
 
+        output1 = F.relu(output1)
         output = self.linear_layer1(output1)
-        output = F.relu(output)
+
         # both_representations = self.dropout2(both_representations)
         # output = self.linear_layer2(both_representations)
 
