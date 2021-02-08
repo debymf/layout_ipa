@@ -90,9 +90,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         # self.bidaf_layer = BidafAttn(768)
         self.linear_layer1 = nn.Linear(768 * 1, 1)
         # self.linear_layer1 = nn.Linear(768 * 4, 1)
-        self.linear_layer2 = nn.Linear(512, 1)
-
-        self.act = nn.LogSoftmax(dim=1)
+        # self.linear_layer2 = nn.Linear(512, 1)
 
     def forward(self, input_instructions, input_ui):
 
@@ -116,19 +114,21 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         output_instruction_model = self.model_instruction(**input_instructions)
         output1 = output_instruction_model[1]
         # output1 = self.dropout1(instruction_representation)
-        output_ui_model = self.model_ui(**input_ui)
+        # output_ui_model = self.model_ui(**input_ui)
 
-        output2 = output_ui_model[1]
-        # output2 = self.dropout2(ui_representation)
+        # output2 = output_ui_model[1]
+        # # output2 = self.dropout2(ui_representation)
+        # # both_representations = torch.cat(
+        # #     (ui_representation, instruction_representation), dim=1
+        # # )
+
+        # # print(both_representations.shape)
         # both_representations = torch.cat(
-        #     (ui_representation, instruction_representation), dim=1
+        #     [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
         # )
 
-        # print(both_representations.shape)
-        both_representations = torch.cat(
-            [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
-        )
         output = self.linear_layer1(output1)
+        output = F.relu(output)
         # both_representations = self.dropout2(both_representations)
         # output = self.linear_layer2(both_representations)
 
