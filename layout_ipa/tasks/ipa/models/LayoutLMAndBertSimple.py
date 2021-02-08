@@ -125,14 +125,12 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         # # output2 = self.dropout2(ui_representation)
         both_representations = ui_embedding * instruction_embedding
 
-        output1 = instruction_embedding
-        output2 = ui_embedding
         # # print(both_representations.shape)
         # both_representations = torch.cat(
         #     [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
         # )
 
-        both_representations = self.bidaf_layer(ui_embedding, instruction_embedding)
+        both_representations = ui_embedding * instruction_embedding
 
         output = self.linear_layer_output(both_representations)
 
