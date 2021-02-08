@@ -5,7 +5,7 @@ from loguru import logger
 from transformers import AutoModel, AutoConfig
 from torch.autograd import Variable
 from dynaconf import settings
-
+from .bidaf import BidafAttn
 from transformers import PreTrainedModel
 import os
 import copy
@@ -87,7 +87,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         # self.dropout1 = nn.Dropout(p=0.5)
         # self.dropout2 = nn.Dropout(p=0.5)
-        # self.bidaf_layer = BidafAttn(768)
+        self.bidaf_layer = BidafAttn(128)
         self.linear_layer_instruction = nn.Linear(768, 128)
         self.linear_layer_ui = nn.Linear(768, 128)
         self.linear_layer_output = nn.Linear(128 * 4, 1)
@@ -128,9 +128,11 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         output1 = instruction_embedding
         output2 = ui_embedding
         # # print(both_representations.shape)
-        both_representations = torch.cat(
-            [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
-        )
+        # both_representations = torch.cat(
+        #     [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
+        # )
+
+        both_representations = self.bidaf_layer(ui_embedding, instruction_embedding)
 
         output = self.linear_layer_output(both_representations)
 
