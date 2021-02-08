@@ -13,7 +13,13 @@ tokenizer_model = "microsoft/layoutlm-base-uncased"
 
 
 class PrepareLayoutIpaSimple(Task):
-    def run(self, input_data, bert_model="bert-base-uncased", largest=512):
+    def run(
+        self,
+        input_data,
+        bert_model="bert-base-uncased",
+        largest=512,
+        largest_instruction=128,
+    ):
         logger.info("*** Preprocessing Data for Layout IPA (simple) ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
         tokenizer_instruction = BertTokenizer.from_pretrained(bert_model)
@@ -28,7 +34,7 @@ class PrepareLayoutIpaSimple(Task):
                 content["instruction"],
                 content["ui"]["text"],
                 padding="max_length",
-                max_length=largest,
+                max_length=largest_instruction,
             )
 
             entries[id_d] = {
