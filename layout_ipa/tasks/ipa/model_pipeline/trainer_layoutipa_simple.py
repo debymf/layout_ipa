@@ -439,7 +439,6 @@ class LayoutIpaSimpleTrainer(Task):
 
             preds = expit(preds)
             preds = preds.squeeze(1)
-            preds = np.round(preds).astype(int)
             score = eval_fn(preds, index_queries, all_ui, mapping)
 
             # if mode == "test":
