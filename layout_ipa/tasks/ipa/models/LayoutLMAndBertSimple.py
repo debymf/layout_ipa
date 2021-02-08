@@ -5,7 +5,6 @@ from loguru import logger
 from transformers import AutoModel, AutoConfig
 from torch.autograd import Variable
 from dynaconf import settings
-from .bidaf import BidafAttn
 from transformers import PreTrainedModel
 import os
 import copy
@@ -87,10 +86,10 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         # self.dropout1 = nn.Dropout(p=0.5)
         # self.dropout2 = nn.Dropout(p=0.5)
-        self.bidaf_layer = BidafAttn(128)
+
         self.linear_layer_instruction = nn.Linear(768, 128)
         self.linear_layer_ui = nn.Linear(768, 128)
-        self.linear_layer_output = nn.Linear(128 * 4, 1)
+        self.linear_layer_output = nn.Linear(128 * 1, 1)
         # self.linear_layer1 = nn.Linear(768 * 4, 1)
         # self.linear_layer2 = nn.Linear(512, 1)
 
