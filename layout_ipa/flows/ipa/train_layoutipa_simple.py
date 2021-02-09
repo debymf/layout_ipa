@@ -4,7 +4,7 @@ from loguru import logger
 from prefect import Flow, tags, task
 from prefect.engine.flow_runner import FlowRunner
 from prefect.engine.results import LocalResult
-from layout_ipa.tasks.datasets_parse.rico_sca import PrepareRicoScaPair
+from layout_ipa.tasks.datasets_parse.rico_sca import PrepareRicoScaScreenPair
 from layout_ipa.tasks.ipa.data_prep import PrepareLayoutIpaSimple
 from layout_ipa.tasks.ipa.model_pipeline import LayoutIpaSimpleTrainer
 from sklearn.metrics import f1_score
@@ -88,25 +88,25 @@ def save_output_results(output):
 with Flow("Running the Transformers for Pair Classification") as flow1:
     with tags("train"):
         train_input = prepare_rico_task(train_path, type_instructions=INSTRUCTION_TYPE)
-        train_dataset = prepare_rico_layout_lm_task(train_input["data"])
+        # train_dataset = prepare_rico_layout_lm_task(train_input["data"])
     with tags("dev"):
         dev_input = prepare_rico_task(dev_path, type_instructions=INSTRUCTION_TYPE)
-        dev_dataset = prepare_rico_layout_lm_task(dev_input["data"])
+        # dev_dataset = prepare_rico_layout_lm_task(dev_input["data"])
     with tags("test"):
         test_input = prepare_rico_task(test_path, type_instructions=INSTRUCTION_TYPE)
-        test_dataset = prepare_rico_layout_lm_task(test_input["data"])
-    outputs = layout_lm_trainer_task(
-        train_dataset=train_dataset,
-        dev_dataset=dev_dataset,
-        test_dataset=test_dataset,
-        mapping_dev=dev_input["mapping"],
-        mapping_test=test_input["mapping"],
-        task_name="layout_ipa_simple_pair_rico",
-        output_dir="./cache/layout_ipa_simple_pair_rico/",
-        mode="train",
-        eval_fn=pair_evaluation,
-    )
-    save_output_results(outputs)
+        # test_dataset = prepare_rico_layout_lm_task(test_input["data"])
+    # outputs = layout_lm_trainer_task(
+    #     train_dataset=train_dataset,
+    #     dev_dataset=dev_dataset,
+    #     test_dataset=test_dataset,
+    #     mapping_dev=dev_input["mapping"],
+    #     mapping_test=test_input["mapping"],
+    #     task_name="layout_ipa_simple_pair_rico",
+    #     output_dir="./cache/layout_ipa_simple_pair_rico/",
+    #     mode="train",
+    #     eval_fn=pair_evaluation,
+    # )
+    # save_output_results(outputs)
 
 
 FlowRunner(flow=flow1).run()
