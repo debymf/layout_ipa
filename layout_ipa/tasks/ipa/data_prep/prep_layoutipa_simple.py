@@ -62,8 +62,6 @@ class PrepareLayoutIpaSimple(Task):
                 closest_elements["ui_boxes"].extend(
                     [[[0] * 4] * largest_screen] * to_add
                 )
-                print(closest_elements["ui_boxes"])
-                input()
 
             entries[id_d] = {
                 "id_query": content["id_query"],
