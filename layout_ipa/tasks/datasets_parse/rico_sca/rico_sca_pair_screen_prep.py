@@ -33,7 +33,7 @@ class PrepareRicoScaScreenPair(Task):
 
                 for id_ui, distance in distances_dict.items():
 
-                    if distance > smallest and id_ui not in output_dict:
+                    if distance < smallest and id_ui not in output_dict:
                         smallest = distance
                         smallest_id = id_ui
 
