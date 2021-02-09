@@ -18,7 +18,7 @@ class PrepareLayoutIpaSimple(Task):
         input_data,
         bert_model="bert-base-uncased",
         largest=256,
-        largest_screen=128,
+        largest_screen=256,
     ):
         logger.info("*** Preprocessing Data for Layout IPA (simple) ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
