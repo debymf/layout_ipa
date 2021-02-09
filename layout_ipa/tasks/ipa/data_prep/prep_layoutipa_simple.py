@@ -59,7 +59,7 @@ class PrepareLayoutIpaSimple(Task):
                 closest_elements["ui_segment_ids"].extend(
                     [[0] * largest_screen] * to_add
                 )
-                closest_elements["ui_boxes"].extend(
+                closest_elements["ui_boxes"].append(
                     [[0, 0, 0, 0] * largest_screen] * to_add
                 )
 
