@@ -50,6 +50,8 @@ class PrepareLayoutIpaSimple(Task):
 
             if len(closest_elements["ui_input_ids"]) < 10:
                 to_add = 10 - len(closest_elements["ui_input_ids"])
+                print(closest_elements)
+                input()
                 closest_elements["ui_input_ids"].append([[0] * largest_screen] * to_add)
                 print(closest_elements)
                 input()
