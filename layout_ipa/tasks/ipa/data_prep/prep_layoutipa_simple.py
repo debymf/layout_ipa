@@ -26,9 +26,9 @@ class PrepareLayoutIpaSimple(Task):
         entries = dict()
         for id_d, content in tqdm(input_data.items()):
 
-            # encoded_ui = self.convert_examples_to_features(
-            #     content["instruction"], content["ui"], largest, tokenizer_layout,
-            # )
+            encoded_ui = self.convert_examples_to_features(
+                content["instruction"], content["ui"], largest, tokenizer_layout,
+            )
 
             encoded_instruction = tokenizer_instruction.encode_plus(
                 content["instruction"],
@@ -49,8 +49,6 @@ class PrepareLayoutIpaSimple(Task):
                 "ui_boxes": encoded_ui["ui_boxes"],
                 "label": content["label"],
             }
-
-
 
         return TorchDataset(entries)
 
@@ -164,7 +162,7 @@ class TorchDataset(Dataset):
     def __getitem__(self, index):
         instance = self.dataset[index]
 
-         return (
+        return (
             torch.LongTensor(instance["inst_input_ids"]),
             torch.LongTensor(instance["inst_att_mask"]),
             torch.LongTensor(instance["inst_token_ids"]),
