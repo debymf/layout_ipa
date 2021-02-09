@@ -23,14 +23,16 @@ class PrepareRicoScaScreenPair(Task):
                 y = ui_element_screen["y0"] - ui_element["y0"]
                 total_distance = math.hypot(x, y)
                 distances_dict[ui_index_screen] = total_distance
-            print(distances_dict)
 
-            input()
             while len(output_dict) < TOTAL_SELECTED:
                 largest = 0
                 largest_id = 0
-
+                print("IN LOOP")
                 for id_ui, distance in distances_dict.items():
+                    print("DISTANCE")
+                    print(distance)
+                    print("LARGEST")
+                    print(largest)
                     if distance > largest and id_ui not in output_dict:
                         largest = distance
                         largest_id = id_ui
