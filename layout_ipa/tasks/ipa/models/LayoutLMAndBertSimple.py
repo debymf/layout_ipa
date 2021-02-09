@@ -117,6 +117,9 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         instruction_embedding = self.model_ui.embeddings.word_embeddings(
             input_instructions["input_ids"]
         )
+
+        print(instruction_embedding.shape)
+        input()
         # instruction_embedding = self.linear_layer_instruction(instruction_embedding)
         # instruction_embedding = F.relu(instruction_embedding)
         # output1 = self.dropout1(instruction_representation)
@@ -126,7 +129,8 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         # ui_embedding = F.relu(ui_embedding)
         # # output2 = self.dropout2(ui_representation)
         # both_representations = ui_embedding * instruction_embedding
-
+        print(ui_embedding.shape)
+        input()
         # # print(both_representations.shape)
         # both_representations = torch.cat(
         #     [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
