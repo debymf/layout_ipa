@@ -25,6 +25,7 @@ class PrepareRicoScaScreenPair(Task):
                 distances_dict[ui_index_screen] = total_distance
             while len(output_dict) < TOTAL_SELECTED:
                 largest = 0
+                largest_id = 0
 
                 for id_ui, distance in distances_dict.items():
                     if distance > largest and id_ui not in output_dict:

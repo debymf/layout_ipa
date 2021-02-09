@@ -64,9 +64,10 @@ class PrepareLayoutIpaSimple(Task):
             entries[id_d] = {
                 "id_query": content["id_query"],
                 "ui_position": content["ui_position"],
-                "inst_input_ids": encoded_instruction["input_ids"],
-                "inst_att_mask": encoded_instruction["attention_mask"],
-                "inst_token_ids": encoded_instruction["token_type_ids"],
+                "close_input_ids": closest_elements["ui_input_ids"],
+                "close_att_mask": closest_elements["ui_input_mask"],
+                "close_token_ids": closest_elements["ui_segment_ids"],
+                "close_boxes": closest_elements["ui_boxes"],
                 "ui_input_ids": encoded_ui["ui_input_ids"],
                 "ui_att_mask": encoded_ui["ui_input_mask"],
                 "ui_token_ids": encoded_ui["ui_segment_ids"],
