@@ -194,9 +194,10 @@ class TorchDataset(Dataset):
         instance = self.dataset[index]
 
         return (
-            torch.LongTensor(instance["inst_input_ids"]),
-            torch.LongTensor(instance["inst_att_mask"]),
-            torch.LongTensor(instance["inst_token_ids"]),
+            torch.LongTensor(instance["close_input_ids"]),
+            torch.LongTensor(instance["close_att_mask"]),
+            torch.LongTensor(instance["close_token_ids"]),
+            torch.LongTensor(instance["close_boxes"]),
             torch.LongTensor(instance["ui_input_ids"]),
             torch.LongTensor(instance["ui_att_mask"]),
             torch.LongTensor(instance["ui_token_ids"]),
