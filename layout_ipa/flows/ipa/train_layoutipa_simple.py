@@ -1,7 +1,7 @@
 import prefect
 from dynaconf import settings
 from loguru import logger
-from prefect import Flow, tags
+from prefect import Flow, tags, task
 from prefect.engine.flow_runner import FlowRunner
 from prefect.engine.results import LocalResult
 from layout_ipa.tasks.datasets_parse.rico_sca import PrepareRicoScaPair
@@ -9,9 +9,36 @@ from layout_ipa.tasks.ipa.data_prep import PrepareLayoutIpaSimple
 from layout_ipa.tasks.ipa.model_pipeline import LayoutIpaSimpleTrainer
 from sklearn.metrics import f1_score
 from layout_ipa.util.evaluation import pair_evaluation
+import os
+import argparse
+
+parser = argparse.ArgumentParser(description="Running flow for Layout IPA.")
+
+parser.add_argument(
+    "--type",
+    metavar="Type of instruction",
+    type=list,
+    help="Type of instruction",
+    default=[0, 1, 2, 3],
+    nargs="?",
+)
 
 
-layout_lm_model = settings["layout_lm_base"]
+parser.add_argument(
+    "--output_file",
+    metavar="name of the output file",
+    type=str,
+    help="Output file",
+    default="out.txt",
+    nargs="?",
+)
+
+args = parser.parse_args()
+INSTRUCTION_TYPE = args.type
+FILENAME_RESULTS = args.output_file
+#  where: 0 and 3 - Lexical Matching
+#             1 - Spatial (Relative to screen)
+#             2 - Spatial (Relative to other elements)
 
 # train_path = settings["rico_sca"]["train"]
 # dev_path = settings["rico_sca"]["dev"]
@@ -35,10 +62,25 @@ prepare_rico_task = PrepareRicoScaPair()
 prepare_rico_layout_lm_task = PrepareLayoutIpaSimple()
 layout_lm_trainer_task = LayoutIpaSimpleTrainer()
 
-INSTRUCTION_TYPE = [0, 1, 2, 3]
-#  where: 0 and 3 - Lexical Matching
-#             1 - Spatial (Relative to screen)
-#             2 - Spatial (Relative to other elements)
+
+@task
+def save_output_results(output):
+    if os.path.exists(FILENAME_RESULTS):
+        append_write = "a"  # append if already exists
+    else:
+        append_write = "w"  # make a new file if not
+
+    with open(FILENAME_RESULTS, append_write) as f:
+        f.write(f"TYPE: {INSTRUCTION_TYPE} \n")
+        f.write(f"ACC DEV: {output['dev']['score']} \n")
+        f.write(f"ACC TEST: {output['test']['score']} \n")
+        f.write("=========================== \n \n")
+
+    logger.info(f"TYPE: {INSTRUCTION_TYPE} \n")
+    logger.info(f"ACC DEV: {output['dev']['score']} \n")
+    logger.info(f"ACC TEST: {output['test']['score']} \n")
+    logger.info("=========================== \n \n")
+
 
 with Flow("Running the Transformers for Pair Classification") as flow1:
     with tags("train"):
@@ -50,7 +92,7 @@ with Flow("Running the Transformers for Pair Classification") as flow1:
     with tags("test"):
         test_input = prepare_rico_task(test_path, type_instructions=INSTRUCTION_TYPE)
         test_dataset = prepare_rico_layout_lm_task(test_input["data"])
-    layout_lm_trainer_task(
+    outputs = layout_lm_trainer_task(
         train_dataset=train_dataset,
         dev_dataset=dev_dataset,
         test_dataset=test_dataset,
@@ -61,6 +103,7 @@ with Flow("Running the Transformers for Pair Classification") as flow1:
         mode="train",
         eval_fn=pair_evaluation,
     )
+    save_output_result(outputs)
 
 
 FlowRunner(flow=flow1).run()
