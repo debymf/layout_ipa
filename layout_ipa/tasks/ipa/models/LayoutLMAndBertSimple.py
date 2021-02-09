@@ -146,7 +146,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         )
         output_close_elements = self.model_ui(**input_close_elements)
 
-        print(output_close_elements.shape)
+        print(output_close_elements[1].shape)
         input()
         output_ui_model = self.model_ui(**input_ui)
         ui_embedding = output_ui_model[1]
