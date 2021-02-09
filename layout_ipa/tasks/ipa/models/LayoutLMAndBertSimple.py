@@ -126,6 +126,8 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         # instruction_embedding = self.activation_instruction(instruction_embedding)
         # instruction_embedding = F.relu(instruction_embedding)
         # output1 = self.dropout1(instruction_representation)
+        print(input_close_elements)
+        input()
         output_close_elements = self.model_ui(**input_close_elements)
         print(output_close_elements.shape)
         input()
