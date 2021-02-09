@@ -88,8 +88,8 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         # self.dropout2 = nn.Dropout(p=0.5)
 
         self.linear_layer_instruction = nn.Linear(768, 1)
-        self.linear_layer_ui = nn.Linear(768, 1)
-        self.linear_layer_output = nn.Linear(768 * 1, 1)
+        self.linear_layer_ui = nn.Linear(768 * 10, 768)
+        self.linear_layer_output = nn.Linear(768 * 2, 1)
         self.activation_ui = nn.Tanh()
         self.activation_instruction = nn.Tanh()
         # self.linear_layer1 = nn.Linear(768 * 4, 1)
@@ -144,14 +144,13 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         input_close_elements["bbox"] = input_close_elements["bbox"].view(
             -1, input_close_elements["bbox"].size(-2), 4
         )
-        print(input_close_elements["attention_mask"].shape)
-        input()
+
         output_close_elements = self.model_ui(**input_close_elements)[1]
         # both_representations = both_representations.view(4, -1, num_choices)
 
         output_close_elements = output_close_elements.view(-1, 10, 768)
-        print(output_close_elements.shape)
-        input()
+        screen_embedding = self.linear_layer_ui(output_close_elements)
+
         output_ui_model = self.model_ui(**input_ui)
         ui_embedding = output_ui_model[1]
 
@@ -169,7 +168,9 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         # output = ui_embedding + instruction_embedding
 
-        output = self.linear_layer_output(ui_embedding)
+        output = self.linear_layer_output(
+            torch.cat((ui_embedding, screen_embedding), dim=1)
+        )
 
         # both_representations = self.dropout2(both_representations)
         # output = self.linear_layer2(both_representations)
