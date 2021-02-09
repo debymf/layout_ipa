@@ -20,7 +20,7 @@ parser.add_argument(
     type=int,
     help="Type of instruction",
     default=[0, 1, 2, 3],
-    nargs="?",
+    nargs="+",
 )
 
 
