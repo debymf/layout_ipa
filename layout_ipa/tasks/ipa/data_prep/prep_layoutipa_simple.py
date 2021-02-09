@@ -32,7 +32,7 @@ class PrepareLayoutIpaSimple(Task):
 
             encoded_instruction = tokenizer_instruction.encode_plus(
                 content["instruction"],
-                content["ui"]["text"],
+                # content["ui"]["text"],
                 padding="max_length",
                 max_length=largest_instruction,
                 truncation=True,
@@ -91,13 +91,13 @@ class PrepareLayoutIpaSimple(Task):
             int(example["x1"]),
             int(example["y1"]),
         ]
-        instruction_tokens = tokenizer.tokenize(instruction)
-        tokens.extend(instruction_tokens)
-        token_boxes.extend([box] * len(tokens))
-        tokens.append("[SEP]")
-        token_boxes.append(sep_token_box)
+        # instruction_tokens = tokenizer.tokenize(instruction)
+        # tokens.extend(instruction_tokens)
+        # token_boxes.extend([box] * len(tokens))
+        # tokens.append("[SEP]")
+        # token_boxes.append(sep_token_box)
 
-        segment_ids_first = [0] * len(tokens)
+        # segment_ids_first = [0] * len(tokens)
         word_tokens = tokenizer.tokenize(example["text"])
         tokens.extend(word_tokens)
         token_boxes.extend([box] * len(word_tokens))
