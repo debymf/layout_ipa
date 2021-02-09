@@ -38,16 +38,16 @@ class PrepareLayoutIpaSimple(Task):
                 truncation=True,
             )
 
-            instruction_ui_dummy = {
-                "text": content["instruction"],
-                "x0": 0,
-                "x1": 0,
-                "y0": 0,
-                "y1": 0,
-            }
-            encoded_instruction_ui = self.convert_examples_to_features(
-                content["instruction"], instruction_ui_dummy, largest, tokenizer_layout,
-            )
+            # instruction_ui_dummy = {
+            #     "text": content["instruction"],
+            #     "x0": 0,
+            #     "x1": 0,
+            #     "y0": 0,
+            #     "y1": 0,
+            # }
+            # encoded_instruction_ui = self.convert_examples_to_features(
+            #     content["instruction"], instruction_ui_dummy, largest, tokenizer_layout,
+            # )
 
             entries[id_d] = {
                 "id_query": content["id_query"],
