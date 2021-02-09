@@ -91,7 +91,7 @@ class PrepareLayoutIpaSimple(Task):
             int(example["x1"]),
             int(example["y1"]),
         ]
-        word_tokens = tokenizer.tokenize(instruction + "[SEP]" + example["text"])
+        word_tokens = tokenizer.tokenize(instruction + " [SEP] " + example["text"])
         # word_tokens = tokenizer.tokenize(example["text"])
         tokens.extend(word_tokens)
         token_boxes.extend([box] * len(word_tokens))
