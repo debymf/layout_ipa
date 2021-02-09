@@ -60,7 +60,7 @@ class PrepareLayoutIpaSimple(Task):
                     [[0] * largest_screen] * to_add
                 )
                 closest_elements["ui_boxes"].extend(
-                    [[0, 0, 0, 0] * largest_screen] * to_add
+                    [[[0] * 4] * largest_screen] * to_add
                 )
                 print(closest_elements["ui_boxes"])
                 input()
