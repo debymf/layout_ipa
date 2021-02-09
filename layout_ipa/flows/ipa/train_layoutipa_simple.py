@@ -73,7 +73,7 @@ def save_output_results(output):
     else:
         append_write = "w"  # make a new file if not
 
-    with open(FILENAME_RESULTS, append_write) as f:
+    with open("./results/" + FILENAME_RESULTS, append_write) as f:
         f.write(f"TYPE: {INSTRUCTION_TYPE} \n")
         f.write(f"ACC DEV: {output['dev']['score']} \n")
         f.write(f"ACC TEST: {output['test']['score']} \n")
