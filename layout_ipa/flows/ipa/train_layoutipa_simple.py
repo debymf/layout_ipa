@@ -58,7 +58,7 @@ test_path = settings["rico_sca_sample"]["test"]
 #     result=LocalResult(dir=f"./cache/datasets/rico/"),
 # )
 
-prepare_rico_task = PrepareRicoScaPair()
+prepare_rico_task = PrepareRicoScaScreenPair()
 prepare_rico_layout_lm_task = PrepareLayoutIpaSimple()
 layout_lm_trainer_task = LayoutIpaSimpleTrainer()
 
