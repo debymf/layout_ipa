@@ -91,10 +91,15 @@ class PrepareLayoutIpaSimple(Task):
             int(example["x1"]),
             int(example["y1"]),
         ]
-        word_tokens = tokenizer.tokenize(instruction + " [SEP] " + example["text"])
-        # word_tokens = tokenizer.tokenize(example["text"])
+        instruction_tokens = tokenizer.tokenize(instruction)
+        tokens.extend(instruction_tokens)
+        token_boxes.extend([pad_token_box] * len(tokens))
+        tokens.append("[SEP]")
+        token_boxes.append(sep_token_box)
+        word_tokens = tokenizer.tokenize(example["text"])
         tokens.extend(word_tokens)
         token_boxes.extend([box] * len(word_tokens))
+
         # Account for [CLS] and [SEP] with "- 2" and with "- 3" for RoBERTa.
         special_tokens_count = 3 if sep_token_extra else 2
         if len(tokens) > max_seq_length - special_tokens_count:
