@@ -35,7 +35,7 @@ class PrepareLayoutIpaSimple(Task):
                 content["ui"]["text"],
                 padding="max_length",
                 max_length=largest_instruction,
-                truncate=True,
+                truncation=True,
             )
 
             entries[id_d] = {
