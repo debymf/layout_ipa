@@ -395,7 +395,7 @@ class LayoutIpaSimpleTrainer(Task):
 
                 inputs_ui = {
                     "input_ids": batch[3],
-                    "position_ids": batch[4],
+                    "attention_mask": batch[4],
                     "token_type_ids": batch[5],
                     "bbox": batch[6],
                 }
