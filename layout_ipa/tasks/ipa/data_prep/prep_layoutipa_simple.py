@@ -32,7 +32,7 @@ class PrepareLayoutIpaSimple(Task):
             # tokens_instruction = tokenizer_layout.tokenize(instruction)
             encoded_instruction = tokenizer_instruction.encode_plus(
                 content["instruction"],
-                # content["ui"]["text"],
+                content["ui"]["text"],
                 padding="max_length",
                 max_length=largest_instruction,
                 truncation=True,
