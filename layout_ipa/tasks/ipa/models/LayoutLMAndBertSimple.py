@@ -144,12 +144,16 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         input_close_elements["bbox"] = input_close_elements["bbox"].view(
             -1, input_close_elements["bbox"].size(-2), 4
         )
-        output_close_elements = self.model_ui(**input_close_elements)
+        print(input_close_elements["bbox"].shape)
+        input()
+        output_close_elements = self.model_ui(**input_close_elements)[1]
+        # both_representations = both_representations.view(4, -1, num_choices)
 
         print(output_close_elements[1].shape)
         input()
         output_ui_model = self.model_ui(**input_ui)
         ui_embedding = output_ui_model[1]
+
         # ui_embedding = self.linear_layer_ui(ui_embedding)
         # ui_embedding = self.activation_ui(ui_embedding)
         # ui_embedding = F.relu(ui_embedding)
