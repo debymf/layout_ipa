@@ -126,9 +126,14 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         # instruction_embedding = self.activation_instruction(instruction_embedding)
         # instruction_embedding = F.relu(instruction_embedding)
         # output1 = self.dropout1(instruction_representation)
-        print(input_close_elements)
+        print(input_close_elements["input_ids"].shape)
+        print(input_close_elements["attention_mask"].shape)
+        print(input_close_elements["token_type_ids"].shape)
+        print(input_close_elements["bbox"].shape)
+
         input()
         output_close_elements = self.model_ui(**input_close_elements)
+
         print(output_close_elements.shape)
         input()
         output_ui_model = self.model_ui(**input_ui)
