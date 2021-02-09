@@ -30,6 +30,7 @@ class PrepareLayoutIpaSimple(Task):
                 content["instruction"], content["ui"], largest, tokenizer_layout,
             )
 
+            print(content.keys())
             encoded_instruction = tokenizer_instruction.encode_plus(
                 content["instruction"],
                 content["ui"]["text"],
