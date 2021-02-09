@@ -18,7 +18,7 @@ class PrepareLayoutIpaSimple(Task):
         input_data,
         bert_model="bert-base-uncased",
         largest=256,
-        largest_instruction=128,
+        largest_instruction=256,
     ):
         logger.info("*** Preprocessing Data for Layout IPA (simple) ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
@@ -32,7 +32,7 @@ class PrepareLayoutIpaSimple(Task):
 
             encoded_instruction = tokenizer_instruction.encode_plus(
                 content["instruction"],
-                # content["ui"]["text"],
+                content["ui"]["text"],
                 padding="max_length",
                 max_length=largest_instruction,
             )
