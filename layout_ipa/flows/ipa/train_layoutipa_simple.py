@@ -95,17 +95,17 @@ with Flow("Running the Transformers for Pair Classification") as flow1:
     with tags("test"):
         test_input = prepare_rico_task(test_path, type_instructions=INSTRUCTION_TYPE)
         test_dataset = prepare_rico_layout_lm_task(test_input["data"])
-    # outputs = layout_lm_trainer_task(
-    #     train_dataset=train_dataset,
-    #     dev_dataset=dev_dataset,
-    #     test_dataset=test_dataset,
-    #     mapping_dev=dev_input["mapping"],
-    #     mapping_test=test_input["mapping"],
-    #     task_name="layout_ipa_simple_pair_rico",
-    #     output_dir="./cache/layout_ipa_simple_pair_rico/",
-    #     mode="train",
-    #     eval_fn=pair_evaluation,
-    # )
+    outputs = layout_lm_trainer_task(
+        train_dataset=train_dataset,
+        dev_dataset=dev_dataset,
+        test_dataset=test_dataset,
+        mapping_dev=dev_input["mapping"],
+        mapping_test=test_input["mapping"],
+        task_name="layout_ipa_simple_pair_rico",
+        output_dir="./cache/layout_ipa_simple_pair_rico/",
+        mode="train",
+        eval_fn=pair_evaluation,
+    )
     # save_output_results(outputs)
 
 
