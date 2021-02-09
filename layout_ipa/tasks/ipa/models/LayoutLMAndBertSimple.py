@@ -144,7 +144,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         input_close_elements["bbox"] = input_close_elements["bbox"].view(
             -1, input_close_elements["bbox"].size(-2), 4
         )
-        print(input_close_elements["bbox"].shape)
+        print(input_close_elements["attention_mask"].shape)
         input()
         output_close_elements = self.model_ui(**input_close_elements)[1]
         # both_representations = both_representations.view(4, -1, num_choices)
