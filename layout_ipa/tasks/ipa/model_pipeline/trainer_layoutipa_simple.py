@@ -251,22 +251,23 @@ class LayoutIpaSimpleTrainer(Task):
                 model.train()
 
                 batch = tuple(t.to(device) for t in batch)
-                inputs_inst = {
+                inputs_close_elements = {
                     "input_ids": batch[0],
                     "attention_mask": batch[1],
                     "token_type_ids": batch[2],
+                    "bbox": batch[3],
                 }
 
                 inputs_ui = {
-                    "input_ids": batch[3],
-                    "attention_mask": batch[4],
-                    "token_type_ids": batch[5],
-                    "bbox": batch[6],
+                    "input_ids": batch[4],
+                    "attention_mask": batch[5],
+                    "token_type_ids": batch[6],
+                    "bbox": batch[7],
                 }
 
-                outputs = model(inputs_inst, inputs_ui)
+                outputs = model(inputs_close_elements, inputs_ui)
 
-                labels = batch[7]
+                labels = batch[8]
                 labels = labels.type_as(outputs)
 
                 # preds = outputs.detach().cpu().numpy()
@@ -384,25 +385,26 @@ class LayoutIpaSimpleTrainer(Task):
             batch = tuple(t.to(device) for t in batch)
 
             with torch.no_grad():
-                query_ids = batch[8]
-                ui_positions = batch[9]
+                query_ids = batch[9]
+                ui_positions = batch[10]
 
-                inputs_inst = {
+                inputs_close_elements = {
                     "input_ids": batch[0],
                     "attention_mask": batch[1],
                     "token_type_ids": batch[2],
+                    "bbox": batch[3],
                 }
 
                 inputs_ui = {
-                    "input_ids": batch[3],
-                    "attention_mask": batch[4],
-                    "token_type_ids": batch[5],
-                    "bbox": batch[6],
+                    "input_ids": batch[4],
+                    "attention_mask": batch[5],
+                    "token_type_ids": batch[6],
+                    "bbox": batch[7],
                 }
 
-                outputs = model(inputs_inst, inputs_ui)
+                outputs = model(inputs_close_elements, inputs_ui)
 
-                labels = batch[7]
+                labels = batch[8]
 
                 # loss = criterion(outputs, labels)
 
@@ -413,7 +415,7 @@ class LayoutIpaSimpleTrainer(Task):
                 index_queries = query_ids.detach().cpu().numpy()
                 preds = outputs.detach().cpu().numpy()
                 out_label_ids = labels.detach().cpu().numpy()
-                all_index = batch[10].detach().cpu().numpy()
+                all_index = batch[11].detach().cpu().numpy()
                 all_ui = ui_positions.detach().cpu().numpy()
 
             else:
@@ -428,7 +430,7 @@ class LayoutIpaSimpleTrainer(Task):
                 )
 
                 all_index = np.append(
-                    all_index, batch[10].detach().cpu().numpy(), axis=0
+                    all_index, batch[11].detach().cpu().numpy(), axis=0
                 )
 
                 all_ui = np.append(all_ui, ui_positions.detach().cpu().numpy(), axis=0)

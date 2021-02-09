@@ -89,7 +89,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         self.linear_layer_instruction = nn.Linear(768, 1)
         self.linear_layer_ui = nn.Linear(768, 1)
-        self.linear_layer_output = nn.Linear(128 * 2, 1)
+        self.linear_layer_output = nn.Linear(768 * 1, 1)
         self.activation_ui = nn.Tanh()
         self.activation_instruction = nn.Tanh()
         # self.linear_layer1 = nn.Linear(768 * 4, 1)
@@ -114,21 +114,21 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         # output = output.view(-1, 261)
 
-        output_instruction_model = self.model_instruction(**input_instructions)
-        instruction_embedding = output_instruction_model[1]
-        # instruction_embedding = self.model_ui.embeddings.word_embeddings(
-        #     input_instructions["input_ids"]
-        # )
-        # instruction_embedding = instruction_embedding[:, 0]
-        # # print(instruction_embedding.shape)
-        # # input()
-        instruction_embedding = self.linear_layer_instruction(instruction_embedding)
+        # output_instruction_model = self.model_instruction(**input_instructions)
+        # instruction_embedding = output_instruction_model[1]
+        # # instruction_embedding = self.model_ui.embeddings.word_embeddings(
+        # #     input_instructions["input_ids"]
+        # # )
+        # # instruction_embedding = instruction_embedding[:, 0]
+        # # # print(instruction_embedding.shape)
+        # # # input()
+        # instruction_embedding = self.linear_layer_instruction(instruction_embedding)
         # instruction_embedding = self.activation_instruction(instruction_embedding)
         # instruction_embedding = F.relu(instruction_embedding)
         # output1 = self.dropout1(instruction_representation)
         output_ui_model = self.model_ui(**input_ui)
         ui_embedding = output_ui_model[1]
-        ui_embedding = self.linear_layer_ui(ui_embedding)
+        # ui_embedding = self.linear_layer_ui(ui_embedding)
         # ui_embedding = self.activation_ui(ui_embedding)
         # ui_embedding = F.relu(ui_embedding)
         # # output2 = self.dropout2(ui_representation)
@@ -140,9 +140,9 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         #     [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
         # )
 
-        output = ui_embedding + instruction_embedding
+        # output = ui_embedding + instruction_embedding
 
-        # output = self.linear_layer_output(both_representations)
+        output = self.linear_layer_output(ui_embedding)
 
         # both_representations = self.dropout2(both_representations)
         # output = self.linear_layer2(both_representations)
