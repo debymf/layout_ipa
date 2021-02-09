@@ -32,6 +32,7 @@ class PrepareRicoScaScreenPair(Task):
                         largest_id = id_ui
 
                 output_dict[largest_id] = screen_elements[largest_id]
+                print(largest_id)
 
             return output_dict
 

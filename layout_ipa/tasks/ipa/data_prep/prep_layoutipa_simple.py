@@ -37,17 +37,29 @@ class PrepareLayoutIpaSimple(Task):
                 max_length=largest_instruction,
                 truncation=True,
             )
+            closest_elements = dict()
+            closest_elements["ui_input_ids"] = list()
+            closest_elements["ui_input_mask"] = list()
+            closest_elements["ui_segment_ids"] = list()
+            closest_elements["ui_boxes"] = list()
 
-            # instruction_ui_dummy = {
-            #     "text": content["instruction"],
-            #     "x0": 0,
-            #     "x1": 0,
-            #     "y0": 0,
-            #     "y1": 0,
-            # }
-            # encoded_instruction_ui = self.convert_examples_to_features(
-            #     content["instruction"], instruction_ui_dummy, largest, tokenizer_layout,
-            # )
+            for _, element_close in content["closest"]:
+                encoded_close_element = self.convert_examples_to_features(
+                    "", element_close, largest, tokenizer_layout,
+                )
+
+                closest_elements["ui_input_ids"].append(
+                    torch.LongTensor(encoded_close_element["ui_input_ids"])
+                )
+                closest_elements["ui_input_mask"].append(
+                    torch.LongTensor(encoded_close_element["ui_input_mask"])
+                )
+                closest_elements["ui_segment_ids"].append(
+                    torch.LongTensor(encoded_close_element["ui_segment_ids"])
+                )
+                closest_elements["ui_boxes"].append(
+                    torch.LongTensor(encoded_close_element["ui_boxes"])
+                )
 
             entries[id_d] = {
                 "id_query": content["id_query"],
@@ -102,11 +114,12 @@ class PrepareLayoutIpaSimple(Task):
             int(example["x1"]),
             int(example["y1"]),
         ]
-        # instruction_tokens = tokenizer.tokenize(instruction)
-        # tokens.extend(instruction_tokens)
-        # token_boxes.extend([box] * len(tokens))
-        # tokens.append("[SEP]")
-        # token_boxes.append(sep_token_box)
+        if instruction:
+            instruction_tokens = tokenizer.tokenize(instruction)
+            tokens.extend(instruction_tokens)
+            token_boxes.extend([box] * len(tokens))
+            tokens.append("[SEP]")
+            token_boxes.append(sep_token_box)
 
         segment_ids_first = [0] * len(tokens)
         word_tokens = tokenizer.tokenize(example["text"])
