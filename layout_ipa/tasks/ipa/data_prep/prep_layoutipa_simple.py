@@ -110,13 +110,13 @@ class PrepareLayoutIpaSimple(Task):
 
         tokens += [sep_token]
         token_boxes += [sep_token_box]
-        segment_ids += [sep_token_box]
+        segment_ids += [0]
 
         if sep_token_extra:
             # roberta uses an extra separator b/w pairs of sentences
             tokens += [sep_token]
             token_boxes += [sep_token_box]
-            segment_ids += [sep_token_box]
+            segment_ids += [0]
         # segment_ids = [sequence_a_segment_id] * len(tokens)
 
         if cls_token_at_end:
