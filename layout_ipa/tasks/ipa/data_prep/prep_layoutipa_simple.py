@@ -18,7 +18,7 @@ class PrepareLayoutIpaSimple(Task):
         input_data,
         bert_model="bert-base-uncased",
         largest=512,
-        largest_instruction=512,
+        largest_instruction=5,
     ):
         logger.info("*** Preprocessing Data for Layout IPA (simple) ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
@@ -30,12 +30,12 @@ class PrepareLayoutIpaSimple(Task):
                 content["instruction"], content["ui"], largest, tokenizer_layout,
             )
 
-            encoded_instruction = tokenizer_instruction.encode_plus(
-                content["instruction"],
-                content["ui"]["text"],
-                padding="max_length",
-                max_length=largest_instruction,
-            )
+            # encoded_instruction = tokenizer_instruction.encode_plus(
+            #     content["instruction"],
+            #     content["ui"]["text"],
+            #     padding="max_length",
+            #     max_length=largest_instruction,
+            # )
 
             entries[id_d] = {
                 "id_query": content["id_query"],
@@ -165,15 +165,28 @@ class TorchDataset(Dataset):
             torch.LongTensor(instance["inst_input_ids"]),
             torch.LongTensor(instance["inst_att_mask"]),
             torch.LongTensor(instance["inst_token_ids"]),
-            torch.LongTensor(instance["ui_input_ids"]),
-            torch.LongTensor(instance["ui_att_mask"]),
-            torch.LongTensor(instance["ui_token_ids"]),
-            torch.LongTensor(instance["ui_boxes"]),
+            torch.LongTensor([0]),
+            torch.LongTensor([0]),
+            torch.LongTensor([0]),
+            torch.LongTensor([0]),
             instance["label"],
             instance["id_query"],
             instance["ui_position"],
             index,
         )
+        #  return (
+        #     torch.LongTensor(instance["inst_input_ids"]),
+        #     torch.LongTensor(instance["inst_att_mask"]),
+        #     torch.LongTensor(instance["inst_token_ids"]),
+        #     torch.LongTensor(instance["ui_input_ids"]),
+        #     torch.LongTensor(instance["ui_att_mask"]),
+        #     torch.LongTensor(instance["ui_token_ids"]),
+        #     torch.LongTensor(instance["ui_boxes"]),
+        #     instance["label"],
+        #     instance["id_query"],
+        #     instance["ui_position"],
+        #     index,
+        # )
 
     def get_id(self, index):
         return self.keys[index]
