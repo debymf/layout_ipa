@@ -62,7 +62,7 @@ prepare_rico_task = PrepareRicoScaPair()
 prepare_rico_layout_lm_task = PrepareLayoutIpaSimple()
 layout_lm_trainer_task = LayoutIpaSimpleTrainer()
 
-logger.succes(f"***** TYPE {INSTRUCTION_TYPE} *****")
+logger.success(f"***** TYPE {INSTRUCTION_TYPE} *****")
 
 
 @task
