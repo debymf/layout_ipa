@@ -24,9 +24,6 @@ class PrepareRicoScaScreenPair(Task):
                 total_distance = math.hypot(x, y)
                 distances_dict[ui_index_screen] = total_distance
 
-            print("BEGINNING")
-            print(distances_dict)
-            input()
             while len(output_dict) < TOTAL_SELECTED:
                 smallest = 100000
                 smallest_id = 0
