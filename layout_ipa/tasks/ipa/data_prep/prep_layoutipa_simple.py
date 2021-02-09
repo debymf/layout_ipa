@@ -96,25 +96,29 @@ class PrepareLayoutIpaSimple(Task):
         token_boxes.extend([pad_token_box] * len(tokens))
         tokens.append("[SEP]")
         token_boxes.append(sep_token_box)
+        segment_ids_first = [sequence_a_segment_id] * len(tokens)
         word_tokens = tokenizer.tokenize(example["text"])
         tokens.extend(word_tokens)
         token_boxes.extend([box] * len(word_tokens))
+        segment_ids_second = [1] * len(word_tokens)
+        segment_ids = segment_ids_first + segment_ids_second
 
         # Account for [CLS] and [SEP] with "- 2" and with "- 3" for RoBERTa.
-        special_tokens_count = 3 if sep_token_extra else 2
+        special_tokens_count = 2 if sep_token_extra else 1
         if len(tokens) > max_seq_length - special_tokens_count:
             tokens = tokens[: (max_seq_length - special_tokens_count)]
             token_boxes = token_boxes[: (max_seq_length - special_tokens_count)]
+            segment_ids = segment_ids[: (max_seq_length - special_tokens_count)]
 
-        tokens += [sep_token]
-        token_boxes += [sep_token_box]
+        # tokens += [sep_token]
+        # token_boxes += [sep_token_box]
 
         if sep_token_extra:
             # roberta uses an extra separator b/w pairs of sentences
             tokens += [sep_token]
             token_boxes += [sep_token_box]
-
-        segment_ids = [sequence_a_segment_id] * len(tokens)
+            segment_ids += [sep_token_box]
+        # segment_ids = [sequence_a_segment_id] * len(tokens)
 
         if cls_token_at_end:
             tokens += [cls_token]
