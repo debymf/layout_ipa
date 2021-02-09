@@ -27,12 +27,15 @@ class PrepareRicoScaScreenPair(Task):
             while len(output_dict) < TOTAL_SELECTED:
                 largest = 0
                 largest_id = 0
+                print("======================")
                 print("IN LOOP")
+                input()
                 for id_ui, distance in distances_dict.items():
                     print("DISTANCE")
                     print(distance)
                     print("LARGEST")
                     print(largest)
+                    print("===")
                     if distance > largest and id_ui not in output_dict:
                         largest = distance
                         largest_id = id_ui
