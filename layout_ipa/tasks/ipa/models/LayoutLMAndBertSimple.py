@@ -131,7 +131,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         both_representations = torch.cat((ui_embedding, instruction_embedding), dim=1)
 
-        output = self.linear_layer_output(ui_embedding)
+        output = self.linear_layer_output(both_representations)
 
         # both_representations = self.dropout2(both_representations)
         # output = self.linear_layer2(both_representations)
