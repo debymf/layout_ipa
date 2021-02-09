@@ -17,7 +17,7 @@ class PrepareLayoutIpaSimple(Task):
         self,
         input_data,
         bert_model="bert-base-uncased",
-        largest=512,
+        largest=5,
         largest_instruction=512,
     ):
         logger.info("*** Preprocessing Data for Layout IPA (simple) ***")
@@ -35,6 +35,7 @@ class PrepareLayoutIpaSimple(Task):
                 content["ui"]["text"],
                 padding="max_length",
                 max_length=largest_instruction,
+                truncate=True,
             )
 
             entries[id_d] = {
