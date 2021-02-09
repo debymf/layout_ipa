@@ -17,43 +17,36 @@ class PrepareLayoutIpaSimple(Task):
         self,
         input_data,
         bert_model="bert-base-uncased",
-        largest=512,
+        largest=256,
         largest_instruction=512,
     ):
         logger.info("*** Preprocessing Data for Layout IPA (simple) ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
-        tokenizer_instruction = BertTokenizer.from_pretrained(bert_model)
         entries = dict()
         for id_d, content in tqdm(input_data.items()):
-
             encoded_ui = self.convert_examples_to_features(
                 content["instruction"], content["ui"], largest, tokenizer_layout,
             )
-            # tokens_instruction = tokenizer_layout.tokenize(instruction)
-
             closest_elements = dict()
             closest_elements["ui_input_ids"] = list()
             closest_elements["ui_input_mask"] = list()
             closest_elements["ui_segment_ids"] = list()
             closest_elements["ui_boxes"] = list()
-
             for _, element_close in content["closest"].items():
                 encoded_close_element = self.convert_examples_to_features(
-                    "", element_close, largest, tokenizer_layout,
+                    "", element_close, 128, tokenizer_layout,
                 )
 
                 closest_elements["ui_input_ids"].append(
-                    torch.LongTensor(encoded_close_element["ui_input_ids"])
+                    encoded_close_element["ui_input_ids"]
                 )
                 closest_elements["ui_input_mask"].append(
-                    torch.LongTensor(encoded_close_element["ui_input_mask"])
+                    encoded_close_element["ui_input_mask"]
                 )
                 closest_elements["ui_segment_ids"].append(
-                    torch.LongTensor(encoded_close_element["ui_segment_ids"])
+                    encoded_close_element["ui_segment_ids"]
                 )
-                closest_elements["ui_boxes"].append(
-                    torch.LongTensor(encoded_close_element["ui_boxes"])
-                )
+                closest_elements["ui_boxes"].append(encoded_close_element["ui_boxes"])
 
             entries[id_d] = {
                 "id_query": content["id_query"],
