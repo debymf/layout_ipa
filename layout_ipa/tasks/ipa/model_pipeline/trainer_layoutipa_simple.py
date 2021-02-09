@@ -440,12 +440,12 @@ class LayoutIpaSimpleTrainer(Task):
             preds_parsed = expit(preds)
             preds_parsed = preds_parsed.squeeze(1)
 
-            print("**** PREDS ****")
-            print(preds)
-            input()
-            print("**** Preds Parsed ****")
-            print(preds_parsed)
-            input()
+            # print("**** PREDS ****")
+            # print(preds)
+            # input()
+            # print("**** Preds Parsed ****")
+            # print(preds_parsed)
+            # input()
             score = eval_fn(preds_parsed, index_queries, all_ui, mapping)
 
             # if mode == "test":

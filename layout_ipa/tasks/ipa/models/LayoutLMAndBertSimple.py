@@ -89,7 +89,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         self.linear_layer_instruction = nn.Linear(768, 128)
         self.linear_layer_ui = nn.Linear(768, 128)
-        self.linear_layer_output = nn.Linear(128 * 2, 1)
+        self.linear_layer_output = nn.Linear(128 * 1, 1)
         # self.linear_layer1 = nn.Linear(768 * 4, 1)
         # self.linear_layer2 = nn.Linear(512, 1)
 
@@ -131,7 +131,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         both_representations = torch.cat((ui_embedding, instruction_embedding), dim=1)
 
-        output = self.linear_layer_output(both_representations)
+        output = self.linear_layer_output(instruction_embedding)
 
         # both_representations = self.dropout2(both_representations)
         # output = self.linear_layer2(both_representations)
