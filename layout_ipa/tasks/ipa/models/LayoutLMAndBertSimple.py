@@ -117,7 +117,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         instruction_embedding = self.model_ui.embeddings.word_embeddings(
             input_instructions["input_ids"]
         )
-
+        instruction_embedding = instruction_embedding[:, 0]
         print(instruction_embedding.shape)
         input()
         # instruction_embedding = self.linear_layer_instruction(instruction_embedding)
