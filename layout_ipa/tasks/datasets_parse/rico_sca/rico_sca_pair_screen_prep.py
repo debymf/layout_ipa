@@ -126,7 +126,7 @@ class PrepareRicoScaScreenPair(Task):
                             "instruction": instruction,
                             "ui": ui_element,
                             "label": label_ui,
-                            "closest": closest(get_closest(ui_element)),
+                            "closest": self.get_closest(ui_element),
                         }
                         total_pairs = total_pairs + 1
 
