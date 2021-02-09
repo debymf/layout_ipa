@@ -88,13 +88,13 @@ def save_output_results(output):
 with Flow("Running the Transformers for Pair Classification") as flow1:
     with tags("train"):
         train_input = prepare_rico_task(train_path, type_instructions=INSTRUCTION_TYPE)
-        # train_dataset = prepare_rico_layout_lm_task(train_input["data"])
+        train_dataset = prepare_rico_layout_lm_task(train_input["data"])
     with tags("dev"):
         dev_input = prepare_rico_task(dev_path, type_instructions=INSTRUCTION_TYPE)
-        # dev_dataset = prepare_rico_layout_lm_task(dev_input["data"])
+        dev_dataset = prepare_rico_layout_lm_task(dev_input["data"])
     with tags("test"):
         test_input = prepare_rico_task(test_path, type_instructions=INSTRUCTION_TYPE)
-        # test_dataset = prepare_rico_layout_lm_task(test_input["data"])
+        test_dataset = prepare_rico_layout_lm_task(test_input["data"])
     # outputs = layout_lm_trainer_task(
     #     train_dataset=train_dataset,
     #     dev_dataset=dev_dataset,

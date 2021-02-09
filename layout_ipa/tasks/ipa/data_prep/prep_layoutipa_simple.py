@@ -30,13 +30,7 @@ class PrepareLayoutIpaSimple(Task):
                 content["instruction"], content["ui"], largest, tokenizer_layout,
             )
             # tokens_instruction = tokenizer_layout.tokenize(instruction)
-            encoded_instruction = tokenizer_instruction.encode_plus(
-                content["instruction"],
-                content["ui"]["text"],
-                padding="max_length",
-                max_length=largest_instruction,
-                truncation=True,
-            )
+
             closest_elements = dict()
             closest_elements["ui_input_ids"] = list()
             closest_elements["ui_input_mask"] = list()
