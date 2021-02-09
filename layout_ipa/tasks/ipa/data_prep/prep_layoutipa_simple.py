@@ -97,7 +97,7 @@ class PrepareLayoutIpaSimple(Task):
         # tokens.append("[SEP]")
         # token_boxes.append(sep_token_box)
 
-        # segment_ids_first = [0] * len(tokens)
+        segment_ids_first = [0] * len(tokens)
         word_tokens = tokenizer.tokenize(example["text"])
         tokens.extend(word_tokens)
         token_boxes.extend([box] * len(word_tokens))
