@@ -88,7 +88,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         # self.dropout2 = nn.Dropout(p=0.5)
 
         self.linear_layer_instruction = nn.Linear(768, 1)
-        self.linear_layer_ui = nn.Linear(768, 1
+        self.linear_layer_ui = nn.Linear(768, 1)
         self.linear_layer_output = nn.Linear(128 * 2, 1)
         self.activation_ui = nn.Tanh()
         self.activation_instruction = nn.Tanh()
@@ -142,7 +142,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         output = ui_embedding + instruction_embedding
 
-        #output = self.linear_layer_output(both_representations)
+        # output = self.linear_layer_output(both_representations)
 
         # both_representations = self.dropout2(both_representations)
         # output = self.linear_layer2(both_representations)
