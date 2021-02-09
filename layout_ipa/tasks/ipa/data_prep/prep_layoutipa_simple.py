@@ -29,7 +29,7 @@ class PrepareLayoutIpaSimple(Task):
             encoded_ui = self.convert_examples_to_features(
                 content["instruction"], content["ui"], largest, tokenizer_layout,
             )
-
+            # tokens_instruction = tokenizer_layout.tokenize(instruction)
             encoded_instruction = tokenizer_instruction.encode_plus(
                 content["instruction"],
                 # content["ui"]["text"],
@@ -38,10 +38,21 @@ class PrepareLayoutIpaSimple(Task):
                 truncation=True,
             )
 
+            instruction_ui_dummy = {
+                "text": content["instruction"],
+                "x0": 0,
+                "x1": 0,
+                "y0": 0,
+                "y1": 0,
+            }
+            encoded_instruction_ui = self.convert_examples_to_features(
+                content["instruction"], instruction_ui_dummy, largest, tokenizer_layout,
+            )
+
             entries[id_d] = {
                 "id_query": content["id_query"],
                 "ui_position": content["ui_position"],
-                "inst_input_ids": encoded_instruction["input_ids"],
+                "inst_input_ids": encoded_instruction_ui["ui_input_ids"],
                 "inst_att_mask": encoded_instruction["attention_mask"],
                 "inst_token_ids": encoded_instruction["token_type_ids"],
                 "ui_input_ids": encoded_ui["ui_input_ids"],

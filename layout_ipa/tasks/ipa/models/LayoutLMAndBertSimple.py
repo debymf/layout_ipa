@@ -112,8 +112,11 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         # output = output.view(-1, 261)
 
-        output_instruction_model = self.model_instruction(**input_instructions)
-        instruction_embedding = output_instruction_model[1]
+        # output_instruction_model = self.model_instruction(**input_instructions)
+        # instruction_embedding = output_instruction_model[1]
+        instruction_embedding = self.model_ui.embeddings.word_embeddings(
+            input_instructions["input_ids"]
+        )
         # instruction_embedding = self.linear_layer_instruction(instruction_embedding)
         # instruction_embedding = F.relu(instruction_embedding)
         # output1 = self.dropout1(instruction_representation)
