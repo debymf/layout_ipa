@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser(description="Running flow for Layout IPA.")
 parser.add_argument(
     "--type",
     metavar="Type of instruction",
-    type=list,
+    type=int,
     help="Type of instruction",
     default=[0, 1, 2, 3],
     nargs="?",
@@ -63,6 +63,7 @@ prepare_rico_layout_lm_task = PrepareLayoutIpaSimple()
 layout_lm_trainer_task = LayoutIpaSimpleTrainer()
 
 logger.success(f"***** TYPE {INSTRUCTION_TYPE} *****")
+logger.success(f"***** OUTPUT FILE {FILENAME_RESULTS} *****")
 
 
 @task
