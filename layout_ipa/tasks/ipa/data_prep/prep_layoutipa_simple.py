@@ -18,7 +18,7 @@ class PrepareLayoutIpaSimple(Task):
         input_data,
         bert_model="bert-base-uncased",
         largest=256,
-        largest_instruction=512,
+        largest_screen=128,
     ):
         logger.info("*** Preprocessing Data for Layout IPA (simple) ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
@@ -47,6 +47,17 @@ class PrepareLayoutIpaSimple(Task):
                     encoded_close_element["ui_segment_ids"]
                 )
                 closest_elements["ui_boxes"].append(encoded_close_element["ui_boxes"])
+
+            if len(closest_elements["ui_input_ids"]) < 10:
+                to_add = 10 - len(closest_elements["ui_input_ids"])
+                closest_elements["ui_input_ids"].append([[0] * largest_screen] * to_add)
+                closest_elements["ui_input_mask"].append(
+                    [[0] * largest_screen] * to_add
+                )
+                closest_elements["ui_segment_ids"].append(
+                    [[0] * largest_screen] * to_add
+                )
+                closest_elements["ui_boxes"].append([[0] * largest_screen] * to_add)
 
             entries[id_d] = {
                 "id_query": content["id_query"],
