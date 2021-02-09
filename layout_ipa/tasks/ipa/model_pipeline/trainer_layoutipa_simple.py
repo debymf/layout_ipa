@@ -437,9 +437,16 @@ class LayoutIpaSimpleTrainer(Task):
         score = None
         if eval_fn is not None:
 
-            preds = expit(preds)
-            preds = preds.squeeze(1)
-            score = eval_fn(preds, index_queries, all_ui, mapping)
+            preds_parsed = expit(preds)
+            preds_parsed = preds_parsed.squeeze(1)
+
+            print("**** PREDS ****")
+            print(preds)
+            input()
+            print("**** Preds Parsed ****")
+            print(preds_parsed)
+            input()
+            score = eval_fn(preds_parsed, index_queries, all_ui, mapping)
 
             # if mode == "test":
             #     out_preds = {"preds": preds.tolist(), "gold": out_label_ids.tolist()}
