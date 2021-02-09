@@ -105,15 +105,11 @@ class PrepareLayoutIpaSimple(Task):
         segment_ids = segment_ids_first + segment_ids_second
 
         # Account for [CLS] and [SEP] with "- 2" and with "- 3" for RoBERTa.
-        special_tokens_count = 3 if sep_token_extra else 2
+        special_tokens_count = 2 if sep_token_extra else 1
         if len(tokens) > max_seq_length - special_tokens_count:
             tokens = tokens[: (max_seq_length - special_tokens_count)]
             token_boxes = token_boxes[: (max_seq_length - special_tokens_count)]
             segment_ids = segment_ids[: (max_seq_length - special_tokens_count)]
-
-        tokens += [sep_token]
-        token_boxes += [sep_token_box]
-        segment_ids += [1]
 
         if sep_token_extra:
             # roberta uses an extra separator b/w pairs of sentences
