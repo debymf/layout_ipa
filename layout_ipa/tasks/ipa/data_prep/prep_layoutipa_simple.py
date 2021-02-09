@@ -93,7 +93,7 @@ class PrepareLayoutIpaSimple(Task):
         ]
         instruction_tokens = tokenizer.tokenize(instruction)
         tokens.extend(instruction_tokens)
-        token_boxes.extend([pad_token_box] * len(tokens))
+        token_boxes.extend([box] * len(tokens))
         tokens.append("[SEP]")
         token_boxes.append(sep_token_box)
 
