@@ -95,7 +95,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         # self.linear_layer1 = nn.Linear(768 * 4, 1)
         # self.linear_layer2 = nn.Linear(512, 1)
 
-    def forward(self, input_instructions, input_ui):
+    def forward(self, input_close_elements, input_ui):
 
         # output_instruction_model = self.model_instruction(**input_instructions)
         # instruction_representation = output_instruction_model[0]
@@ -126,6 +126,9 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         # instruction_embedding = self.activation_instruction(instruction_embedding)
         # instruction_embedding = F.relu(instruction_embedding)
         # output1 = self.dropout1(instruction_representation)
+        output_close_elements = self.model_ui(**input_close_elements)
+        print(output_close_elements.shape)
+        input()
         output_ui_model = self.model_ui(**input_ui)
         ui_embedding = output_ui_model[1]
         # ui_embedding = self.linear_layer_ui(ui_embedding)
