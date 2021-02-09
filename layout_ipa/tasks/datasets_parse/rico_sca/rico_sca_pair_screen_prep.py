@@ -36,7 +36,7 @@ class PrepareRicoScaScreenPair(Task):
 
                 output_dict[smallest_id] = screen_elements[smallest_id]
 
-            return output_dict
+        return output_dict
 
     def run(self, file_location, type_instructions=[0, 1, 2, 3]):
         """Parses the RicoSCA dataset for the pair classification task.

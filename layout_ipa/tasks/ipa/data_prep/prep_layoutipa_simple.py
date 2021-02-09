@@ -37,7 +37,7 @@ class PrepareLayoutIpaSimple(Task):
             closest_elements["ui_segment_ids"] = list()
             closest_elements["ui_boxes"] = list()
 
-            for _, element_close in content["closest"]:
+            for _, element_close in content["closest"].items():
                 encoded_close_element = self.convert_examples_to_features(
                     "", element_close, largest, tokenizer_layout,
                 )
