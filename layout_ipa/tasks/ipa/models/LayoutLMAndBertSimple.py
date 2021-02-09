@@ -126,12 +126,24 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         # instruction_embedding = self.activation_instruction(instruction_embedding)
         # instruction_embedding = F.relu(instruction_embedding)
         # output1 = self.dropout1(instruction_representation)
-        print(input_close_elements["input_ids"].shape)
-        print(input_close_elements["attention_mask"].shape)
-        print(input_close_elements["token_type_ids"].shape)
-        print(input_close_elements["bbox"].shape)
+        # print(input_close_elements["input_ids"].shape)
+        # print(input_close_elements["attention_mask"].shape)
+        # print(input_close_elements["token_type_ids"].shape)
+        # print(input_close_elements["bbox"].shape)
 
-        input()
+        # input()
+        input_close_elements["input_ids"] = input_close_elements["input_ids"].view(
+            -1, input_close_elements["input_ids"].size(-1)
+        )
+        input_close_elements["position_ids"] = input_close_elements[
+            "position_ids"
+        ].view(-1, input_close_elements["position_ids"].size(-1))
+        input_close_elements["token_type_ids"] = input_close_elements[
+            "token_type_ids"
+        ].view(-1, input_close_elements["token_type_ids"].size(-1))
+        input_close_elements["bbox"] = input_close_elements["bbox"].view(
+            -1, input_close_elements["bbox"].size(-2), 4
+        )
         output_close_elements = self.model_ui(**input_close_elements)
 
         print(output_close_elements.shape)
