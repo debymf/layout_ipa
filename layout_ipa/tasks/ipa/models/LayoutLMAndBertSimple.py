@@ -90,7 +90,8 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         self.linear_layer_instruction = nn.Linear(768, 1)
         self.linear_layer_ui = nn.Linear(768 * 10, 768)
         self.linear_layer_output = nn.Linear(768 * 2, 1)
-        self.activation_ui = nn.Tanh()
+        self.activation_ui1 = nn.Tanh()
+        self.activation_ui2 = nn.Tanh()
         self.activation_instruction = nn.Tanh()
         # self.linear_layer1 = nn.Linear(768 * 4, 1)
         # self.linear_layer2 = nn.Linear(512, 1)
@@ -115,9 +116,11 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         output_close_elements = output_close_elements.view(-1, 10 * 768)
         screen_embedding = self.linear_layer_ui(output_close_elements)
+        screen_embedding = self.activation_ui1(screen_embedding)
 
         output_ui_model = self.model_ui(**input_ui)
         ui_embedding = output_ui_model[1]
+        ui_embedding = self.activation_ui2(ui_embedding)
 
         # ui_embedding = self.linear_layer_ui(ui_embedding)
         # ui_embedding = self.activation_ui(ui_embedding)
