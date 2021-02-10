@@ -97,41 +97,6 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
     def forward(self, input_close_elements, input_ui):
 
-        # output_instruction_model = self.model_instruction(**input_instructions)
-        # instruction_representation = output_instruction_model[0]
-
-        # output_ui_model = self.model_ui(**input_ui)
-
-        # ui_representation = output_ui_model[0]
-
-        # both_representations = self.bidaf_layer(
-        #     ui_representation, instruction_representation
-        # )
-
-        # both_representations = self.linear_layer1(both_representations).squeeze()
-
-        # output = self.linear_layer2(both_representations)
-
-        # output = output.view(-1, 261)
-
-        # output_instruction_model = self.model_instruction(**input_instructions)
-        # instruction_embedding = output_instruction_model[1]
-        # # instruction_embedding = self.model_ui.embeddings.word_embeddings(
-        # #     input_instructions["input_ids"]
-        # # )
-        # # instruction_embedding = instruction_embedding[:, 0]
-        # # # print(instruction_embedding.shape)
-        # # # input()
-        # instruction_embedding = self.linear_layer_instruction(instruction_embedding)
-        # instruction_embedding = self.activation_instruction(instruction_embedding)
-        # instruction_embedding = F.relu(instruction_embedding)
-        # output1 = self.dropout1(instruction_representation)
-        # print(input_close_elements["input_ids"].shape)
-        # print(input_close_elements["attention_mask"].shape)
-        # print(input_close_elements["token_type_ids"].shape)
-        # print(input_close_elements["bbox"].shape)
-
-        # input()
         input_close_elements["input_ids"] = input_close_elements["input_ids"].view(
             -1, input_close_elements["input_ids"].size(-1)
         )
@@ -179,4 +144,38 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         # output = self.act(both_representations)
         return output
+
+        # output_instruction_model = self.model_instruction(**input_instructions)
+        # instruction_representation = output_instruction_model[0]
+
+        # output_ui_model = self.model_ui(**input_ui)
+
+        # ui_representation = output_ui_model[0]
+
+        # both_representations = self.bidaf_layer(
+        #     ui_representation, instruction_representation
+        # )
+
+        # both_representations = self.linear_layer1(both_representations).squeeze()
+
+        # output = self.linear_layer2(both_representations)
+
+        # output = output.view(-1, 261)
+
+        # output_instruction_model = self.model_instruction(**input_instructions)
+        # instruction_embedding = output_instruction_model[1]
+        # # instruction_embedding = self.model_ui.embeddings.word_embeddings(
+        # #     input_instructions["input_ids"]
+        # # )
+        # # instruction_embedding = instruction_embedding[:, 0]
+        # # # print(instruction_embedding.shape)
+        # # # input()
+        # instruction_embedding = self.linear_layer_instruction(instruction_embedding)
+        # instruction_embedding = self.activation_instruction(instruction_embedding)
+        # instruction_embedding = F.relu(instruction_embedding)
+        # output1 = self.dropout1(instruction_representation)
+        # print(input_close_elements["input_ids"].shape)
+        # print(input_close_elements["attention_mask"].shape)
+        # print(input_close_elements["token_type_ids"].shape)
+        # print(input_close_elements["bbox"].shape)
 

@@ -18,7 +18,7 @@ class PrepareLayoutIpaSimple(Task):
         input_data,
         bert_model="bert-base-uncased",
         largest=256,
-        largest_screen=256,
+        largest_screen=128,
     ):
         logger.info("*** Preprocessing Data for Layout IPA (simple) ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
@@ -34,10 +34,7 @@ class PrepareLayoutIpaSimple(Task):
             closest_elements["ui_boxes"] = list()
             for _, element_close in content["closest"].items():
                 encoded_close_element = self.convert_examples_to_features(
-                    content["instruction"],
-                    element_close,
-                    largest_screen,
-                    tokenizer_layout,
+                    None, element_close, largest_screen, tokenizer_layout,
                 )
 
                 closest_elements["ui_input_ids"].append(
