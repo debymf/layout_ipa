@@ -106,7 +106,7 @@ with Flow("Running the Transformers for Pair Classification") as flow1:
         mode="train",
         eval_fn=pair_evaluation,
     )
-    # save_output_results(outputs)
+    save_output_results(outputs)
 
 
 FlowRunner(flow=flow1).run()
