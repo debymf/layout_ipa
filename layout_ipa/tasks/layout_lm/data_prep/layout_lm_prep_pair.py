@@ -62,11 +62,7 @@ class PrepareLayoutLMPairTask(Task):
             `cls_token_segment_id` define the segment id associated to the CLS token (0 for BERT, 2 for XLNet)
         """
 
-        features = dict()
-        features["ui_input_ids"] = list()
-        features["ui_input_mask"] = list()
-        features["ui_segment_ids"] = list()
-        features["ui_boxes"] = list()
+         features = dict()
 
         tokens = []
         token_boxes = []
@@ -76,12 +72,20 @@ class PrepareLayoutLMPairTask(Task):
             int(example["x1"]),
             int(example["y1"]),
         ]
-        instruction_tokens = tokenizer.tokenize(instruction)
-        tokens.extend(instruction_tokens)
-        tokens.append("[SEP]")
+        if instruction:
+            instruction_tokens = tokenizer.tokenize(instruction)
+            tokens.extend(instruction_tokens)
+            token_boxes.extend([box] * len(tokens))
+            tokens.append("[SEP]")
+            token_boxes.append(sep_token_box)
+
+        segment_ids_first = [0] * len(tokens)
         word_tokens = tokenizer.tokenize(example["text"])
         tokens.extend(word_tokens)
-        token_boxes.extend([box] * len(tokens))
+        token_boxes.extend([box] * len(word_tokens))
+        segment_ids_second = [1] * len(word_tokens)
+        segment_ids = segment_ids_first + segment_ids_second
+
         # Account for [CLS] and [SEP] with "- 2" and with "- 3" for RoBERTa.
         special_tokens_count = 3 if sep_token_extra else 2
         if len(tokens) > max_seq_length - special_tokens_count:
