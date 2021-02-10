@@ -219,7 +219,7 @@ class LayoutLMPair(Task):
                 batch = tuple(t.to(device) for t in batch)
                 inputs = {
                     "input_ids": batch[0],
-                    "position_ids": batch[1],
+                    "attention_mask": batch[1],
                     "token_type_ids": batch[2],
                     "bbox": batch[3],
                     "labels": batch[4],
@@ -326,7 +326,7 @@ class LayoutLMPair(Task):
                 ui_positions = batch[7]
                 inputs = {
                     "input_ids": batch[0],
-                    "position_ids": batch[1],
+                    "attention_mask": batch[1],
                     "token_type_ids": batch[2],
                     "bbox": batch[3],
                     "labels": batch[4],

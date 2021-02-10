@@ -62,7 +62,7 @@ class PrepareLayoutLMPairTask(Task):
             `cls_token_segment_id` define the segment id associated to the CLS token (0 for BERT, 2 for XLNet)
         """
 
-         features = dict()
+        features = dict()
 
         tokens = []
         token_boxes = []
