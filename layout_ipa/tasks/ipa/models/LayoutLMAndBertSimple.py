@@ -116,11 +116,11 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         output_close_elements = output_close_elements.view(-1, 10 * 768)
         screen_embedding = self.linear_layer_ui(output_close_elements)
-        screen_embedding = self.activation_ui1(screen_embedding)
+        # screen_embedding = self.activation_ui1(screen_embedding)
 
         output_ui_model = self.model_ui(**input_ui)
         ui_embedding = output_ui_model[1]
-        ui_embedding = self.activation_ui2(ui_embedding)
+        # ui_embedding = self.activation_ui2(ui_embedding)
 
         # ui_embedding = self.linear_layer_ui(ui_embedding)
         # ui_embedding = self.activation_ui(ui_embedding)
