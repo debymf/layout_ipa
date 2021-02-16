@@ -318,6 +318,8 @@ class LayoutIpaSimpleTrainer(Task):
                             f"Loss :{loss_scalar} LR: {learning_rate_scalar}"
                         )
                         logging_loss = tr_loss
+
+            logger.debug(f"TRAINING LOSS: {tr_loss}")
             score = self.eval(
                 criterion,
                 model,
