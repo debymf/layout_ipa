@@ -302,7 +302,7 @@ class LayoutIpaSimpleTrainer(Task):
                 loss.backward()
 
                 tr_loss += loss.item()
-                epoch_loss = loss.item()
+                epoch_loss += loss.item()
                 if (step + 1) % self.gradient_accumulation_steps == 0:
                     torch.nn.utils.clip_grad_norm_(
                         model.parameters(), self.max_grad_norm
