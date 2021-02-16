@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 
 def pair_evaluation(preds, q_ids, ui_ids, mappings):
-    preds = preds[:, 1]
+    # preds = preds[:, 1]
     scores = dict()
     choices = dict()
 
