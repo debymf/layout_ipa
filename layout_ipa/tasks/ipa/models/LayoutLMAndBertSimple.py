@@ -89,7 +89,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         self.linear_layer_instruction = nn.Linear(768, 1)
         self.linear_layer_ui = nn.Linear(768 * 10, 768)
-        self.linear_layer_output = nn.Linear(768 * 2, 1)
+        self.linear_layer_output = nn.Linear(768 * 1, 1)
         self.activation_ui1 = nn.Tanh()
         self.activation_ui2 = nn.Tanh()
         self.activation_instruction = nn.Tanh()
@@ -98,31 +98,31 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
     def forward(self, input_close_elements, input_ui):
 
-        input_close_elements["input_ids"] = input_close_elements["input_ids"].view(
-            -1, input_close_elements["input_ids"].size(-1)
-        )
-        input_close_elements["attention_mask"] = input_close_elements[
-            "attention_mask"
-        ].view(-1, input_close_elements["attention_mask"].size(-1))
-        input_close_elements["token_type_ids"] = input_close_elements[
-            "token_type_ids"
-        ].view(-1, input_close_elements["token_type_ids"].size(-1))
-        input_close_elements["bbox"] = input_close_elements["bbox"].view(
-            -1, input_close_elements["bbox"].size(-2), 4
-        )
+        # input_close_elements["input_ids"] = input_close_elements["input_ids"].view(
+        #     -1, input_close_elements["input_ids"].size(-1)
+        # )
+        # input_close_elements["attention_mask"] = input_close_elements[
+        #     "attention_mask"
+        # ].view(-1, input_close_elements["attention_mask"].size(-1))
+        # input_close_elements["token_type_ids"] = input_close_elements[
+        #     "token_type_ids"
+        # ].view(-1, input_close_elements["token_type_ids"].size(-1))
+        # input_close_elements["bbox"] = input_close_elements["bbox"].view(
+        #     -1, input_close_elements["bbox"].size(-2), 4
+        # )
 
-        output_close_elements = self.model_ui(**input_close_elements)[1]
-        # both_representations = both_representations.view(4, -1, num_choices)
+        # output_close_elements = self.model_ui(**input_close_elements)[1]
+        # # both_representations = both_representations.view(4, -1, num_choices)
 
-        # output_close_elements = output_close_elements.view(-1, 10 * 768)
+        # # output_close_elements = output_close_elements.view(-1, 10 * 768)
 
-        output_close_elements = output_close_elements.view(-1, 10, 768)
+        # output_close_elements = output_close_elements.view(-1, 10, 768)
 
-        output_close_elements = output_close_elements.mean(1)
+        # output_close_elements = output_close_elements.mean(1)
 
         # screen_embedding = self.linear_layer_ui(output_close_elements)
         # screen_embedding = self.activation_ui1(output_close_elements)
-        screen_embedding = output_close_elements
+        # screen_embedding = output_close_elements
 
         output_ui_model = self.model_ui(**input_ui)
         ui_embedding = output_ui_model[1]
@@ -142,9 +142,11 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         # output = ui_embedding + instruction_embedding
 
-        output = self.linear_layer_output(
-            torch.cat((ui_embedding, screen_embedding), dim=1)
-        )
+        # output = self.linear_layer_output(
+        #     torch.cat((ui_embedding, screen_embedding), dim=1)
+        # )
+
+        output = self.linear_layer_output(ui_embedding)
 
         # both_representations = self.dropout2(both_representations)
         # output = self.linear_layer2(both_representations)

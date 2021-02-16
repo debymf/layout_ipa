@@ -241,6 +241,7 @@ class LayoutIpaSimpleTrainer(Task):
 
         for epoch in train_iterator:
             epoch_iterator = tqdm(train_dataloader, desc="Iteration")
+            epoch_loss = 0.0
             for step, batch in enumerate(epoch_iterator):
 
                 # Skip past any already trained steps if resuming training
@@ -301,6 +302,7 @@ class LayoutIpaSimpleTrainer(Task):
                 loss.backward()
 
                 tr_loss += loss.item()
+                epoch_loss = loss.item()
                 if (step + 1) % self.gradient_accumulation_steps == 0:
                     torch.nn.utils.clip_grad_norm_(
                         model.parameters(), self.max_grad_norm
@@ -319,7 +321,7 @@ class LayoutIpaSimpleTrainer(Task):
                         )
                         logging_loss = tr_loss
 
-            logger.debug(f"TRAINING LOSS: {tr_loss}")
+            logger.debug(f"TRAINING LOSS: {epoch_loss}")
             score = self.eval(
                 criterion,
                 model,
