@@ -180,7 +180,6 @@ class PrepareLayoutIpaSimple(Task):
                 [0 if mask_padding_with_zero else 1] * padding_length
             ) + input_mask
             segment_ids = ([pad_token_segment_id] * padding_length) + segment_ids
-            label_ids = ([pad_token_label_id] * padding_length) + label_ids
             token_boxes = ([pad_token_box] * padding_length) + token_boxes
         else:
             input_ids += [pad_token] * padding_length
