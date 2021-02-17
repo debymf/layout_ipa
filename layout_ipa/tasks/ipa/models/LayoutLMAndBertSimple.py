@@ -119,7 +119,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         output_close_elements = output_close_elements.view(-1, 10, 768)
 
         # output_close_elements = output_close_elements.sum(1)
-        output_close_elements = self.dropout1(output_close_elements)
+        # output_close_elements = self.dropout1(output_close_elements)
 
         # screen_embedding = self.linear_layer_ui(output_close_elements)
         # screen_embedding = self.activation_ui1(output_close_elements)
@@ -127,7 +127,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         output_ui_model = self.model_ui(**input_ui)
         ui_embedding = output_ui_model[1]
-        ui_embedding = self.dropout2(ui_embedding)
+        # ui_embedding = self.dropout2(ui_embedding)
 
         instruction_representation = torch.repeat_interleave(ui_embedding, 10, dim=0)
         instruction_representation = instruction_representation.view(-1, 10, 768)
