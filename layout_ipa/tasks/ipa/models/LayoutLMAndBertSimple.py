@@ -135,6 +135,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         output = self.linear_layer_ui(
             torch.cat((instruction_representation, screen_embedding), dim=2)
         )
+        output = output.squeeze(2)
 
         output = F.relu(output)
 
