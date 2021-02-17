@@ -17,8 +17,8 @@ class PrepareLayoutIpaSimple(Task):
         self,
         input_data,
         bert_model="bert-base-uncased",
-        largest=512,
-        largest_screen=512,
+        largest=256,
+        largest_screen=256,
     ):
         logger.info("*** Preprocessing Data for Layout IPA (simple) ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
@@ -27,49 +27,41 @@ class PrepareLayoutIpaSimple(Task):
             encoded_ui = self.convert_examples_to_features(
                 content["instruction"], content["ui"], largest, tokenizer_layout,
             )
-            # closest_elements = dict()
-            # closest_elements["ui_input_ids"] = list()
-            # closest_elements["ui_input_mask"] = list()
-            # closest_elements["ui_segment_ids"] = list()
-            # closest_elements["ui_boxes"] = list()
+            closest_elements = dict()
+            closest_elements["ui_input_ids"] = list()
+            closest_elements["ui_input_mask"] = list()
+            closest_elements["ui_segment_ids"] = list()
+            closest_elements["ui_boxes"] = list()
+            for _, element_close in content["closest"].items():
+                encoded_close_element = self.convert_examples_to_features(
+                    None, element_close, largest_screen, tokenizer_layout,
+                )
 
-            closest_elements = self.convert_screen_to_feature(
-                None, content["closest"], largest_screen, tokenizer_layout,
-            )
+                closest_elements["ui_input_ids"].append(
+                    encoded_close_element["ui_input_ids"]
+                )
+                closest_elements["ui_input_mask"].append(
+                    encoded_close_element["ui_input_mask"]
+                )
+                closest_elements["ui_segment_ids"].append(
+                    encoded_close_element["ui_segment_ids"]
+                )
+                closest_elements["ui_boxes"].append(encoded_close_element["ui_boxes"])
 
-            # for _, element_close in content["closest"].items():
-            #     encoded_close_element = self.convert_examples_to_features(
-            #         content["instruction"],
-            #         element_close,
-            #         largest_screen,
-            #         tokenizer_layout,
-            #     )
+            if len(closest_elements["ui_input_ids"]) < 10:
+                to_add = 10 - len(closest_elements["ui_input_ids"])
 
-            #     closest_elements["ui_input_ids"].append(
-            #         encoded_close_element["ui_input_ids"]
-            #     )
-            #     closest_elements["ui_input_mask"].append(
-            #         encoded_close_element["ui_input_mask"]
-            #     )
-            #     closest_elements["ui_segment_ids"].append(
-            #         encoded_close_element["ui_segment_ids"]
-            #     )
-            #     closest_elements["ui_boxes"].append(encoded_close_element["ui_boxes"])
+                closest_elements["ui_input_ids"].extend([[0] * largest_screen] * to_add)
 
-            # if len(closest_elements["ui_input_ids"]) < 10:
-            #     to_add = 10 - len(closest_elements["ui_input_ids"])
-
-            #     closest_elements["ui_input_ids"].extend([[0] * largest_screen] * to_add)
-
-            #     closest_elements["ui_input_mask"].extend(
-            #         [[0] * largest_screen] * to_add
-            #     )
-            #     closest_elements["ui_segment_ids"].extend(
-            #         [[0] * largest_screen] * to_add
-            #     )
-            #     closest_elements["ui_boxes"].extend(
-            #         [[[0] * 4] * largest_screen] * to_add
-            #     )
+                closest_elements["ui_input_mask"].extend(
+                    [[0] * largest_screen] * to_add
+                )
+                closest_elements["ui_segment_ids"].extend(
+                    [[0] * largest_screen] * to_add
+                )
+                closest_elements["ui_boxes"].extend(
+                    [[[0] * 4] * largest_screen] * to_add
+                )
 
             entries[id_d] = {
                 "id_query": content["id_query"],
@@ -180,6 +172,7 @@ class PrepareLayoutIpaSimple(Task):
                 [0 if mask_padding_with_zero else 1] * padding_length
             ) + input_mask
             segment_ids = ([pad_token_segment_id] * padding_length) + segment_ids
+            label_ids = ([pad_token_label_id] * padding_length) + label_ids
             token_boxes = ([pad_token_box] * padding_length) + token_boxes
         else:
             input_ids += [pad_token] * padding_length
@@ -196,106 +189,6 @@ class PrepareLayoutIpaSimple(Task):
         features["ui_input_mask"] = input_mask
         features["ui_segment_ids"] = segment_ids
         features["ui_boxes"] = token_boxes
-
-        return features
-
-    @staticmethod
-    def convert_screen_to_feature(
-        instruction,
-        examples,
-        max_seq_length,
-        tokenizer,
-        cls_token_at_end=True,
-        cls_token="[CLS]",
-        cls_token_segment_id=1,
-        sep_token="[SEP]",
-        sep_token_extra=False,
-        pad_on_left=False,
-        pad_token=0,
-        cls_token_box=[0, 0, 0, 0],
-        sep_token_box=[1000, 1000, 1000, 1000],
-        pad_token_box=[0, 0, 0, 0],
-        pad_token_segment_id=0,
-        pad_token_label_id=-1,
-        sequence_a_segment_id=0,
-        mask_padding_with_zero=True,
-    ):
-        tokens = []
-        token_boxes = []
-
-        for _, example in examples.items():
-            box = [
-                int(example["x0"]),
-                int(example["y0"]),
-                int(example["x1"]),
-                int(example["y1"]),
-            ]
-            word_tokens = tokenizer.tokenize(example["text"])
-            tokens.extend(word_tokens)
-            token_boxes.extend([box] * len(word_tokens))
-            tokens += [sep_token]
-            token_boxes += [sep_token_box]
-
-        # Account for [CLS] and [SEP] with "- 2" and with "- 3" for RoBERTa.
-        special_tokens_count = 3 if sep_token_extra else 2
-        if len(tokens) > max_seq_length - special_tokens_count:
-            tokens = tokens[: (max_seq_length - special_tokens_count)]
-            token_boxes = token_boxes[: (max_seq_length - special_tokens_count)]
-            actual_bboxes = actual_bboxes[: (max_seq_length - special_tokens_count)]
-
-        tokens += [sep_token]
-        token_boxes += [sep_token_box]
-
-        if sep_token_extra:
-            # roberta uses an extra separator b/w pairs of sentences
-            tokens += [sep_token]
-            token_boxes += [sep_token_box]
-
-        segment_ids = [sequence_a_segment_id] * len(tokens)
-
-        if cls_token_at_end:
-            tokens += [cls_token]
-            token_boxes += [cls_token_box]
-
-            segment_ids += [cls_token_segment_id]
-        else:
-            tokens = [cls_token] + tokens
-            token_boxes = [cls_token_box] + token_boxes
-
-            segment_ids = [cls_token_segment_id] + segment_ids
-
-        input_ids = tokenizer.convert_tokens_to_ids(tokens)
-
-        # The mask has 1 for real tokens and 0 for padding tokens. Only real
-        # tokens are attended to.
-        input_mask = [1 if mask_padding_with_zero else 0] * len(input_ids)
-
-        # Zero-pad up to the sequence length.
-        padding_length = max_seq_length - len(input_ids)
-        if pad_on_left:
-            input_ids = ([pad_token] * padding_length) + input_ids
-            input_mask = (
-                [0 if mask_padding_with_zero else 1] * padding_length
-            ) + input_mask
-            segment_ids = ([pad_token_segment_id] * padding_length) + segment_ids
-            token_boxes = ([pad_token_box] * padding_length) + token_boxes
-        else:
-            input_ids += [pad_token] * padding_length
-            input_mask += [0 if mask_padding_with_zero else 1] * padding_length
-            segment_ids += [pad_token_segment_id] * padding_length
-            token_boxes += [pad_token_box] * padding_length
-
-        assert len(input_ids) == max_seq_length
-        assert len(input_mask) == max_seq_length
-        assert len(segment_ids) == max_seq_length
-        assert len(token_boxes) == max_seq_length
-
-        features = {
-            "ui_input_ids": torch.LongTensor(input_ids),
-            "ui_input_mask": torch.LongTensor(input_mask),
-            "ui_segment_ids": torch.LongTensor(segment_ids),
-            "ui_boxes": torch.LongTensor(token_boxes),
-        }
 
         return features
 
