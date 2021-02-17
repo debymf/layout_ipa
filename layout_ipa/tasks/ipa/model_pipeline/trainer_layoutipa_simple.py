@@ -410,9 +410,9 @@ class LayoutIpaSimpleTrainer(Task):
 
                 labels = batch[8]
 
-                loss = criterion(outputs, labels)
+                loss = criterion(outputs, labels.unsqueeze(1))
 
-                eval_loss += outputs[0].mean().item()
+                eval_loss += loss.mean().item()
 
             logger.info(f"EVAL LOSS: {eval_loss}")
             nb_eval_steps += 1
