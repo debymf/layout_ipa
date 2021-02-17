@@ -88,8 +88,8 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         self.dropout2 = nn.Dropout(p=0.5)
 
         self.linear_layer_instruction = nn.Linear(768, 1)
-        self.linear_layer_norm = nn.Linear(768, 768)
-        self.linear_layer_output = nn.Linear(768 * 2, 1)
+        self.linear_layer_norm = nn.Linear(768 * 2, 768)
+        self.linear_layer_output = nn.Linear(768, 1)
         self.activation_ui1 = nn.Tanh()
         self.activation_ui2 = nn.Tanh()
         self.layer_norm = nn.LayerNorm(768)
