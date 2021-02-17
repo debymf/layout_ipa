@@ -84,8 +84,8 @@ class LayoutLMAndBertSimple(PreTrainedModel):
             LAYOUT_LM_MODEL, config=config.layout_lm
         )
 
-        self.dropout1 = nn.Dropout(p=0.1)
-        self.dropout2 = nn.Dropout(p=0.1)
+        self.dropout1 = nn.Dropout(p=0.5)
+        self.dropout2 = nn.Dropout(p=0.5)
 
         self.linear_layer_instruction = nn.Linear(768, 1)
         self.linear_layer_ui = nn.Linear(768 * 10, 768)
