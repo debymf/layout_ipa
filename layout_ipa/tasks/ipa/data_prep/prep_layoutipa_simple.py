@@ -32,13 +32,10 @@ class PrepareLayoutIpaSimple(Task):
             # closest_elements["ui_input_mask"] = list()
             # closest_elements["ui_segment_ids"] = list()
             # closest_elements["ui_boxes"] = list()
-            for _, element_close in content["closest"].items():
-                closest_elements = self.convert_screen_to_feature(
-                    content["instruction"],
-                    element_close,
-                    largest_screen,
-                    tokenizer_layout,
-                )
+
+            closest_elements = self.convert_screen_to_feature(
+                None, content["closest"], largest_screen, tokenizer_layout,
+            )
 
             # for _, element_close in content["closest"].items():
             #     encoded_close_element = self.convert_examples_to_features(
