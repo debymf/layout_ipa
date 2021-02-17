@@ -240,7 +240,6 @@ class PrepareLayoutIpaSimple(Task):
             tokens = tokens[: (max_seq_length - special_tokens_count)]
             token_boxes = token_boxes[: (max_seq_length - special_tokens_count)]
             actual_bboxes = actual_bboxes[: (max_seq_length - special_tokens_count)]
-            label_ids = label_ids[: (max_seq_length - special_tokens_count)]
 
         tokens += [sep_token]
         token_boxes += [sep_token_box]
@@ -249,18 +248,18 @@ class PrepareLayoutIpaSimple(Task):
             # roberta uses an extra separator b/w pairs of sentences
             tokens += [sep_token]
             token_boxes += [sep_token_box]
-            label_ids += [pad_token_label_id]
+
         segment_ids = [sequence_a_segment_id] * len(tokens)
 
         if cls_token_at_end:
             tokens += [cls_token]
             token_boxes += [cls_token_box]
-            label_ids += [pad_token_label_id]
+
             segment_ids += [cls_token_segment_id]
         else:
             tokens = [cls_token] + tokens
             token_boxes = [cls_token_box] + token_boxes
-            label_ids = [pad_token_label_id] + label_ids
+
             segment_ids = [cls_token_segment_id] + segment_ids
 
         input_ids = tokenizer.convert_tokens_to_ids(tokens)
