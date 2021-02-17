@@ -233,6 +233,8 @@ class PrepareLayoutIpaSimple(Task):
             word_tokens = tokenizer.tokenize(example["text"])
             tokens.extend(word_tokens)
             token_boxes.extend([box] * len(word_tokens))
+            tokens += [sep_token]
+            token_boxes += [sep_token_box]
 
         # Account for [CLS] and [SEP] with "- 2" and with "- 3" for RoBERTa.
         special_tokens_count = 3 if sep_token_extra else 2
