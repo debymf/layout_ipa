@@ -138,6 +138,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         output = F.relu(output)
 
+        print(output.shape)
         output = self.linear_layer_output(output)
 
         # ui_embedding = self.activation_ui2(ui_embedding)
