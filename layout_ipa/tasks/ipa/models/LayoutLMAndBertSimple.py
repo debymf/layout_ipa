@@ -130,12 +130,8 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         ui_embedding = self.dropout2(ui_embedding)
 
         instruction_representation = torch.repeat_interleave(ui_embedding, 10, dim=0)
+        instruction_representation = instruction_representation.view(-1, 10, 768)
 
-        print("INSTRUCTION")
-        print(instruction_representation.shape)
-
-        print("SCREEN")
-        print(screen_embedding.shape)
         output = self.linear_layer_ui(
             torch.cat((instruction_representation, screen_embedding), dim=1)
         )
