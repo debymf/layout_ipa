@@ -84,8 +84,8 @@ class LayoutLMAndBertSimple(PreTrainedModel):
             LAYOUT_LM_MODEL, config=config.layout_lm
         )
 
-        # self.dropout1 = nn.Dropout(p=0.5)
-        # self.dropout2 = nn.Dropout(p=0.5)
+        self.dropout1 = nn.Dropout(p=0.5)
+        self.dropout2 = nn.Dropout(p=0.5)
 
         self.linear_layer_instruction = nn.Linear(768, 1)
         self.linear_layer_ui = nn.Linear(768 * 10, 768)
@@ -119,6 +119,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         output_close_elements = output_close_elements.view(-1, 10, 768)
 
         output_close_elements = output_close_elements.sum(1)
+        output_close_elements = self.dropout1(output_close_elements)
 
         # screen_embedding = self.linear_layer_ui(output_close_elements)
         # screen_embedding = self.activation_ui1(output_close_elements)
@@ -126,6 +127,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         output_ui_model = self.model_ui(**input_ui)
         ui_embedding = output_ui_model[1]
+        ui_embedding = self.dropout2(ui_embedding)
         # ui_embedding = self.activation_ui2(ui_embedding)
 
         # ui_embedding = self.linear_layer_ui(ui_embedding)
