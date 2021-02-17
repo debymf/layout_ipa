@@ -439,7 +439,7 @@ class LayoutIpaSimpleTrainer(Task):
 
                 all_ui = np.append(all_ui, ui_positions.detach().cpu().numpy(), axis=0)
         # eval_loss = eval_loss / nb_eval_steps
-        logger.info(f"EVAL LOSS: {eval_loss}")
+        logger.success(f"EVAL LOSS: {eval_loss}")
         score = None
         if eval_fn is not None:
 
