@@ -88,10 +88,11 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         self.dropout2 = nn.Dropout(p=0.5)
 
         self.linear_layer_instruction = nn.Linear(768, 1)
-        self.linear_layer_ui = nn.Linear(768 * 10, 768)
+        self.linear_layer_norm = nn.Linear(768, 768)
         self.linear_layer_output = nn.Linear(768 * 2, 1)
         self.activation_ui1 = nn.Tanh()
         self.activation_ui2 = nn.Tanh()
+        self.layer_norm = nn.LayerNorm(768)
         self.activation_instruction = nn.Tanh()
         # self.linear_layer1 = nn.Linear(768 * 4, 1)
         # self.linear_layer2 = nn.Linear(512, 1)
@@ -146,6 +147,9 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         both_embeddings = torch.cat((ui_embedding, screen_embedding), dim=1)
 
+        both_embeddings = self.linear_layer_norm(both_embeddings)
+
+        both_embeddings = self.layer_norm(both_embeddings)
         both_embeddings = F.relu(both_embeddings)
         output = self.linear_layer_output(both_embeddings)
 
