@@ -414,7 +414,6 @@ class LayoutIpaSimpleTrainer(Task):
 
                 eval_loss += loss.mean().item()
 
-            logger.info(f"EVAL LOSS: {eval_loss}")
             nb_eval_steps += 1
             if preds is None:
                 index_queries = query_ids.detach().cpu().numpy()
@@ -440,7 +439,7 @@ class LayoutIpaSimpleTrainer(Task):
 
                 all_ui = np.append(all_ui, ui_positions.detach().cpu().numpy(), axis=0)
         # eval_loss = eval_loss / nb_eval_steps
-
+        logger.info(f"EVAL LOSS: {eval_loss}")
         score = None
         if eval_fn is not None:
 
