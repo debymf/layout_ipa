@@ -144,9 +144,10 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
         # output = ui_embedding + instruction_embedding
 
-        output = self.linear_layer_output(
-            torch.cat((ui_embedding, screen_embedding), dim=1)
-        )
+        both_embeddings = torch.cat((ui_embedding, screen_embedding), dim=1)
+
+        both_embeddings = F.relu(both_embeddings)
+        output = self.linear_layer_output(both_embeddings)
 
         # both_representations = self.dropout2(both_representations)
         # output = self.linear_layer2(both_representations)
