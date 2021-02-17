@@ -88,7 +88,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         self.dropout2 = nn.Dropout(p=0.5)
 
         self.linear_layer_instruction = nn.Linear(768, 1)
-        self.linear_layer_ui = nn.Linear(768, 1)
+        self.linear_layer_ui = nn.Linear(768 * 2, 1)
         self.linear_layer_output = nn.Linear(10, 1)
         self.activation_ui1 = nn.Tanh()
         self.activation_ui2 = nn.Tanh()
@@ -133,7 +133,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         instruction_representation = instruction_representation.view(-1, 10, 768)
 
         output = self.linear_layer_ui(
-            torch.cat((instruction_representation, screen_embedding), dim=1)
+            torch.cat((instruction_representation, screen_embedding), dim=2)
         )
 
         output = F.relu(output)
