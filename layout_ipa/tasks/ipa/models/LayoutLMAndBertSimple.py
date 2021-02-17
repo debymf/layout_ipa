@@ -76,9 +76,9 @@ class LayoutLMAndBertSimple(PreTrainedModel):
     def __init__(self, config, *args, **kwargs):
         super().__init__(config)
 
-        self.model_instruction = AutoModel.from_pretrained(
-            BERT_MODEL, config=config.bert
-        )
+        # self.model_instruction = AutoModel.from_pretrained(
+        #    BERT_MODEL, config=config.bert
+        # )
 
         self.model_ui = AutoModel.from_pretrained(
             LAYOUT_LM_MODEL, config=config.layout_lm

@@ -33,7 +33,7 @@ LAYOUT_LM_MODEL = "microsoft/layoutlm-base-uncased"
 class LayoutIpaSimpleTrainer(Task):
     def __init__(self, **kwargs):
         super(LayoutIpaSimpleTrainer, self).__init__(**kwargs)
-        self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 2)
+        self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 4)
         self.cuda = kwargs.get("cuda", True)
         self.gradient_accumulation_steps = kwargs.get("gradient_accumulation_steps", 1)
         self.num_train_epochs = kwargs.get("num_train_epochs", 10)
@@ -410,10 +410,11 @@ class LayoutIpaSimpleTrainer(Task):
 
                 labels = batch[8]
 
-                # loss = criterion(outputs, labels)
+                loss = criterion(outputs, labels)
 
-                # eval_loss += outputs[0].mean().item()
+                eval_loss += outputs[0].mean().item()
 
+            logger.info(f"EVAL LOSS: {eval_loss}")
             nb_eval_steps += 1
             if preds is None:
                 index_queries = query_ids.detach().cpu().numpy()
