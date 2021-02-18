@@ -84,22 +84,16 @@ class LayoutLMAndBert(PreTrainedModel):
             LAYOUT_LM_MODEL, config=config.layout_lm
         )
 
-        # for param in self.model_instruction.parameters():
-        #     param.requires_grad = False
-
-        for param in self.model_ui.parameters():
-            param.requires_grad = False
-
         self.dropout1 = nn.Dropout(p=0.5)
         self.dropout2 = nn.Dropout(p=0.5)
         self.instruction_mlp = MLP(768, 256)
         self.ui_mlp = MLP(768, 256)
 
-        self.combination_mlp = MLP(256 * 2, 256)
+        self.combination_mlp = MLP(768 * 2, 768)
 
         self.linear_layer_instruction = nn.Linear(768, 1)
         self.linear_layer_ui = nn.Linear(768 * 2, 1)
-        self.linear_layer_output = nn.Linear(256, 1)
+        self.linear_layer_output = nn.Linear(768, 1)
         self.activation_ui1 = nn.Tanh()
         self.activation_ui2 = nn.Tanh()
         self.activation_instruction = nn.Tanh()
@@ -109,16 +103,18 @@ class LayoutLMAndBert(PreTrainedModel):
         output_instruction_model = self.model_instruction(**input_instructions)
 
         instruction_representation = output_instruction_model[1]
-        # instruction_representation = self.dropout1(instruction_representation)
-        instruction_mlp_output = self.instruction_mlp(instruction_representation)
+        instruction_representation = self.dropout1(instruction_representation)
+        # instruction_mlp_output = self.instruction_mlp(instruction_representation)
 
         output_ui_model = self.model_ui(**input_ui)
         ui_element_representation = output_ui_model[1]
-        # ui_element_representation = self.dropout2(ui_element_representation)
+        ui_element_representation = self.dropout2(ui_element_representation)
 
-        ui_mlp_output = self.ui_mlp(ui_element_representation)
+        # ui_mlp_output = self.ui_mlp(ui_element_representation)
 
-        both_representations = torch.cat((instruction_mlp_output, ui_mlp_output), dim=1)
+        both_representations = torch.cat(
+            (instruction_mlp_output, ui_element_representation), dim=1
+        )
 
         both_mlp_output = self.combination_mlp(both_representations)
         output = self.linear_layer_output(both_mlp_output)
