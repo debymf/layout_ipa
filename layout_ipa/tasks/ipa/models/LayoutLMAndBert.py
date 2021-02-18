@@ -84,6 +84,12 @@ class LayoutLMAndBert(PreTrainedModel):
             LAYOUT_LM_MODEL, config=config.layout_lm
         )
 
+        for param in self.model_instruction.parameters():
+            param.requires_grad = False
+
+        for param in self.model_ui.parameters():
+            param.requires_grad = False
+
         self.dropout1 = nn.Dropout(p=0.5)
         self.dropout2 = nn.Dropout(p=0.5)
         self.instruction_mlp = MLP(768, 256)
