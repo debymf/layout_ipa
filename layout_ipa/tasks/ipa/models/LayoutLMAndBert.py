@@ -108,7 +108,7 @@ class LayoutLMAndBert(PreTrainedModel):
 
         output_ui_model = self.model_ui(**input_ui)
         ui_element_representation = output_ui_model[1]
-        ui_element_representations = self.dropout2(ui_element_representation)
+        ui_element_representation = self.dropout2(ui_element_representation)
 
         ui_mlp_output = self.ui_mlp(ui_element_representation)
 
