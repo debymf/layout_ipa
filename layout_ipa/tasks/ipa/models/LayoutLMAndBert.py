@@ -117,7 +117,7 @@ class LayoutLMAndBert(PreTrainedModel):
         )
 
         both_mlp_output = self.combination_mlp(both_representations)
-        output = self.linear_layer_output(both_mlp_output)
+        output = self.linear_layer_output(instruction_representation)
 
         predictions = torch.sigmoid(output)
 
