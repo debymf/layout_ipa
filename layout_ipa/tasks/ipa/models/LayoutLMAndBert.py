@@ -93,19 +93,23 @@ class LayoutLMAndBert(PreTrainedModel):
 
         self.linear_layer_instruction = nn.Linear(768, 1)
         self.linear_layer_ui = nn.Linear(768 * 2, 1)
-        self.linear_layer_output = nn.Linear(768 * 2, 1)
+        self.linear_layer_output = nn.Linear(768 * 4, 1)
         self.activation_ui1 = nn.Tanh()
         self.activation_ui2 = nn.Tanh()
         self.activation_instruction = nn.Tanh()
 
     def forward(self, input_instructions, input_ui_text, input_ui):
 
-        instruction_representation = self.model_instruction(**input_instructions)[1]
+        output1 = self.model_instruction(**input_instructions)[1]
 
-        ui_text_representation = self.model_instruction(**input_ui_text)[1]
+        output2 = self.model_instruction(**input_ui_text)[1]
+
+        # both_representations = torch.cat(
+        #     (instruction_representation, ui_text_representation), dim=1
+        # )
 
         both_representations = torch.cat(
-            (instruction_representation, ui_text_representation), dim=1
+            [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
         )
 
         output = self.linear_layer_output(both_representations)
