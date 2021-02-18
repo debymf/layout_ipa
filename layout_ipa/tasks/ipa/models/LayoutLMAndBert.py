@@ -84,8 +84,8 @@ class LayoutLMAndBert(PreTrainedModel):
             LAYOUT_LM_MODEL, config=config.layout_lm
         )
 
-        for param in self.model_instruction.parameters():
-            param.requires_grad = False
+        # for param in self.model_instruction.parameters():
+        #     param.requires_grad = False
 
         for param in self.model_ui.parameters():
             param.requires_grad = False
