@@ -113,7 +113,7 @@ class LayoutLMAndBert(PreTrainedModel):
         # ui_mlp_output = self.ui_mlp(ui_element_representation)
 
         both_representations = torch.cat(
-            (instruction_mlp_output, ui_element_representation), dim=1
+            (instruction_representation, ui_element_representation), dim=1
         )
 
         both_mlp_output = self.combination_mlp(both_representations)
