@@ -9,6 +9,7 @@ from transformers import PreTrainedModel
 import os
 import copy
 
+from transformers import BertModel
 from transformers.configuration_utils import PretrainedConfig
 from transformers.utils import logging
 from transformers.file_utils import WEIGHTS_NAME
