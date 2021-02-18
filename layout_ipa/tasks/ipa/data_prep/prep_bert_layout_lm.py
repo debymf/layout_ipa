@@ -27,11 +27,18 @@ class PrepareBertandLayoutLM(Task):
         for id_d, content in tqdm(input_data.items()):
             encoded_instruction = tokenizer_instruction(
                 content["instruction"],
-                content["ui"]["text"],
                 padding="max_length",
                 max_length=largest_bert,
                 truncation=True,
             )
+
+            encoded_ui_text = tokenizer_instruction(
+                content["ui"],
+                padding="max_length",
+                max_length=largest_bert,
+                truncation=True,
+            )
+
             encoded_ui = self.convert_examples_to_features(
                 None, content["ui"], largest_layout_lm, tokenizer_layout,
             )
@@ -42,6 +49,9 @@ class PrepareBertandLayoutLM(Task):
                 "input_ids": encoded_instruction["input_ids"],
                 "attention_mask": encoded_instruction["attention_mask"],
                 "token_type_ids": encoded_instruction["token_type_ids"],
+                "input_ids_ui_text": encoded_ui_text["input_ids"],
+                "attention_mask_ui_text": encoded_ui_text["attention_mask"],
+                "token_type_ids_ui_text": encoded_ui_text["token_type_ids"],
                 "ui_input_ids": encoded_ui["ui_input_ids"],
                 "ui_att_mask": encoded_ui["ui_input_mask"],
                 "ui_token_ids": encoded_ui["ui_segment_ids"],
@@ -185,6 +195,9 @@ class TorchDataset(Dataset):
             instance["id_query"],
             instance["ui_position"],
             index,
+            torch.LongTensor(instance["input_ids_ui_text"]),
+            torch.LongTensor(instance["attention_mask_ui_text"]),
+            torch.LongTensor(instance["token_type_ids_ui_text"]),
         )
 
     def get_id(self, index):

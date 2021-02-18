@@ -93,31 +93,38 @@ class LayoutLMAndBert(PreTrainedModel):
 
         self.linear_layer_instruction = nn.Linear(768, 1)
         self.linear_layer_ui = nn.Linear(768 * 2, 1)
-        self.linear_layer_output = nn.Linear(768, 1)
+        self.linear_layer_output = nn.Linear(768 * 2, 1)
         self.activation_ui1 = nn.Tanh()
         self.activation_ui2 = nn.Tanh()
         self.activation_instruction = nn.Tanh()
 
-    def forward(self, input_instructions, input_ui):
+    def forward(self, input_instructions, input_ui_text, input_ui):
 
-        output_instruction_model = self.model_instruction(**input_instructions)
+        instruction_representation = self.model_instruction(**input_instructions)[1]
 
-        instruction_representation = output_instruction_model[1]
+        ui_text_representation = self.model_instruction(**input_ui_text)
+
+        both_representations = torch.cat(
+            (instruction_representation, ui_text_representation), dim=1
+        )
+
+        output = self.linear_layer_output(both_representations)
+
         # instruction_representation = self.dropout1(instruction_representation)
         # instruction_mlp_output = self.instruction_mlp(instruction_representation)
 
-        output_ui_model = self.model_ui(**input_ui)
-        ui_element_representation = output_ui_model[1]
-        ui_element_representation = self.dropout2(ui_element_representation)
+        # output_ui_model = self.model_ui(**input_ui)
+        # ui_element_representation = output_ui_model[1]
+        # ui_element_representation = self.dropout2(ui_element_representation)
 
         # ui_mlp_output = self.ui_mlp(ui_element_representation)
 
-        both_representations = torch.cat(
-            (instruction_representation, ui_element_representation), dim=1
-        )
+        # both_representations = torch.cat(
+        #     (instruction_representation, ui_element_representation), dim=1
+        # )
 
-        both_mlp_output = self.combination_mlp(both_representations)
-        output = self.linear_layer_output(instruction_representation)
+        # both_mlp_output = self.combination_mlp(both_representations)
+        # output = self.linear_layer_output(instruction_representation)
 
         predictions = torch.sigmoid(output)
 
