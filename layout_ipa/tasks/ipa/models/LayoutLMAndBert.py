@@ -102,7 +102,7 @@ class LayoutLMAndBert(PreTrainedModel):
 
         instruction_representation = self.model_instruction(**input_instructions)[1]
 
-        ui_text_representation = self.model_instruction(**input_ui_text)
+        ui_text_representation = self.model_instruction(**input_ui_text)[1]
 
         both_representations = torch.cat(
             (instruction_representation, ui_text_representation), dim=1
