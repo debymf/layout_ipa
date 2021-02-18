@@ -9,7 +9,6 @@ from transformers import PreTrainedModel
 import os
 import copy
 
-from transformers import BertModel
 from transformers.configuration_utils import PretrainedConfig
 from transformers.utils import logging
 from transformers.file_utils import WEIGHTS_NAME
@@ -70,7 +69,7 @@ class LayoutLMAndBertConfig(PretrainedConfig):
         return output
 
 
-class LayoutLMAndBert(BertModel):
+class LayoutLMAndBert(PreTrainedModel):
     config_class = LayoutLMAndBertConfig
     base_model_prefix = "layout_lm_bert"
 
@@ -87,10 +86,14 @@ class LayoutLMAndBert(BertModel):
 
         self.dropout1 = nn.Dropout(p=0.5)
         self.dropout2 = nn.Dropout(p=0.5)
+        self.instruction_mlp = MLP(768, 256)
+        self.ui_mlp = MLP(768, 256)
+
+        self.combination_mlp = MLP(256 * 2, 256)
 
         self.linear_layer_instruction = nn.Linear(768, 1)
         self.linear_layer_ui = nn.Linear(768 * 2, 1)
-        self.linear_layer_output = nn.Linear(768 * 2, 1)
+        self.linear_layer_output = nn.Linear(256 * 2, 1)
         self.activation_ui1 = nn.Tanh()
         self.activation_ui2 = nn.Tanh()
         self.activation_instruction = nn.Tanh()
@@ -101,14 +104,17 @@ class LayoutLMAndBert(BertModel):
 
         instruction_representation = output_instruction_model[1]
 
+        instruction_mlp_output = self.instruction_mlp(instruction_representation)
+
         output_ui_model = self.model_ui(**input_ui)
         ui_element_representation = output_ui_model[1]
 
-        both_representations = torch.cat(
-            (instruction_representation, ui_element_representation), dim=1
-        )
+        ui_mlp_output = self.ui_mlp(ui_element_representation)
 
-        output = self.linear_layer_output(both_representations)
+        both_representations = torch.cat((instruction_mlp_output, ui_mlp_output), dim=1)
+
+        both_mlp_output = self.combination_mlp(both_representations)
+        output = self.linear_layer_output(both_mlp_output)
 
         predictions = torch.sigmoid(output)
 
@@ -193,3 +199,65 @@ class MLP(nn.Module):
         else:
             return layer_inputs[-1]
 
+
+def calc_mlp_dims(input_dim, division=2, output_dim=1):
+    dim = input_dim
+    dims = []
+    while dim > output_dim:
+        dim = dim // division
+        dims.append(int(dim))
+    dims = dims[:-1]
+    return dims
+
+
+def create_act(act, num_parameters=None):
+    if act == "relu":
+        return nn.ReLU()
+    elif act == "prelu":
+        return nn.PReLU(num_parameters)
+    elif act == "sigmoid":
+        return nn.Sigmoid()
+    elif act == "tanh":
+        return nn.Tanh()
+    elif act == "linear":
+
+        class Identity(nn.Module):
+            def forward(self, x):
+                return x
+
+        return Identity()
+    else:
+        raise ValueError("Unknown activation function {}".format(act))
+
+
+def glorot(tensor):
+    stdv = math.sqrt(6.0 / (tensor.size(-2) + tensor.size(-1)))
+    if tensor is not None:
+        tensor.data.uniform_(-stdv, stdv)
+
+
+def zeros(tensor):
+    if tensor is not None:
+        tensor.data.fill_(0)
+
+
+def hf_loss_func(inputs, classifier, labels, num_labels, class_weights):
+    logits = classifier(inputs)
+    if type(logits) is tuple:
+        logits, layer_outputs = logits[0], logits[1]
+    else:  # simple classifier
+        layer_outputs = [inputs, logits]
+    if labels is not None:
+        if num_labels == 1:
+            #  We are doing regression
+            loss_fct = MSELoss()
+            labels = labels.float()
+            loss = loss_fct(logits.view(-1), labels.view(-1))
+        else:
+            loss_fct = CrossEntropyLoss(weight=class_weights)
+            labels = labels.long()
+            loss = loss_fct(logits.view(-1, num_labels), labels.view(-1))
+    else:
+        return None, logits, layer_outputs
+
+    return loss, logits, layer_outputs
