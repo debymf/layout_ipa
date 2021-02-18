@@ -34,7 +34,7 @@ LAYOUT_LM_MODEL = "microsoft/layoutlm-base-uncased"
 class BertandLayoutLMTrainer(Task):
     def __init__(self, **kwargs):
         super(BertandLayoutLMTrainer, self).__init__(**kwargs)
-        self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 8)
+        self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 16)
         self.cuda = kwargs.get("cuda", True)
         self.gradient_accumulation_steps = kwargs.get("gradient_accumulation_steps", 1)
         self.num_train_epochs = kwargs.get("num_train_epochs", 5)
@@ -448,7 +448,7 @@ class BertandLayoutLMTrainer(Task):
             score = eval_fn(preds_parsed, index_queries, all_ui, mapping)
 
             logger.info(
-                f"F1-Score (Sanity check): {f1_score(y_true, y_pred=np.where(preds_parsed > 0.5, 1, 0))}"
+                f"F1-Score (Sanity check): {f1_score(y_true=out_label_ids, y_pred=np.where(preds_parsed > 0.5, 1, 0))}"
             )
 
             # if mode == "test":
