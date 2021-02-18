@@ -96,7 +96,10 @@ class LayoutLMAndBert(PreTrainedModel):
 
     def forward(self, input_instructions, input_ui):
 
-        output_instruction_model = self.model_instruction(**input_instructions)
+        output_instruction_model = self.model_instruction.encoder(**input_instructions)
+
+        print(output_instruction_model.shape)
+
         instruction_representation = output_instruction_model[1]
 
         output_ui_model = self.model_ui(**input_ui)
