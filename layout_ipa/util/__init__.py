@@ -1,1 +1,1 @@
-from .evaluation import pair_evaluation
+from .evaluation import pair_evaluation, pair_evaluation_vector
