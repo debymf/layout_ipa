@@ -33,7 +33,7 @@ class PrepareBertandLayoutLM(Task):
             )
 
             encoded_ui_text = tokenizer_instruction(
-                content["ui"]["text "],
+                content["ui"]["text"],
                 padding="max_length",
                 max_length=largest_bert,
                 truncation=True,
