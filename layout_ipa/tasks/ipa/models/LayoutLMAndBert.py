@@ -106,8 +106,6 @@ class LayoutLMAndBert(PreTrainedModel):
             (instruction_representation, ui_element_representation), dim=1
         )
 
-        print(both_representations.shape)
-
         output = self.linear_layer_output(both_representations)
 
         predictions = torch.sigmoid(output)
