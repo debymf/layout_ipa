@@ -101,8 +101,10 @@ class LayoutLMAndBert(PreTrainedModel):
     def forward(self, input_instructions, input_ui_text, input_ui):
 
         output1 = self.model_instruction(**input_instructions)[1]
+        output1 = self.dropout1(output1)
 
         output2 = self.model_instruction(**input_ui_text)[1]
+        output2 = self.drouput2(output2)
 
         # both_representations = torch.cat(
         #     (instruction_representation, ui_text_representation), dim=1
