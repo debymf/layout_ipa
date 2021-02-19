@@ -76,13 +76,16 @@ class LayoutLMAndBert(PreTrainedModel):
     def __init__(self, config, *args, **kwargs):
         super().__init__(config)
 
-        self.model_instruction = AutoModel.from_pretrained(
+        self.model_instruction1 = AutoModel.from_pretrained(
+            BERT_MODEL, config=config.bert
+        )
+        self.model_instruction2 = AutoModel.from_pretrained(
             BERT_MODEL, config=config.bert
         )
 
-        self.model_ui = AutoModel.from_pretrained(
-            LAYOUT_LM_MODEL, config=config.layout_lm
-        )
+        # self.model_ui = AutoModel.from_pretrained(
+        #     LAYOUT_LM_MODEL, config=config.layout_lm
+        # )
 
         self.dropout1 = nn.Dropout(p=0.5)
         self.dropout2 = nn.Dropout(p=0.5)
@@ -100,10 +103,10 @@ class LayoutLMAndBert(PreTrainedModel):
 
     def forward(self, input_instructions, input_ui_text, input_ui):
 
-        output1 = self.model_instruction(**input_instructions)[1]
+        output1 = self.model_instruction1(**input_instructions)[1]
         output1 = self.dropout1(output1)
 
-        output2 = self.model_instruction(**input_ui_text)[1]
+        output2 = self.model_instruction2(**input_ui_text)[1]
         output2 = self.dropout2(output2)
 
         # both_representations = torch.cat(
