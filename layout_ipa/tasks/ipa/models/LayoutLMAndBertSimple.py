@@ -88,8 +88,8 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         self.dropout2 = nn.Dropout(p=0.5)
 
         self.linear_layer_instruction = nn.Linear(768, 1)
-        self.linear_layer_ui = nn.Linear(768 * 2, 1)
-        self.linear_layer_output = nn.Linear(10, 1)
+        self.linear_layer_ui = nn.Linear(768 * 5, 768)
+        self.linear_layer_output = nn.Linear(768, 1)
         self.activation_ui1 = nn.Tanh()
         self.activation_ui2 = nn.Tanh()
         self.activation_instruction = nn.Tanh()
@@ -109,7 +109,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         input_close_elements["token_type_ids"] = input_close_elements[
             "token_type_ids"
         ].view(-1, input_close_elements["token_type_ids"].size(-1))
-        
+
         input_close_elements["bbox"] = input_close_elements["bbox"].view(
             -1, input_close_elements["bbox"].size(-2), 4
         )
@@ -117,92 +117,17 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         output_close_elements = self.model_ui(**input_close_elements)[1]
         # both_representations = both_representations.view(4, -1, num_choices)
 
-        # output_close_elements = output_close_elements.view(-1, 10 * 768)
+        output_close_elements = output_close_elements.view(-1, 5 * 768)
 
-        output_close_elements = output_close_elements.view(-1, 10, 768)
-
-        # output_close_elements = output_close_elements.sum(1)
-        # output_close_elements = self.dropout1(output_close_elements)
-
-        # screen_embedding = self.linear_layer_ui(output_close_elements)
-        # screen_embedding = self.activation_ui1(output_close_elements)
-        screen_embedding = output_close_elements
+        screen_embedding = self.linear_layer_ui(output_close_elements)
+        screen_embedding = self.dropout1(screen_embedding)
 
         output_ui_model = self.model_ui(**input_ui)
         ui_embedding = output_ui_model[1]
-        # ui_embedding = self.dropout2(ui_embedding)
+        ui_embedding = self.dropout2(ui_embedding)
 
-        instruction_representation = torch.repeat_interleave(ui_embedding, 10, dim=0)
-        instruction_representation = instruction_representation.view(-1, 10, 768)
-
-        output = self.linear_layer_ui(
-            torch.cat((instruction_representation, screen_embedding), dim=2)
+        output = self.linear_layer_output(
+            torch.cat((ui_embedding, screen_embedding), dim=1)
         )
-        output = output.squeeze(2)
 
-        output = F.relu(output)
-
-        output = self.linear_layer_output(output)
-
-        # ui_embedding = self.activation_ui2(ui_embedding)
-
-        # ui_embedding = self.linear_layer_ui(ui_embedding)
-        # ui_embedding = self.activation_ui(ui_embedding)
-        # ui_embedding = F.relu(ui_embedding)
-        # # output2 = self.dropout2(ui_representation)
-        # both_representations = ui_embedding * instruction_embedding
-        # print(ui_embedding.shape)
-        # input()
-        # # print(both_representations.shape)
-        # both_representations = torch.cat(
-        #     [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
-        # )
-
-        # output = ui_embedding + instruction_embedding
-
-        # output = self.linear_layer_output(
-        #     torch.cat((ui_embedding, screen_embedding), dim=1)
-        # )
-
-        # both_representations = self.dropout2(both_representations)
-        # output = self.linear_layer2(both_representations)
-
-        # output = output.view(-1, 261)
-
-        # output = self.act(both_representations)
         return output
-
-        # output_instruction_model = self.model_instruction(**input_instructions)
-        # instruction_representation = output_instruction_model[0]
-
-        # output_ui_model = self.model_ui(**input_ui)
-
-        # ui_representation = output_ui_model[0]
-
-        # both_representations = self.bidaf_layer(
-        #     ui_representation, instruction_representation
-        # )
-
-        # both_representations = self.linear_layer1(both_representations).squeeze()
-
-        # output = self.linear_layer2(both_representations)
-
-        # output = output.view(-1, 261)
-
-        # output_instruction_model = self.model_instruction(**input_instructions)
-        # instruction_embedding = output_instruction_model[1]
-        # # instruction_embedding = self.model_ui.embeddings.word_embeddings(
-        # #     input_instructions["input_ids"]
-        # # )
-        # # instruction_embedding = instruction_embedding[:, 0]
-        # # # print(instruction_embedding.shape)
-        # # # input()
-        # instruction_embedding = self.linear_layer_instruction(instruction_embedding)
-        # instruction_embedding = self.activation_instruction(instruction_embedding)
-        # instruction_embedding = F.relu(instruction_embedding)
-        # output1 = self.dropout1(instruction_representation)
-        # print(input_close_elements["input_ids"].shape)
-        # print(input_close_elements["attention_mask"].shape)
-        # print(input_close_elements["token_type_ids"].shape)
-        # print(input_close_elements["bbox"].shape)
-
