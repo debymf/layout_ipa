@@ -27,7 +27,6 @@ class PrepareBertandLayoutLM(Task):
         for id_d, content in tqdm(input_data.items()):
             encoded_instruction = tokenizer_instruction(
                 content["instruction"],
-                content["ui"]["text"],
                 padding="max_length",
                 max_length=largest_bert,
                 truncation=True,
