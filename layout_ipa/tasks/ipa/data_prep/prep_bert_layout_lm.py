@@ -21,7 +21,7 @@ class PrepareBertandLayoutLM(Task):
         largest_layout_lm=256,
     ):
         logger.info("*** Preprocessing Data for model using LayoutLM and BERT***")
-        tokenizer_instruction = BertTokenizer.from_pretrained("bert-base-uncased")
+        tokenizer_instruction = BertTokenizer.from_pretrained("distilbert-base-uncased")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
         entries = dict()
         for id_d, content in tqdm(input_data.items()):
