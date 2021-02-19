@@ -27,7 +27,7 @@ from sklearn.metrics import f1_score
 
 np.set_printoptions(threshold=np.inf)
 
-BERT_MODEL = "distilbert-base-uncased"
+BERT_MODEL = "bert-base-uncased"
 LAYOUT_LM_MODEL = "microsoft/layoutlm-base-uncased"
 
 
