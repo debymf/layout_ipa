@@ -96,34 +96,34 @@ class LayoutLMAndBert(PreTrainedModel):
 
         self.linear_layer_instruction = nn.Linear(768, 1)
         self.linear_layer_ui = nn.Linear(768 * 4, 1)
-        self.linear_layer_output = nn.Linear(128, 1)
+        self.linear_layer_output = nn.Linear(768 * 2, 1)
         self.activation_ui1 = nn.Tanh()
         self.activation_ui2 = nn.Tanh()
         self.activation_instruction = nn.Tanh()
 
     def forward(self, input_instructions, input_ui_text, input_ui):
 
-        output1 = self.model_instruction(**input_instructions)[0]
-        output1 = self.dropout1(output1)
+        output1 = self.model_instruction(**input_instructions)[1]
+        instruction_representation = self.dropout1(output1)
 
-        output2 = self.model_instruction(**input_ui_text)[0]
-        output2 = self.dropout2(output2)
+        output2 = self.model_instruction(**input_ui_text)[1]
+        ui_text_representation = self.dropout2(output2)
 
-        both_representations = self.bidaf(output1, output2)
+        # both_representations = self.bidaf(output1, output2)
 
-        simple = self.linear_layer_ui(both_representations)
+        # simple = self.linear_layer_ui(both_representations)
 
-        simple = simple.squeeze(2)
+        # simple = simple.squeeze(2)
 
-        # both_representations = torch.cat(
-        #     (instruction_representation, ui_text_representation), dim=1
-        # )
+        both_representations = torch.cat(
+            (instruction_representation, ui_text_representation), dim=1
+        )
 
         # both_representations = torch.cat(
         #     [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
         # )
 
-        output = self.linear_layer_output(simple)
+        output = self.linear_layer_output(both_representations)
 
         # instruction_representation = self.dropout1(instruction_representation)
         # instruction_mlp_output = self.instruction_mlp(instruction_representation)
