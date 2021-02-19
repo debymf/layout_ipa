@@ -89,6 +89,7 @@ class LayoutLMAndBert(PreTrainedModel):
 
         self.dropout1 = nn.Dropout(p=0.9)
         self.dropout2 = nn.Dropout(p=0.9)
+        self.dropout3 = nn.Dropout(p=0.9)
         self.instruction_mlp = MLP(768, 256)
         self.ui_mlp = MLP(768, 256)
 
@@ -143,6 +144,7 @@ class LayoutLMAndBert(PreTrainedModel):
 
         predictions = torch.sigmoid(output)
 
+        output = self.dropout3(output)
         return output, predictions
 
 
