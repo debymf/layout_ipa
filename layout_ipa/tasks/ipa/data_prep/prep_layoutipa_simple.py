@@ -34,7 +34,10 @@ class PrepareLayoutIpaSimple(Task):
             closest_elements["ui_boxes"] = list()
             for _, element_close in content["closest"].items():
                 encoded_close_element = self.convert_examples_to_features(
-                    None, element_close, largest_screen, tokenizer_layout,
+                    content["instruction"],
+                    element_close,
+                    largest_screen,
+                    tokenizer_layout,
                 )
 
                 closest_elements["ui_input_ids"].append(
@@ -48,8 +51,8 @@ class PrepareLayoutIpaSimple(Task):
                 )
                 closest_elements["ui_boxes"].append(encoded_close_element["ui_boxes"])
 
-            if len(closest_elements["ui_input_ids"]) < 10:
-                to_add = 10 - len(closest_elements["ui_input_ids"])
+            if len(closest_elements["ui_input_ids"]) < 5:
+                to_add = 5 - len(closest_elements["ui_input_ids"])
 
                 closest_elements["ui_input_ids"].extend([[0] * largest_screen] * to_add)
 
