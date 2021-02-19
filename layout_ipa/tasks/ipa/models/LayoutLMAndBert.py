@@ -87,8 +87,8 @@ class LayoutLMAndBert(PreTrainedModel):
 
         self.bidaf = BidafAttn(768)
 
-        self.dropout1 = nn.Dropout(p=0.5)
-        self.dropout2 = nn.Dropout(p=0.5)
+        self.dropout1 = nn.Dropout(p=0.9)
+        self.dropout2 = nn.Dropout(p=0.9)
         self.instruction_mlp = MLP(768, 256)
         self.ui_mlp = MLP(768, 256)
 
