@@ -39,7 +39,7 @@ class BertandLayoutLMTrainer(Task):
         self.gradient_accumulation_steps = kwargs.get("gradient_accumulation_steps", 1)
         self.num_train_epochs = kwargs.get("num_train_epochs", 20)
         self.learning_rate = kwargs.get("learning_rate", 5e-5)
-        self.weight_decay = kwargs.get("weight_decay", 0.0)
+        self.weight_decay = kwargs.get("weight_decay", 0.1)
         self.adam_epsilon = kwargs.get("adam_epsilon", 1e-8)
         self.warmup_steps = kwargs.get("warmup_steps", 0)
         self.max_grad_norm = kwargs.get("max_grad_norm", 1.0)
