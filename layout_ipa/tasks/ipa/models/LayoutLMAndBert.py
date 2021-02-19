@@ -17,7 +17,7 @@ from transformers.file_utils import WEIGHTS_NAME
 torch.utils.backcompat.broadcast_warning.enabled = True
 torch.set_printoptions(threshold=5000)
 
-BERT_MODEL = "bert-base-uncased"
+BERT_MODEL = "distilbert-base-uncased"
 LAYOUT_LM_MODEL = "microsoft/layoutlm-base-uncased"
 
 
