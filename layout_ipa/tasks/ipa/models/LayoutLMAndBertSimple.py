@@ -139,7 +139,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         output_combined = torch.cat(
             [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
         )
-        # output_combined = self.linear_combine(ui_embedding * screen_embedding)
+        output_combined = self.linear_combine(output_combined)
         output_combined = self.dropout3(output_combined)
 
         output = self.linear_layer_output(output_combined)
