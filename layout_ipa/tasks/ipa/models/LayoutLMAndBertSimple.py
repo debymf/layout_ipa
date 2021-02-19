@@ -92,7 +92,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         self.linear_layer_instruction = nn.Linear(768, 1)
         self.linear_screen = nn.Linear(768 * 5, 768)
         self.linear_ui_element = nn.Linear(768, 768)
-        self.linear_combine = nn.Linear(768 * 1, 128)
+        self.linear_combine = nn.Linear(768 * 4, 128)
         self.linear_layer_ui = nn.Linear(768 * 5, 768)
         self.linear_layer_output = nn.Linear(128, 1)
         self.activation_ui1 = nn.Tanh()
@@ -125,20 +125,23 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         output_close_elements = output_close_elements.view(-1, 5 * 768)
 
         screen_embedding = self.linear_screen(output_close_elements)
-        screen_embedding = self.dropout1(screen_embedding)
+        output1 = self.dropout1(screen_embedding)
 
         output_ui_model = self.model_ui(**input_ui)
         ui_embedding = output_ui_model[1]
         ui_embedding = self.linear_ui_element(ui_embedding)
-        ui_embedding = self.dropout2(ui_embedding)
+        output2 = self.dropout2(ui_embedding)
 
         # output_combined = self.linear_combine(
         #     torch.cat((ui_embedding, screen_embedding), dim=1)
         # )
 
+        both_representations = torch.cat(
+            [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
+        )
         output_combined = self.linear_combine(ui_embedding * screen_embedding)
-
         output_combined = self.dropout3(output_combined)
+
         output = self.linear_layer_output(output_combined)
 
         return output
