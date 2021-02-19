@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from loguru import logger
 from transformers import AutoModel, AutoConfig
 from torch.autograd import Variable
+from .bidaf import BidafAttn
 from dynaconf import settings
 from transformers import PreTrainedModel
 import os
@@ -76,16 +77,15 @@ class LayoutLMAndBert(PreTrainedModel):
     def __init__(self, config, *args, **kwargs):
         super().__init__(config)
 
-        self.model_instruction1 = AutoModel.from_pretrained(
-            BERT_MODEL, config=config.bert
-        )
-        self.model_instruction2 = AutoModel.from_pretrained(
+        self.model_instruction = AutoModel.from_pretrained(
             BERT_MODEL, config=config.bert
         )
 
-        # self.model_ui = AutoModel.from_pretrained(
-        #     LAYOUT_LM_MODEL, config=config.layout_lm
-        # )
+        self.model_ui = AutoModel.from_pretrained(
+            LAYOUT_LM_MODEL, config=config.layout_lm
+        )
+
+        self.bidaf = BidafAttn(768)
 
         self.dropout1 = nn.Dropout(p=0.5)
         self.dropout2 = nn.Dropout(p=0.5)
@@ -95,29 +95,35 @@ class LayoutLMAndBert(PreTrainedModel):
         self.combination_mlp = MLP(768 * 2, 768)
 
         self.linear_layer_instruction = nn.Linear(768, 1)
-        self.linear_layer_ui = nn.Linear(768 * 2, 1)
-        self.linear_layer_output = nn.Linear(768 * 4, 1)
+        self.linear_layer_ui = nn.Linear(768 * 4, 1)
+        self.linear_layer_output = nn.Linear(128, 1)
         self.activation_ui1 = nn.Tanh()
         self.activation_ui2 = nn.Tanh()
         self.activation_instruction = nn.Tanh()
 
     def forward(self, input_instructions, input_ui_text, input_ui):
 
-        output1 = self.model_instruction1(**input_instructions)[1]
+        output1 = self.model_instruction(**input_instructions)[0]
         output1 = self.dropout1(output1)
 
-        output2 = self.model_instruction2(**input_ui_text)[1]
+        output2 = self.model_instruction(**input_ui_text)[0]
         output2 = self.dropout2(output2)
+
+        both_representations = self.bidaf(output1, output2)
+
+        simple = self.linear_layer_ui(both_representations)
+
+        simple = simple.squeeze(2)
 
         # both_representations = torch.cat(
         #     (instruction_representation, ui_text_representation), dim=1
         # )
 
-        both_representations = torch.cat(
-            [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
-        )
+        # both_representations = torch.cat(
+        #     [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
+        # )
 
-        output = self.linear_layer_output(both_representations)
+        output = self.linear_layer_output(simple)
 
         # instruction_representation = self.dropout1(instruction_representation)
         # instruction_mlp_output = self.instruction_mlp(instruction_representation)
