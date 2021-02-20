@@ -35,7 +35,7 @@ class LayoutIpaSimpleTrainer(Task):
         self.per_gpu_batch_size = kwargs.pop("per_gpu_batch_size", 4)
         self.cuda = kwargs.pop("cuda", True)
         self.gradient_accumulation_steps = kwargs.pop("gradient_accumulation_steps", 1)
-        self.num_train_epochs = kwargs.pop("num_train_epochs", 5)
+        self.num_train_epochs = kwargs.pop("num_train_epochs", 1)
         self.learning_rate = kwargs.pop("learning_rate", 1e-6)
         self.weight_decay = kwargs.pop("weight_decay", 0.01)
         self.adam_epsilon = kwargs.pop("adam_epsilon", 1e-8)
@@ -139,7 +139,10 @@ class LayoutIpaSimpleTrainer(Task):
         logger.info(f"Loading from {output_dir}/{task_name}")
 
         model = LayoutLMAndBertSimple.from_pretrained(
-            f"{output_dir}/{task_name}", config=model_config
+            f"{output_dir}/{task_name}",
+            config=model_config,
+            screen_agg=screen_arg,
+            combine_output=combine_output,
         )
 
         model.to(device)
