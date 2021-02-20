@@ -218,7 +218,7 @@ class LayoutIpaSimpleTrainer(Task):
                     for n, p in model.named_parameters()
                     if any(nd in n for nd in no_decay)
                 ],
-                "weight_decay": 0.0,
+                "weight_decay": self.weight_decay,
             },
         ]
 

@@ -117,6 +117,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         output_close_elements = output_close_elements.view(-1, 5, 768)
 
         output_close_elements = self.deep_set(output_close_elements)
+        output_close_elements = self.dropout4(output_close_elements)
 
         output_close_elements = output_close_elements.view(-1, 5 * 256)
 
