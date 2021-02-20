@@ -43,7 +43,7 @@ class LayoutLMAndBertSimpleConfig(PretrainedConfig):
         self.layout_lm = AutoConfig.for_model(
             layout_lm_config_model_type, **layout_lm_config
         )
-        # self.bert = AutoConfig.for_model(bert_config_model_type, **bert_config)
+        self.bert = AutoConfig.for_model(bert_config_model_type, **bert_config)
         # self.is_encoder_decoder = True
 
     @classmethod
