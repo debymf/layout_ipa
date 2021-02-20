@@ -43,7 +43,7 @@ class LayoutLMAndBertSimpleConfig(PretrainedConfig):
         self.layout_lm = AutoConfig.for_model(
             layout_lm_config_model_type, **layout_lm_config
         )
-        self.bert = AutoConfig.for_model(bert_config_model_type, **bert_config)
+        # self.bert = AutoConfig.for_model(bert_config_model_type, **bert_config)
         # self.is_encoder_decoder = True
 
     @classmethod
@@ -90,7 +90,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         self.dropout4 = nn.Dropout(p=0.7)
 
         self.linear_layer_instruction = nn.Linear(768, 1)
-        self.linear_screen = nn.Linear(768 * 5, 768)
+        self.linear_screen = nn.Linear(256 * 5, 768)
         self.linear_ui_element = nn.Linear(768, 768)
         self.linear_combine = nn.Linear(768 * 4, 128)
         self.linear_layer_ui = nn.Linear(768 * 5, 768)
@@ -98,6 +98,8 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         self.activation_ui1 = nn.Tanh()
         self.activation_ui2 = nn.Tanh()
         self.activation_instruction = nn.Tanh()
+
+        self.deep_set = DeepSet(768, 5, 256)
         # self.linear_layer1 = nn.Linear(768 * 4, 1)
         # self.linear_layer2 = nn.Linear(512, 1)
 
@@ -120,9 +122,11 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         )
 
         output_close_elements = self.model_ui(**input_close_elements)[1]
-        # both_representations = both_representations.view(4, -1, num_choices)
+        output_close_elements = output_close_elements.view(-1, 5, 768)
 
-        output_close_elements = output_close_elements.view(-1, 5 * 768)
+        output_close_elements = self.deep_set(output_close_elements)
+
+        output_close_elements = output_close_elements.view(-1, 5 * 256)
 
         screen_embedding = self.linear_screen(output_close_elements)
         output1 = self.dropout1(screen_embedding)
@@ -172,6 +176,7 @@ class DeepSet(nn.Module):
         )
 
     def forward(self, X):
-        X = self.enc(X).mean(-2)
+        X = self.enc(X)
+        X = X.mean(-2)
         X = self.dec(X).reshape(-1, self.num_outputs, self.dim_output)
         return X
