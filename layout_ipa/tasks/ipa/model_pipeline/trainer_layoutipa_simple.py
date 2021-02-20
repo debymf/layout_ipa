@@ -315,10 +315,8 @@ class LayoutIpaSimpleTrainer(Task):
 
                     if self.logging_steps > 0 and global_step % self.logging_steps == 0:
                         loss_scalar = (tr_loss - logging_loss) / self.logging_steps
-                        learning_rate_scalar = scheduler.get_lr()[0]
-                        epoch_iterator.set_description(
-                            f"Loss :{loss_scalar} LR: {learning_rate_scalar}"
-                        )
+                        # learning_rate_scalar = scheduler.get_lr()[0]
+                        epoch_iterator.set_description(f"Loss :{loss_scalar}")
                         logging_loss = tr_loss
 
             logger.debug(f"TRAINING LOSS: {epoch_loss}")
