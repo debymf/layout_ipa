@@ -31,7 +31,7 @@ parser.add_argument(
     type=int,
     help="0 - Deepset + FC; 1- FC; 2- Average; 3- Sum",
     default=0,
-    nargs="+",
+    nargs="?",
 )
 
 parser.add_argument(
@@ -40,7 +40,7 @@ parser.add_argument(
     type=int,
     help="0 - Matching; 1 - Concat; 2- Sum; 3- Mult",
     default=0,
-    nargs="+",
+    nargs="?",
 )
 
 
