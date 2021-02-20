@@ -23,6 +23,33 @@ parser.add_argument(
     nargs="+",
 )
 
+parser.add_argument(
+    "--batch_size",
+    metavar="Batch size",
+    type=int,
+    help="Batch size",
+    default=4,
+    nargs="?",
+)
+
+parser.add_argument(
+    "--num_screens",
+    metavar="Screen num",
+    type=int,
+    help="Screen num",
+    default=5,
+    nargs="?",
+)
+
+parser.add_argument(
+    "--learning_rate",
+    metavar="Learning rate",
+    type=float,
+    help="Learning rate",
+    default=0.00005,
+    nargs="?",
+)
+
 
 parser.add_argument(
     "--output_file",
@@ -36,6 +63,7 @@ parser.add_argument(
 args = parser.parse_args()
 INSTRUCTION_TYPE = args.type
 FILENAME_RESULTS = args.output_file
+LEARNING_RATE = args.learning_rate
 #  where: 0 and 3 - Lexical Matching
 #             1 - Spatial (Relative to screen)
 #             2 - Spatial (Relative to other elements)
@@ -60,7 +88,10 @@ test_path = settings["rico_sca_sample"]["test"]
 
 prepare_rico_task = PrepareRicoScaScreenPair()
 prepare_rico_layout_lm_task = PrepareLayoutIpaSimple()
-layout_lm_trainer_task = LayoutIpaSimpleTrainer()
+
+
+bert_param = {"learning_rate": LEARNING_RATE}
+layout_lm_trainer_task = LayoutIpaSimpleTrainer(**bert_param)
 
 logger.success(f"***** TYPE {INSTRUCTION_TYPE} *****")
 logger.success(f"***** OUTPUT FILE {FILENAME_RESULTS} *****")
@@ -75,10 +106,12 @@ def save_output_results(output):
 
     with open("./results/" + FILENAME_RESULTS, append_write) as f:
         f.write(f"TYPE: {INSTRUCTION_TYPE} \n")
+        f.write(f"LEARNING RATE: {LEARNING_RATE} \n")
         f.write(f"ACC DEV: {output['dev']['score']} \n")
         f.write(f"ACC TEST: {output['test']['score']} \n")
         f.write("=========================== \n \n")
 
+    logger.info(f"LEARNING RATE: {LEARNING_RATE} \n")
     logger.info(f"TYPE: {INSTRUCTION_TYPE} \n")
     logger.info(f"ACC DEV: {output['dev']['score']} \n")
     logger.info(f"ACC TEST: {output['test']['score']} \n")

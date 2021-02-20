@@ -32,18 +32,18 @@ LAYOUT_LM_MODEL = "microsoft/layoutlm-base-uncased"
 
 class LayoutIpaSimpleTrainer(Task):
     def __init__(self, **kwargs):
-        super(LayoutIpaSimpleTrainer, self).__init__(**kwargs)
-        self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 4)
-        self.cuda = kwargs.get("cuda", True)
-        self.gradient_accumulation_steps = kwargs.get("gradient_accumulation_steps", 1)
-        self.num_train_epochs = kwargs.get("num_train_epochs", 5)
-        self.learning_rate = kwargs.get("learning_rate", 1e-6)
-        self.weight_decay = kwargs.get("weight_decay", 0.01)
-        self.adam_epsilon = kwargs.get("adam_epsilon", 1e-8)
-        self.warmup_steps = kwargs.get("warmup_steps", 0)
-        self.max_grad_norm = kwargs.get("max_grad_norm", 1.0)
-        self.logging_steps = kwargs.get("logging_steps", 5)
+        self.per_gpu_batch_size = kwargs.pop("per_gpu_batch_size", 4)
+        self.cuda = kwargs.pop("cuda", True)
+        self.gradient_accumulation_steps = kwargs.pop("gradient_accumulation_steps", 1)
+        self.num_train_epochs = kwargs.pop("num_train_epochs", 5)
+        self.learning_rate = kwargs.pop("learning_rate", 1e-6)
+        self.weight_decay = kwargs.pop("weight_decay", 0.01)
+        self.adam_epsilon = kwargs.pop("adam_epsilon", 1e-8)
+        self.warmup_steps = kwargs.pop("warmup_steps", 0)
+        self.max_grad_norm = kwargs.pop("max_grad_norm", 1.0)
+        self.logging_steps = kwargs.pop("logging_steps", 5)
         self.args = kwargs
+        super(LayoutIpaSimpleTrainer, self).__init__(**kwargs)
 
     def set_seed(self, n_gpu, seed=42):
         random.seed(seed)
@@ -309,14 +309,16 @@ class LayoutIpaSimpleTrainer(Task):
                     )
 
                     optimizer.step()
-                    # scheduler.step()  # Update learning rate schedule
+                    scheduler.step()  # Update learning rate schedule
                     model.zero_grad()
                     global_step += 1
 
                     if self.logging_steps > 0 and global_step % self.logging_steps == 0:
                         loss_scalar = (tr_loss - logging_loss) / self.logging_steps
-                        # learning_rate_scalar = scheduler.get_lr()[0]
-                        epoch_iterator.set_description(f"Loss :{loss_scalar}")
+                        learning_rate_scalar = scheduler.get_lr()[0]
+                        epoch_iterator.set_description(
+                            f"Loss :{loss_scalar} LR: {learning_rate_scalar}"
+                        )
                         logging_loss = tr_loss
 
             logger.debug(f"TRAINING LOSS: {epoch_loss}")
