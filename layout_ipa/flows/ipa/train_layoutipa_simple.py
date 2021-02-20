@@ -24,22 +24,23 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--batch_size",
-    metavar="Batch size",
+    "--type_screen_agg",
+    metavar="",
     type=int,
-    help="Batch size",
-    default=4,
-    nargs="?",
+    help="0 - Deepset + FC; 1- FC; 2- Average; 3- Sum",
+    default=0,
+    nargs="+",
 )
 
 parser.add_argument(
-    "--num_screens",
-    metavar="Screen num",
+    "--type_end_combine",
+    metavar="",
     type=int,
-    help="Screen num",
-    default=5,
-    nargs="?",
+    help="0 - Matching; 1 - Concat; 2- Sum; 3- Mult",
+    default=0,
+    nargs="+",
 )
+
 
 parser.add_argument(
     "--learning_rate",
@@ -47,6 +48,15 @@ parser.add_argument(
     type=float,
     help="Learning rate",
     default=0.00005,
+    nargs="?",
+)
+
+parser.add_argument(
+    "--weight_decay",
+    metavar="Weight decay",
+    type=float,
+    help="weight decay",
+    default=0.01,
     nargs="?",
 )
 
@@ -62,11 +72,15 @@ parser.add_argument(
 
 args = parser.parse_args()
 INSTRUCTION_TYPE = args.type
-FILENAME_RESULTS = args.output_file
-LEARNING_RATE = args.learning_rate
 #  where: 0 and 3 - Lexical Matching
 #             1 - Spatial (Relative to screen)
 #             2 - Spatial (Relative to other elements)
+FILENAME_RESULTS = args.output_file
+LEARNING_RATE = args.learning_rate
+WEIGHT_DECAY = args.weight_decay
+SCREEN_AGG = args.type_screen_agg
+COMBINE_OUTPUT = args.type_end_combine
+
 
 # train_path = settings["rico_sca"]["train"]
 # dev_path = settings["rico_sca"]["dev"]
@@ -93,8 +107,14 @@ prepare_rico_layout_lm_task = PrepareLayoutIpaSimple()
 bert_param = {"learning_rate": LEARNING_RATE}
 layout_lm_trainer_task = LayoutIpaSimpleTrainer(**bert_param)
 
-logger.success(f"***** TYPE {INSTRUCTION_TYPE} *****")
+logger.success(f"*********************************************")
 logger.success(f"***** OUTPUT FILE {FILENAME_RESULTS} *****")
+logger.success(f"SCREEN AGG: {SCREEN_AGG}")
+logger.success(f"OUTPUT COMBINE: {COMBINE_OUTPUT}")
+logger.success(f"LEARNING RATE: {LEARNING_RATE}")
+logger.success(f"WEIGHT DECAY: {WEIGHT_DECAY}")
+logger.success(f"TYPE: {INSTRUCTION_TYPE}")
+logger.success(f"*********************************************")
 
 
 @task
@@ -107,11 +127,25 @@ def save_output_results(output):
     with open("./results/" + FILENAME_RESULTS, append_write) as f:
         f.write(f"TYPE: {INSTRUCTION_TYPE} \n")
         f.write(f"LEARNING RATE: {LEARNING_RATE} \n")
+        f.write(f"WEIGHT DECAY: {WEIGHT_DECAY} \n")
+        f.write(
+            f"SCREEN AGG: {SCREEN_AGG} (0 - Deepset + FC; 1- FC; 2- Average; 3- Sum) \n"
+        )
+        f.write(
+            f"OUTPUT COMBINE: {COMBINE_OUTPUT} (0 - Matching; 1 - Concat; 2- Sum; 3- Mult)\n"
+        )
         f.write(f"ACC DEV: {output['dev']['score']} \n")
         f.write(f"ACC TEST: {output['test']['score']} \n")
         f.write("=========================== \n \n")
 
+    logger.info(
+        f"SCREEN AGG: {SCREEN_AGG} (0 - Deepset + FC; 1- FC; 2- Average; 3- Sum)\n"
+    )
+    logger.info(
+        f"OUTPUT COMBINE: {COMBINE_OUTPUT} (0 - Matching; 1 - Concat; 2- Sum; 3- Mult)\n"
+    )
     logger.info(f"LEARNING RATE: {LEARNING_RATE} \n")
+    logger.info(f"WEIGHT DECAY: {WEIGHT_DECAY} \n")
     logger.info(f"TYPE: {INSTRUCTION_TYPE} \n")
     logger.info(f"ACC DEV: {output['dev']['score']} \n")
     logger.info(f"ACC TEST: {output['test']['score']} \n")
@@ -138,6 +172,8 @@ with Flow("Running the Transformers for Pair Classification") as flow1:
         output_dir="./cache/layout_ipa_simple_pair_rico/",
         mode="train",
         eval_fn=pair_evaluation,
+        screen_arg=SCREEN_AGG,
+        combine_output=COMBINE_OUTPUT,
     )
     save_output_results(outputs)
 

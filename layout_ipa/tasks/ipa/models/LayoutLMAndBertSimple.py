@@ -65,13 +65,11 @@ class LayoutLMAndBertSimple(PreTrainedModel):
     config_class = LayoutLMAndBertSimpleConfig
     base_model_prefix = "layout_lm_bert"
 
-    def __init__(self, config, *args, **kwargs):
+    def __init__(self, config, screen_agg, combine_output, *args, **kwargs):
         super().__init__(config)
 
-        # self.model_instruction = AutoModel.from_pretrained(
-        #    BERT_MODEL, config=config.bert
-        # )
-
+        self.screen_agg = screen_agg
+        self.combine_output = combine_output
         self.model_ui = AutoModel.from_pretrained(
             LAYOUT_LM_MODEL, config=config.layout_lm
         )
@@ -82,9 +80,12 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         self.dropout4 = nn.Dropout(p=0.7)
 
         self.linear_layer_instruction = nn.Linear(768, 1)
+        self.linear_screen_fc = nn.Linear(768 * 5, 768)
         self.linear_screen = nn.Linear(256 * 5, 768)
         self.linear_ui_element = nn.Linear(768, 768)
         self.linear_combine = nn.Linear(768 * 4, 128)
+        self.linear_combine_simple = nn.Linear(768, 128)
+        self.linear_combine_double = nn.Linear(768 * 2, 128)
         self.linear_layer_ui = nn.Linear(768 * 5, 768)
         self.linear_layer_output = nn.Linear(128, 1)
         self.activation_ui1 = nn.Tanh()
@@ -116,7 +117,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
             return input_close_elements
 
-        def get_screen_representations(input_close_elements):
+        def get_screen_representations_deepset(input_close_elements):
             output_close_elements = self.model_ui(**input_close_elements)[1]
 
             output_close_elements = output_close_elements.view(-1, 5, 768)
@@ -127,6 +128,41 @@ class LayoutLMAndBertSimple(PreTrainedModel):
             output_close_elements = output_close_elements.view(-1, 5 * 256)
 
             screen_embedding = self.linear_screen(output_close_elements)
+
+            output1 = self.dropout1(screen_embedding)
+
+            return output1
+
+        def get_screen_representations_fc(input_close_elements):
+            output_close_elements = self.model_ui(**input_close_elements)[1]
+
+            output_close_elements = output_close_elements.view(-1, 5 * 768)
+
+            screen_embedding = self.linear_screen_fc(output_close_elements)
+
+            output1 = self.dropout1(screen_embedding)
+
+            return output1
+
+        def get_screen_representations_average(input_close_elements):
+            output_close_elements = self.model_ui(**input_close_elements)[1]
+
+            output_close_elements = output_close_elements.view(-1, 5, 768)
+            output_close_elements = output_close_elements.mean(1)
+
+            screen_embedding = self.linear_screen_fc(output_close_elements)
+
+            output1 = self.dropout1(screen_embedding)
+
+            return output1
+
+        def get_screen_representations_sum(input_close_elements):
+            output_close_elements = self.model_ui(**input_close_elements)[1]
+
+            output_close_elements = output_close_elements.view(-1, 5, 768)
+            output_close_elements = output_close_elements.sum(1)
+
+            screen_embedding = self.linear_screen_fc(output_close_elements)
 
             output1 = self.dropout1(screen_embedding)
 
@@ -144,14 +180,38 @@ class LayoutLMAndBertSimple(PreTrainedModel):
             input_close_elements
         )
 
-        output1 = get_screen_representations(input_close_elements)
+        # help="0 - Deepset + FC; 1- FC; 2- Average; 3- Sum",
+        if self.screen_agg == 0:
+            output1 = get_screen_representations_deepset(input_close_elements)
+        elif self.screen_agg == 1:
+            output1 = get_screen_representations_fc(input_close_elements)
+        elif self.screen_agg == 2:
+            output1 = get_screen_representations_average(input_close_elements)
+        elif self.screen_agg == 3:
+            output1 = get_screen_representations_sum(input_close_elements)
+        else:
+            output1 = get_screen_representations_deepset(input_close_elements)
 
         output2 = get_ui_element_representations(input_ui)
 
-        output_combined = torch.cat(
-            [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
-        )
-        output_combined = self.linear_combine(output_combined)
+        # help="0 - Matching; 1 - Concat; 2- Sum; 3- Mult",
+
+        if self.combine_output == 0:
+            output_combined = torch.cat(
+                [output1, output2, torch.abs(output1 - output2), output1 * output2],
+                dim=1,
+            )
+            output_combined = self.linear_combine(output_combined)
+        elif self.combine_output == 1:
+            output_combined = torch.cat([output1, output2], dim=1)
+            output_combined = self.linear_combine_double(output_combined)
+        elif self.combine_output == 2:
+            output_combined = output1 + output2
+            output_combined = self.linear_combine_simple(output_combined)
+        elif self.combine_output == 3:
+            output_combined = output1 * output2
+            output_combined = self.linear_combine_simple(output_combined)
+
         output_combined = self.dropout3(output_combined)
 
         output = self.linear_layer_output(output_combined)

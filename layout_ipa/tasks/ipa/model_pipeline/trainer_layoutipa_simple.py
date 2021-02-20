@@ -68,6 +68,8 @@ class LayoutIpaSimpleTrainer(Task):
         eval_fn=None,
         save_optimizer=False,
         eval_params={},
+        screen_arg=0,
+        combine_output=0,
     ):
         torch.cuda.empty_cache()
         device = torch.device(
@@ -106,7 +108,9 @@ class LayoutIpaSimpleTrainer(Task):
                 **config_dict
             )
 
-            model = LayoutLMAndBertSimple(config=config)
+            model = LayoutLMAndBertSimple(
+                config=config, screen_agg=screen_arg, combine_output=combine_output
+            )
             model = model.to(device)
             if n_gpu > 1:
                 model = torch.nn.DataParallel(model)
