@@ -1,3 +1,5 @@
+# python -m  layout_ipa.flows.ipa.train_layoutipa_simple --weight_decay==0.0001 --learning_rate=0.00001 --type_screen_agg=0  --type_end_combine=0 --output_file "out1.txt"
+
 import prefect
 from dynaconf import settings
 from loguru import logger
