@@ -211,6 +211,12 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         elif self.combine_output == 3:
             output_combined = output1 * output2
             output_combined = self.linear_combine_simple(output_combined)
+        else:
+            output_combined = torch.cat(
+                [output1, output2, torch.abs(output1 - output2), output1 * output2],
+                dim=1,
+            )
+            output_combined = self.linear_combine(output_combined)
 
         output_combined = self.dropout3(output_combined)
 
