@@ -116,7 +116,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
             return input_close_elements
 
-        def get_screen_representations(self, input_close_elements):
+        def get_screen_representations(input_close_elements):
             output_close_elements = self.model_ui(**input_close_elements)[1]
 
             output_close_elements = output_close_elements.view(-1, 5, 768)
