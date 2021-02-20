@@ -29,42 +29,34 @@ class LayoutLMAndBertSimpleConfig(PretrainedConfig):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        assert (
-            "layout_lm" in kwargs and "bert" in kwargs
-        ), "Layout Lm and Bert required."
+        # assert (
+        #     "layout_lm" in kwargs and "bert" in kwargs
+        # ), "Layout Lm and Bert required."
         layout_lm_config = kwargs.pop("layout_lm")
         layout_lm_config_model_type = layout_lm_config.pop("model_type")
 
-        bert_config = kwargs.pop("bert")
-        bert_config_model_type = bert_config.pop("model_type")
+        # bert_config = kwargs.pop("bert")
+        # bert_config_model_type = bert_config.pop("model_type")
 
         from transformers import AutoConfig
 
         self.layout_lm = AutoConfig.for_model(
             layout_lm_config_model_type, **layout_lm_config
         )
-        self.bert = AutoConfig.for_model(bert_config_model_type, **bert_config)
+        # self.bert = AutoConfig.for_model(bert_config_model_type, **bert_config)
         # self.is_encoder_decoder = True
 
     @classmethod
     def from_layout_lm_bert_configs(
-        cls, layout_lm_config: PretrainedConfig, bert_config: PretrainedConfig, **kwargs
+        cls, layout_lm_config: PretrainedConfig, **kwargs
     ) -> PretrainedConfig:
 
-        # logger.info(
-        #     "Set `config.is_decoder=True` and `config.add_cross_attention=True` for decoder_config"
-        # )
-        # decoder_config.is_decoder = True
-        # decoder_config.add_cross_attention = True
-
-        return cls(
-            layout_lm=layout_lm_config.to_dict(), bert=bert_config.to_dict(), **kwargs
-        )
+        return cls(layout_lm=layout_lm_config.to_dict(), **kwargs)
 
     def to_dict(self):
         output = copy.deepcopy(self.__dict__)
         output["layout_lm"] = self.layout_lm.to_dict()
-        output["bert"] = self.bert.to_dict()
+
         output["model_type"] = self.__class__.model_type
         return output
 
