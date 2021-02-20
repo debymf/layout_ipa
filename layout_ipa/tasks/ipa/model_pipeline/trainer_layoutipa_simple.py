@@ -309,7 +309,7 @@ class LayoutIpaSimpleTrainer(Task):
                     )
 
                     optimizer.step()
-                    scheduler.step()  # Update learning rate schedule
+                    # scheduler.step()  # Update learning rate schedule
                     model.zero_grad()
                     global_step += 1
 
