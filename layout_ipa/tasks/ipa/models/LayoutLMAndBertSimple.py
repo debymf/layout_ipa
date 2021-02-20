@@ -96,42 +96,57 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         # self.linear_layer2 = nn.Linear(512, 1)
 
     def forward(self, input_close_elements, input_ui):
+        def convert_screen_elements_input_dimensions(input_close_elements):
 
-        input_close_elements["input_ids"] = input_close_elements["input_ids"].view(
-            -1, input_close_elements["input_ids"].size(-1)
+            input_close_elements["input_ids"] = input_close_elements["input_ids"].view(
+                -1, input_close_elements["input_ids"].size(-1)
+            )
+
+            input_close_elements["attention_mask"] = input_close_elements[
+                "attention_mask"
+            ].view(-1, input_close_elements["attention_mask"].size(-1))
+
+            input_close_elements["token_type_ids"] = input_close_elements[
+                "token_type_ids"
+            ].view(-1, input_close_elements["token_type_ids"].size(-1))
+
+            input_close_elements["bbox"] = input_close_elements["bbox"].view(
+                -1, input_close_elements["bbox"].size(-2), 4
+            )
+
+            return input_close_elements
+
+        def get_screen_representations(self, input_close_elements):
+            output_close_elements = self.model_ui(**input_close_elements)[1]
+
+            output_close_elements = output_close_elements.view(-1, 5, 768)
+
+            output_close_elements = self.deep_set(output_close_elements)
+            output_close_elements = self.dropout4(output_close_elements)
+
+            output_close_elements = output_close_elements.view(-1, 5 * 256)
+
+            screen_embedding = self.linear_screen(output_close_elements)
+
+            output1 = self.dropout1(screen_embedding)
+
+            return output1
+
+        def get_ui_element_representations(input_ui):
+            output_ui_model = self.model_ui(**input_ui)
+            ui_embedding = output_ui_model[1]
+            ui_embedding = self.linear_ui_element(ui_embedding)
+            output2 = self.dropout2(ui_embedding)
+
+            return output2
+
+        input_close_elements = convert_screen_elements_input_dimensions(
+            input_close_elements
         )
 
-        input_close_elements["attention_mask"] = input_close_elements[
-            "attention_mask"
-        ].view(-1, input_close_elements["attention_mask"].size(-1))
+        output1 = self.get_screen_representations(input_close_elements)
 
-        input_close_elements["token_type_ids"] = input_close_elements[
-            "token_type_ids"
-        ].view(-1, input_close_elements["token_type_ids"].size(-1))
-
-        input_close_elements["bbox"] = input_close_elements["bbox"].view(
-            -1, input_close_elements["bbox"].size(-2), 4
-        )
-
-        output_close_elements = self.model_ui(**input_close_elements)[1]
-        output_close_elements = output_close_elements.view(-1, 5, 768)
-
-        output_close_elements = self.deep_set(output_close_elements)
-        output_close_elements = self.dropout4(output_close_elements)
-
-        output_close_elements = output_close_elements.view(-1, 5 * 256)
-
-        screen_embedding = self.linear_screen(output_close_elements)
-        output1 = self.dropout1(screen_embedding)
-
-        output_ui_model = self.model_ui(**input_ui)
-        ui_embedding = output_ui_model[1]
-        ui_embedding = self.linear_ui_element(ui_embedding)
-        output2 = self.dropout2(ui_embedding)
-
-        # output_combined = self.linear_combine(
-        #     torch.cat((ui_embedding, screen_embedding), dim=1)
-        # )
+        output2 = get_ui_element_representations(input_ui)
 
         output_combined = torch.cat(
             [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
@@ -145,7 +160,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
 
 
 class DeepSet(nn.Module):
-    def __init__(self, dim_input, num_outputs, dim_output, dim_hidden=128):
+    def __init__(self, dim_input, num_outputs, dim_output, dim_hidden=1024):
         super(DeepSet, self).__init__()
         self.num_outputs = num_outputs
         self.dim_output = dim_output
