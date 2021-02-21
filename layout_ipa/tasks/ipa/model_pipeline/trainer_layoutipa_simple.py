@@ -225,12 +225,12 @@ class LayoutIpaSimpleTrainer(Task):
                     for n, p in model.named_parameters()
                     if any(nd in n for nd in no_decay)
                 ],
-                "weight_decay": self.weight_decay,
+                "weight_decay": 0.0,
             },
         ]
 
         optimizer = AdamW(
-            model.parameters(), lr=self.learning_rate, eps=self.adam_epsilon,
+            optimizer_grouped_parameters, lr=self.learning_rate, eps=self.adam_epsilon,
         )
         scheduler = get_linear_schedule_with_warmup(
             optimizer, num_warmup_steps=self.warmup_steps, num_training_steps=t_total,
