@@ -74,10 +74,10 @@ class LayoutLMAndBertSimple(PreTrainedModel):
             LAYOUT_LM_MODEL, config=config.layout_lm
         )
 
-        self.dropout1 = nn.Dropout(p=0.7)
-        self.dropout2 = nn.Dropout(p=0.7)
-        self.dropout3 = nn.Dropout(p=0.7)
-        self.dropout4 = nn.Dropout(p=0.7)
+        self.dropout1 = nn.Dropout(p=0.1)
+        self.dropout2 = nn.Dropout(p=0.1)
+        self.dropout3 = nn.Dropout(p=0.1)
+        self.dropout4 = nn.Dropout(p=0.1)
 
         self.linear_layer_instruction = nn.Linear(768, 1)
         self.linear_screen_fc = nn.Linear(768 * 5, 768)
