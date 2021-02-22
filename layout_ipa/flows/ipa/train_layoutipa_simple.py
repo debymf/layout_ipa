@@ -121,7 +121,7 @@ logger.success(f"*********************************************")
 
 @task
 def save_output_results(output):
-    if os.path.exists(FILENAME_RESULTS):
+    if os.path.exists("./results/" + FILENAME_RESULTS):
         append_write = "a"  # append if already exists
     else:
         append_write = "w"  # make a new file if not
