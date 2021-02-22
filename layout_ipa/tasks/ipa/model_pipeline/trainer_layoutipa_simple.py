@@ -209,15 +209,30 @@ class LayoutIpaSimpleTrainer(Task):
             * self.num_train_epochs
         )
 
-        no_decay = ["bias", "LayerNorm.weight"]
+        no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
+        low_lr = [
+            "deep_set",
+            "combine_output",
+            "linear_layer_instruction",
+            "linear_screen_fc",
+            "linear_screen",
+            "linear_ui_element",
+            "linear_combine",
+            "linear_combine_simple",
+            "linear_combine_double",
+            "linear_layer_ui",
+            "linear_layer_output",
+        ]
         optimizer_grouped_parameters = [
             {
                 "params": [
                     p
                     for n, p in model.named_parameters()
                     if not any(nd in n for nd in no_decay)
+                    and not any(nd in n for nd in low_lr)
                 ],
                 "weight_decay": self.weight_decay,
+                "lr": self.learning_rate,
             },
             {
                 "params": [
@@ -226,6 +241,16 @@ class LayoutIpaSimpleTrainer(Task):
                     if any(nd in n for nd in no_decay)
                 ],
                 "weight_decay": 0.0,
+                "lr": self.learning_rate,
+            },
+            {
+                "params": [
+                    p
+                    for n, p in model.named_parameters()
+                    if any(nd in n for nd in low_lr)
+                ],
+                "weight_decay": 0.0,
+                "lr": 1e-2,
             },
         ]
 
