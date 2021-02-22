@@ -212,7 +212,6 @@ class LayoutIpaSimpleTrainer(Task):
         no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
         low_lr = [
             "deep_set",
-            "combine_output",
             "linear_layer_instruction",
             "linear_screen_fc",
             "linear_screen",
@@ -239,6 +238,7 @@ class LayoutIpaSimpleTrainer(Task):
                     p
                     for n, p in model.named_parameters()
                     if any(nd in n for nd in no_decay)
+                    and not any(nd in n for nd in low_lr)
                 ],
                 "weight_decay": 0.0,
                 "lr": self.learning_rate,
