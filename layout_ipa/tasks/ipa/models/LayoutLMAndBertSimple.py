@@ -65,7 +65,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
     config_class = LayoutLMAndBertSimpleConfig
     base_model_prefix = "layout_lm_bert"
 
-    def __init__(self, config, screen_agg, combine_output, *args, **kwargs):
+    def __init__(self, config, screen_agg, combine_output, dropout, *args, **kwargs):
         super().__init__(config)
 
         self.screen_agg = screen_agg
@@ -74,10 +74,10 @@ class LayoutLMAndBertSimple(PreTrainedModel):
             LAYOUT_LM_MODEL, config=config.layout_lm
         )
 
-        self.dropout1 = nn.Dropout(p=0.1)
-        self.dropout2 = nn.Dropout(p=0.1)
-        self.dropout3 = nn.Dropout(p=0.1)
-        self.dropout4 = nn.Dropout(p=0.1)
+        self.dropout1 = nn.Dropout(p=dropout)
+        self.dropout2 = nn.Dropout(p=dropout)
+        self.dropout3 = nn.Dropout(p=dropout)
+        self.dropout4 = nn.Dropout(p=dropout)
 
         self.linear_layer_instruction = nn.Linear(768, 1)
         self.linear_screen_fc = nn.Linear(768 * 5, 768)

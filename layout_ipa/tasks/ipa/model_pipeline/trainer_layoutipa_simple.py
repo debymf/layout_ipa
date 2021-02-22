@@ -36,8 +36,10 @@ class LayoutIpaSimpleTrainer(Task):
         self.cuda = kwargs.pop("cuda", True)
         self.gradient_accumulation_steps = kwargs.pop("gradient_accumulation_steps", 1)
         self.num_train_epochs = kwargs.pop("num_train_epochs", 5)
-        self.learning_rate = kwargs.pop("learning_rate", 1e-6)
+        self.learning_rate = kwargs.pop("learning_rate", 1e-5)
+        self.learning_rate_low = kwargs.pop("learning_rate_low", 1e-3)
         self.weight_decay = kwargs.pop("weight_decay", 0.01)
+        self.weight_decay_low = kwargs.pop("weight_decay_low", 0.01)
         self.adam_epsilon = kwargs.pop("adam_epsilon", 1e-8)
         self.warmup_steps = kwargs.pop("warmup_steps", 0)
         self.max_grad_norm = kwargs.pop("max_grad_norm", 1.0)
@@ -70,6 +72,7 @@ class LayoutIpaSimpleTrainer(Task):
         eval_params={},
         screen_arg=0,
         combine_output=0,
+        dropout=0.1,
     ):
         torch.cuda.empty_cache()
         device = torch.device(
@@ -109,7 +112,10 @@ class LayoutIpaSimpleTrainer(Task):
             )
 
             model = LayoutLMAndBertSimple(
-                config=config, screen_agg=screen_arg, combine_output=combine_output
+                config=config,
+                screen_agg=screen_arg,
+                combine_output=combine_output,
+                dropout=dropout,
             )
             model = model.to(device)
             if n_gpu > 1:
@@ -143,6 +149,7 @@ class LayoutIpaSimpleTrainer(Task):
             config=model_config,
             screen_agg=screen_arg,
             combine_output=combine_output,
+            dropout=dropout,
         )
 
         model.to(device)
@@ -250,8 +257,8 @@ class LayoutIpaSimpleTrainer(Task):
                     if any(nd in n for nd in low_lr)
                     and not any(nd in n for nd in no_decay)
                 ],
-                "weight_decay": 0.0,
-                "lr": 1e-3,
+                "weight_decay": self.weight_decay_low,
+                "lr": self.learning_rate_low,
             },
         ]
 
