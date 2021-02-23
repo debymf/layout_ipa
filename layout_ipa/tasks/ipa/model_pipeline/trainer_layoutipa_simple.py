@@ -216,14 +216,16 @@ class LayoutIpaSimpleTrainer(Task):
             * self.num_train_epochs
         )
 
-        no_decay = ["LayerNorm.bias", "LayerNorm.weight"]
+        no_decay_low = ["LayerNorm.bias", "LayerNorm.weight"]
+        no_decay = ["bias"]
         low_lr = ["model_ui"]
         optimizer_grouped_parameters = [
             {
                 "params": [
                     p
                     for n, p in model.named_parameters()
-                    if not any(nd in n for nd in no_decay)
+                    if not any(nd in n for nd in no_decay_low)
+                    and not any(nd in n for nd in no_decay)
                     and not any(nd in n for nd in low_lr)
                 ],
                 "weight_decay": self.weight_decay,
@@ -235,6 +237,7 @@ class LayoutIpaSimpleTrainer(Task):
                     for n, p in model.named_parameters()
                     if any(nd in n for nd in no_decay)
                     and not any(nd in n for nd in low_lr)
+                    and not any(nd in n for nd in no_decay_low)
                 ],
                 "weight_decay": 0.0,
                 "lr": self.learning_rate,
@@ -244,9 +247,21 @@ class LayoutIpaSimpleTrainer(Task):
                     p
                     for n, p in model.named_parameters()
                     if any(nd in n for nd in low_lr)
-                    and not any(nd in n for nd in no_decay)
+                    and any(nd in n for nd in no_decay)
+                    and not any(nd in n for nd in no_decay_low)
                 ],
                 "weight_decay": self.weight_decay_low,
+                "lr": self.learning_rate_low,
+            },
+            {
+                "params": [
+                    p
+                    for n, p in model.named_parameters()
+                    if not any(nd in n for nd in no_decay)
+                    and not any(nd in n for nd in low_lr)
+                    and any(nd in n for nd in no_decay_low)
+                ],
+                "weight_decay": 0.0,
                 "lr": self.learning_rate_low,
             },
         ]
