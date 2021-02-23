@@ -217,18 +217,7 @@ class LayoutIpaSimpleTrainer(Task):
         )
 
         no_decay = ["LayerNorm.bias", "LayerNorm.weight"]
-        low_lr = [
-            "deep_set",
-            "linear_layer_instruction",
-            "linear_screen_fc",
-            "linear_screen",
-            "linear_ui_element",
-            "linear_combine",
-            "linear_combine_simple",
-            "linear_combine_double",
-            "linear_layer_ui",
-            "linear_layer_output",
-        ]
+        low_lr = ["model_ui"]
         optimizer_grouped_parameters = [
             {
                 "params": [
