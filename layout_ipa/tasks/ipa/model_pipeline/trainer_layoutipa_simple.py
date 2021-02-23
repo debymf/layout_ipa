@@ -216,7 +216,7 @@ class LayoutIpaSimpleTrainer(Task):
             * self.num_train_epochs
         )
 
-        no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
+        no_decay = ["LayerNorm.bias", "LayerNorm.weight"]
         low_lr = [
             "deep_set",
             "linear_layer_instruction",

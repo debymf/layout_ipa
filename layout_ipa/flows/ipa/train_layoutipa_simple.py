@@ -55,7 +55,7 @@ parser.add_argument(
 
 
 parser.add_argument(
-    "--dropout", metavar="Dropout", type=float, help="Dropout", default=0.1, nargs="?",
+    "--dropout", metavar="Dropout", type=float, help="Dropout", default=0.5, nargs="?",
 )
 
 
@@ -64,7 +64,7 @@ parser.add_argument(
     metavar="Learning rate low",
     type=float,
     help="Learning rate low",
-    default=0.01,
+    default=0.00001,
     nargs="?",
 )
 
@@ -73,7 +73,7 @@ parser.add_argument(
     metavar="Weight decay",
     type=float,
     help="weight decay",
-    default=0.01,
+    default=0.0,
     nargs="?",
 )
 
@@ -82,7 +82,7 @@ parser.add_argument(
     metavar="Weight decay low",
     type=float,
     help="weight decay low",
-    default=0.01,
+    default=0.0,
     nargs="?",
 )
 
@@ -165,7 +165,7 @@ def save_output_results(output):
     with open("./results/" + FILENAME_RESULTS, append_write) as f:
         f.write(f"TYPE: {INSTRUCTION_TYPE} \n")
         f.write(f"LEARNING RATE: {LEARNING_RATE} \n")
-        f.write(f"LEARNING RATE LOW: {LEARNING_RATE} \n")
+        f.write(f"LEARNING RATE LOW: {LEARNING_RATE_LOW} \n")
         f.write(f"WEIGHT DECAY: {WEIGHT_DECAY} \n")
         f.write(f"WEIGHT DECAY LOW: {WEIGHT_DECAY_LOW} \n")
         f.write(f"DROPOUT: {DROPOUT} \n")
