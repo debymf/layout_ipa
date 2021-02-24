@@ -236,8 +236,6 @@ class LayoutIpaSimpleTrainer(Task):
                     p
                     for n, p in model.named_parameters()
                     if any(nd in n for nd in no_decay)
-                    and not any(nd in n for nd in low_lr)
-                    and not any(nd in n for nd in no_decay_low)
                 ],
                 "weight_decay": 0.0,
                 "lr": self.learning_rate,
@@ -247,7 +245,7 @@ class LayoutIpaSimpleTrainer(Task):
                     p
                     for n, p in model.named_parameters()
                     if any(nd in n for nd in low_lr)
-                    and any(nd in n for nd in no_decay)
+                    and not any(nd in n for nd in no_decay)
                     and not any(nd in n for nd in no_decay_low)
                 ],
                 "weight_decay": self.weight_decay_low,
@@ -257,9 +255,7 @@ class LayoutIpaSimpleTrainer(Task):
                 "params": [
                     p
                     for n, p in model.named_parameters()
-                    if not any(nd in n for nd in no_decay)
-                    and not any(nd in n for nd in low_lr)
-                    and any(nd in n for nd in no_decay_low)
+                    if any(nd in n for nd in no_decay_low)
                 ],
                 "weight_decay": 0.0,
                 "lr": self.learning_rate_low,
