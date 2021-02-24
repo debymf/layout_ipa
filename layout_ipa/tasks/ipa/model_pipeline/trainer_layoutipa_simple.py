@@ -236,6 +236,7 @@ class LayoutIpaSimpleTrainer(Task):
                     p
                     for n, p in model.named_parameters()
                     if any(nd in n for nd in no_decay)
+                    and not any(nd in n for nd in no_decay_low)
                 ],
                 "weight_decay": 0.0,
                 "lr": self.learning_rate,
