@@ -55,7 +55,7 @@ parser.add_argument(
 
 
 parser.add_argument(
-    "--dropout", metavar="Dropout", type=float, help="Dropout", default=0.5, nargs="?",
+    "--dropout", metavar="Dropout", type=float, help="Dropout", default=0.7, nargs="?",
 )
 
 parser.add_argument(
@@ -63,7 +63,7 @@ parser.add_argument(
     metavar="Weight decay",
     type=float,
     help="weight decay",
-    default=0.0,
+    default=0.00001,
     nargs="?",
 )
 
