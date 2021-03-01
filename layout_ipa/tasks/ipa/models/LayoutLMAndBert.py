@@ -139,9 +139,6 @@ class LayoutLMAndBert(PreTrainedModel):
             instruction_representation, ui_element_representation
         )
 
-        print(c2q_attention.shape)
-        print(q2c_attention.shape)
-
         combined_features = torch.cat(
             (
                 ui_element_representation,
