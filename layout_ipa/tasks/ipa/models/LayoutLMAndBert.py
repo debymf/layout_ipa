@@ -135,10 +135,12 @@ class LayoutLMAndBert(PreTrainedModel):
 
         # ui_mlp_output = self.ui_mlp(ui_element_representation)
 
-        both_representations = self.bidaf(
+        c2q_attention, q2c_attention = self.bidaf(
             instruction_representation, ui_element_representation
         )
 
+        print(c2q_attention.shape)
+        print(q2c_attention.shape)
         both_representations = both_representations.view(-1, 128 * 3072)
 
         # both_mlp_output = self.combination_mlp(both_representations)
