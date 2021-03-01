@@ -149,8 +149,6 @@ class LayoutLMAndBert(PreTrainedModel):
             dim=-1,
         )  # (N,T,4d)
 
-        print(combined_features.shape)
-
         both_representations = combined_features.view(-1, 128 * 3072)
 
         # both_mlp_output = self.combination_mlp(both_representations)
