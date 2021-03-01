@@ -139,6 +139,8 @@ class LayoutLMAndBert(PreTrainedModel):
             instruction_representation, ui_element_representation
         )
 
+        print(both_representations.shape)
+
         # both_mlp_output = self.combination_mlp(both_representations)
         output = self.linear_layer_output(both_representations)
 
