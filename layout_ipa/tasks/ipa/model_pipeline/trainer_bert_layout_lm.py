@@ -401,12 +401,6 @@ class BertandLayoutLMTrainer(Task):
                     "token_type_ids": batch[2],
                 }
 
-                inputs_bert_ui = {
-                    "input_ids": batch[11],
-                    "attention_mask": batch[12],
-                    "token_type_ids": batch[13],
-                }
-
                 inputs_layout_lm = {
                     "input_ids": batch[3],
                     "attention_mask": batch[4],
@@ -414,9 +408,7 @@ class BertandLayoutLMTrainer(Task):
                     "bbox": batch[6],
                 }
 
-                outputs_logits, outputs = model(
-                    inputs_bert, inputs_bert_ui, inputs_layout_lm
-                )
+                outputs_logits, outputs = model(inputs_bert, inputs_layout_lm)
 
                 labels = batch[7]
 

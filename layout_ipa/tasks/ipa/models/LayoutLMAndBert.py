@@ -102,13 +102,13 @@ class LayoutLMAndBert(PreTrainedModel):
         self.activation_ui2 = nn.Tanh()
         self.activation_instruction = nn.Tanh()
 
-    def forward(self, input_instructions, input_ui_text, input_ui):
+    def forward(self, input_instructions, input_ui):
 
         output1 = self.model_instruction(**input_instructions)[1]
         instruction_representation = self.dropout1(output1)
 
-        output2 = self.model_instruction(**input_ui_text)[1]
-        ui_text_representation = self.dropout2(output2)
+        # output2 = self.model_instruction(**input_ui_text)[1]
+        # ui_text_representation = self.dropout2(output2)
 
         # both_representations = self.bidaf(output1, output2)
 
@@ -116,31 +116,31 @@ class LayoutLMAndBert(PreTrainedModel):
 
         # simple = simple.squeeze(2)
 
-        both_representations = torch.cat(
-            (instruction_representation, ui_text_representation), dim=1
-        )
+        # both_representations = torch.cat(
+        #    (instruction_representation, ui_text_representation), dim=1
+        # )
 
         # both_representations = torch.cat(
         #     [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1
         # )
 
-        output = self.linear_layer_output(both_representations)
+        # output = self.linear_layer_output(both_representations)
 
         # instruction_representation = self.dropout1(instruction_representation)
-        # instruction_mlp_output = self.instruction_mlp(instruction_representation)
+        instruction_mlp_output = self.instruction_mlp(instruction_representation)
 
-        # output_ui_model = self.model_ui(**input_ui)
-        # ui_element_representation = output_ui_model[1]
-        # ui_element_representation = self.dropout2(ui_element_representation)
+        output_ui_model = self.model_ui(**input_ui)
+        ui_element_representation = output_ui_model[1]
+        ui_element_representation = self.dropout2(ui_element_representation)
 
-        # ui_mlp_output = self.ui_mlp(ui_element_representation)
+        ui_mlp_output = self.ui_mlp(ui_element_representation)
 
-        # both_representations = torch.cat(
-        #     (instruction_representation, ui_element_representation), dim=1
-        # )
+        both_representations = torch.cat(
+            (instruction_representation, ui_element_representation), dim=1
+        )
 
-        # both_mlp_output = self.combination_mlp(both_representations)
-        # output = self.linear_layer_output(instruction_representation)
+        both_mlp_output = self.combination_mlp(both_representations)
+        output = self.linear_layer_output(instruction_representation)
 
         predictions = torch.sigmoid(output)
 
