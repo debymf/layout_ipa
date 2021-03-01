@@ -97,7 +97,7 @@ class LayoutLMAndBert(PreTrainedModel):
 
         self.linear_layer_instruction = nn.Linear(768, 1)
         self.linear_layer_ui = nn.Linear(768 * 4, 1)
-        self.linear_layer_output = nn.Linear(768 * 2, 1)
+        self.linear_layer_output = nn.Linear(768, 1)
         self.activation_ui1 = nn.Tanh()
         self.activation_ui2 = nn.Tanh()
         self.activation_instruction = nn.Tanh()
@@ -127,24 +127,23 @@ class LayoutLMAndBert(PreTrainedModel):
         # output = self.linear_layer_output(both_representations)
 
         # instruction_representation = self.dropout1(instruction_representation)
-        instruction_mlp_output = self.instruction_mlp(instruction_representation)
+        # instruction_mlp_output = self.instruction_mlp(instruction_representation)
 
         output_ui_model = self.model_ui(**input_ui)
         ui_element_representation = output_ui_model[1]
         ui_element_representation = self.dropout2(ui_element_representation)
 
-        ui_mlp_output = self.ui_mlp(ui_element_representation)
+        # ui_mlp_output = self.ui_mlp(ui_element_representation)
 
         both_representations = torch.cat(
             (instruction_representation, ui_element_representation), dim=1
         )
 
         both_mlp_output = self.combination_mlp(both_representations)
-        output = self.linear_layer_output(instruction_representation)
+        output = self.linear_layer_output(both_mlp_output)
 
         predictions = torch.sigmoid(output)
 
-        output = self.dropout3(output)
         return output, predictions
 
 
