@@ -141,7 +141,20 @@ class LayoutLMAndBert(PreTrainedModel):
 
         print(c2q_attention.shape)
         print(q2c_attention.shape)
-        both_representations = both_representations.view(-1, 128 * 3072)
+
+        combined_features = torch.cat(
+            (
+                ui_element_representation,
+                c2q_attention,
+                torch.mul(ui_element_representation, c2q_attention),
+                torch.mul(ui_element_representation, q2c_attention),
+            ),
+            dim=-1,
+        )  # (N,T,4d)
+
+        print(combined_features.shape)
+
+        both_representations = combined_features.view(-1, 128 * 3072)
 
         # both_mlp_output = self.combination_mlp(both_representations)
         output = self.linear_layer_output(both_representations)
