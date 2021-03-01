@@ -134,9 +134,7 @@ prepare_rico_layout_lm_task = PrepareLayoutIpaSimple()
 
 bert_param = {
     "learning_rate": LEARNING_RATE,
-    "learning_rate_low": LEARNING_RATE_LOW,
     "weight_decay": WEIGHT_DECAY,
-    "weight_decay_low": WEIGHT_DECAY_LOW,
 }
 
 

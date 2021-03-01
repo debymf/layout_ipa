@@ -37,9 +37,7 @@ class LayoutIpaSimpleTrainer(Task):
         self.gradient_accumulation_steps = kwargs.pop("gradient_accumulation_steps", 1)
         self.num_train_epochs = kwargs.pop("num_train_epochs", 5)
         self.learning_rate = kwargs.pop("learning_rate", 1e-5)
-        self.learning_rate_low = kwargs.pop("learning_rate_low", 1e-3)
         self.weight_decay = kwargs.pop("weight_decay", 0.01)
-        self.weight_decay_low = kwargs.pop("weight_decay_low", 0.01)
         self.adam_epsilon = kwargs.pop("adam_epsilon", 1e-8)
         self.warmup_steps = kwargs.pop("warmup_steps", 0)
         self.max_grad_norm = kwargs.pop("max_grad_norm", 1.0)
@@ -216,17 +214,14 @@ class LayoutIpaSimpleTrainer(Task):
             * self.num_train_epochs
         )
 
-        no_decay_low = ["LayerNorm.bias", "LayerNorm.weight"]
-        no_decay = ["bias"]
-        low_lr = ["model_ui"]
+        no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
+
         optimizer_grouped_parameters = [
             {
                 "params": [
                     p
                     for n, p in model.named_parameters()
-                    if not any(nd in n for nd in no_decay_low)
-                    and not any(nd in n for nd in no_decay)
-                    and not any(nd in n for nd in low_lr)
+                    if not any(nd in n for nd in no_decay)
                 ],
                 "weight_decay": self.weight_decay,
                 "lr": self.learning_rate,
@@ -236,30 +231,10 @@ class LayoutIpaSimpleTrainer(Task):
                     p
                     for n, p in model.named_parameters()
                     if any(nd in n for nd in no_decay)
-                    and not any(nd in n for nd in no_decay_low)
+                    and not any(nd in n for nd in no_decay)
                 ],
                 "weight_decay": 0.0,
                 "lr": self.learning_rate,
-            },
-            {
-                "params": [
-                    p
-                    for n, p in model.named_parameters()
-                    if any(nd in n for nd in low_lr)
-                    and not any(nd in n for nd in no_decay)
-                    and not any(nd in n for nd in no_decay_low)
-                ],
-                "weight_decay": self.weight_decay_low,
-                "lr": self.learning_rate_low,
-            },
-            {
-                "params": [
-                    p
-                    for n, p in model.named_parameters()
-                    if any(nd in n for nd in no_decay_low)
-                ],
-                "weight_decay": 0.0,
-                "lr": self.learning_rate_low,
             },
         ]
 
