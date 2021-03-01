@@ -34,10 +34,7 @@ class PrepareBertandLayoutLM(Task):
             )
 
             encoded_ui = self.convert_examples_to_features(
-                content["instruction"],
-                content["ui"],
-                largest_layout_lm,
-                tokenizer_layout,
+                None, content["ui"], largest_layout_lm, tokenizer_layout,
             )
 
             entries[id_d] = {

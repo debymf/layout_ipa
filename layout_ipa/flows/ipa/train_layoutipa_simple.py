@@ -58,30 +58,11 @@ parser.add_argument(
     "--dropout", metavar="Dropout", type=float, help="Dropout", default=0.5, nargs="?",
 )
 
-
-parser.add_argument(
-    "--learning_rate_low",
-    metavar="Learning rate low",
-    type=float,
-    help="Learning rate low",
-    default=0.00001,
-    nargs="?",
-)
-
 parser.add_argument(
     "--weight_decay",
     metavar="Weight decay",
     type=float,
     help="weight decay",
-    default=0.0,
-    nargs="?",
-)
-
-parser.add_argument(
-    "--weight_decay_low",
-    metavar="Weight decay low",
-    type=float,
-    help="weight decay low",
     default=0.0,
     nargs="?",
 )
@@ -103,9 +84,7 @@ INSTRUCTION_TYPE = args.type
 #             2 - Spatial (Relative to other elements)
 FILENAME_RESULTS = args.output_file
 LEARNING_RATE = args.learning_rate
-LEARNING_RATE_LOW = args.learning_rate_low
 WEIGHT_DECAY = args.weight_decay
-WEIGHT_DECAY_LOW = args.weight_decay_low
 SCREEN_AGG = args.type_screen_agg
 COMBINE_OUTPUT = args.type_end_combine
 DROPOUT = args.dropout
@@ -145,9 +124,7 @@ logger.success(f"***** OUTPUT FILE {FILENAME_RESULTS} *****")
 logger.success(f"SCREEN AGG: {SCREEN_AGG}")
 logger.success(f"OUTPUT COMBINE: {COMBINE_OUTPUT}")
 logger.success(f"LEARNING RATE: {LEARNING_RATE}")
-logger.success(f"LEARNING RATE LOW: {LEARNING_RATE_LOW}")
 logger.success(f"WEIGHT DECAY: {WEIGHT_DECAY}")
-logger.success(f"WEIGHT DECAY LOW: {WEIGHT_DECAY_LOW}")
 logger.success(f"TYPE: {INSTRUCTION_TYPE}")
 logger.success(f"DROPOUT: {DROPOUT}")
 logger.success(f"*********************************************")
@@ -163,9 +140,7 @@ def save_output_results(output):
     with open("./results/" + FILENAME_RESULTS, append_write) as f:
         f.write(f"TYPE: {INSTRUCTION_TYPE} \n")
         f.write(f"LEARNING RATE: {LEARNING_RATE} \n")
-        f.write(f"LEARNING RATE LOW: {LEARNING_RATE_LOW} \n")
         f.write(f"WEIGHT DECAY: {WEIGHT_DECAY} \n")
-        f.write(f"WEIGHT DECAY LOW: {WEIGHT_DECAY_LOW} \n")
         f.write(f"DROPOUT: {DROPOUT} \n")
         f.write(
             f"SCREEN AGG: {SCREEN_AGG} (0 - Deepset + FC; 1- FC; 2- Average; 3- Sum) \n"
@@ -184,10 +159,8 @@ def save_output_results(output):
         f"OUTPUT COMBINE: {COMBINE_OUTPUT} (0 - Matching; 1 - Concat; 2- Sum; 3- Mult)\n"
     )
     logger.info(f"DROPOUT: {DROPOUT} \n")
-    logger.info(f"LEARNING RATE LOW: {LEARNING_RATE_LOW} \n")
     logger.info(f"LEARNING RATE: {LEARNING_RATE} \n")
     logger.info(f"WEIGHT DECAY: {WEIGHT_DECAY} \n")
-    logger.info(f"WEIGHT DECAY LOW: {WEIGHT_DECAY_LOW} \n")
     logger.info(f"TYPE: {INSTRUCTION_TYPE} \n")
     logger.info(f"ACC DEV: {output['dev']['score']} \n")
     logger.info(f"ACC TEST: {output['test']['score']} \n")
