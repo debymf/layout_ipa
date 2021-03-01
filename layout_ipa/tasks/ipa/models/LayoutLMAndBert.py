@@ -97,7 +97,7 @@ class LayoutLMAndBert(PreTrainedModel):
 
         self.linear_layer_instruction = nn.Linear(768, 1)
         self.linear_layer_ui = nn.Linear(768 * 4, 1)
-        self.linear_layer_output = nn.Linear(768 * 4, 1)
+        self.linear_layer_output = nn.Linear(128 * 3072, 1)
         self.activation_ui1 = nn.Tanh()
         self.activation_ui2 = nn.Tanh()
         self.activation_instruction = nn.Tanh()
