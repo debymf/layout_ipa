@@ -139,7 +139,7 @@ class LayoutLMAndBert(PreTrainedModel):
             instruction_representation, ui_element_representation
         )
 
-        print(both_representations.shape)
+        both_representations = both_representations.view(-1, 128 * 3072)
 
         # both_mlp_output = self.combination_mlp(both_representations)
         output = self.linear_layer_output(both_representations)
