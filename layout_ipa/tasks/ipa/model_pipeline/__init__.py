@@ -1,2 +1,3 @@
 from .trainer_layoutipa_simple import LayoutIpaSimpleTrainer
 from .trainer_bert_layout_lm import BertandLayoutLMTrainer
+from .trainer_layoutlm_region import LayoutLMRegionTrainer
