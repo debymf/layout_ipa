@@ -46,10 +46,10 @@ class PrepareRegionLayoutLMTask(Task):
 
                 else:
                     encoded_ui = dict()
-                    encoded_ui["ui_input_ids"] = torch.LongTensor([0] * largest)
-                    encoded_ui["ui_input_mask"] = torch.LongTensor([0] * largest)
-                    encoded_ui["ui_segment_ids"] = torch.LongTensor([0] * largest)
-                    encoded_ui["ui_boxes"] = torch.LongTensor([[0] * 4] * largest)
+                    encoded_ui["ui_input_ids"] = [0] * largest
+                    encoded_ui["ui_input_mask"] = [0] * largest
+                    encoded_ui["ui_segment_ids"] = [0] * largest
+                    encoded_ui["ui_boxes"] = [[0] * 4] * largest
 
                 ui_elements["ui_input_ids"].append(encoded_ui["ui_input_ids"])
                 ui_elements["ui_input_mask"].append(encoded_ui["ui_input_mask"])
@@ -164,10 +164,10 @@ class PrepareRegionLayoutLMTask(Task):
         assert len(token_boxes) == max_seq_length
 
         features = {
-            "ui_input_ids": torch.LongTensor(input_ids),
-            "ui_input_mask": torch.LongTensor(input_mask),
-            "ui_segment_ids": torch.LongTensor(segment_ids),
-            "ui_boxes": torch.LongTensor(token_boxes),
+            "ui_input_ids": input_ids,
+            "ui_input_mask": input_mask,
+            "ui_segment_ids": segment_ids,
+            "ui_boxes": token_boxes,
         }
 
         return features
