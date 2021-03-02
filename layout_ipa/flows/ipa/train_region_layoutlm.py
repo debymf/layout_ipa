@@ -55,15 +55,15 @@ train_path = settings["rico_sca_sample"]["train"]
 dev_path = settings["rico_sca_sample"]["dev"]
 test_path = settings["rico_sca_sample"]["test"]
 
-# cache_args = dict(
-#     target="{task_name}-{task_tags}.pkl",
-#     checkpoint=True,
-#     result=LocalResult(dir=f"./cache/datasets/rico/"),
-# )
+cache_args = dict(
+    target="{task_name}-{task_tags}.pkl",
+    checkpoint=True,
+    result=LocalResult(dir=f"./cache/datasets/rico/"),
+)
 
-prepare_rico_selection_task = PrepareRicoScaSelection()
-prepare_rico_region_task = PrepareRicoScaRegion()
-prepare_rico_layout_lm_task = PrepareRegionLayoutLMTask()
+prepare_rico_selection_task = PrepareRicoScaSelection(**cache_args)
+prepare_rico_region_task = PrepareRicoScaRegion(**cache_args)
+prepare_rico_layout_lm_task = PrepareRegionLayoutLMTask(**cache_args)
 layout_lm_trainer_task = LayoutLMRegionTrainer()
 
 logger.success(f"***** TYPE {INSTRUCTION_TYPE} *****")
