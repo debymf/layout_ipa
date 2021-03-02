@@ -63,7 +63,7 @@ parser.add_argument(
     metavar="Weight decay",
     type=float,
     help="weight decay",
-    default=0.0001,
+    default=0.001,
     nargs="?",
 )
 
