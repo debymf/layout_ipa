@@ -398,8 +398,7 @@ class LayoutLMRegionTrainer(Task):
         logger.success(f"EVAL LOSS: {eval_loss}")
         score = None
         if eval_fn is not None:
-            print(preds)
-            input()
+
             preds_parsed = np.argmax(preds, axis=1)
 
             score = eval_fn(y_true=out_label_ids, y_pred=preds_parsed)
