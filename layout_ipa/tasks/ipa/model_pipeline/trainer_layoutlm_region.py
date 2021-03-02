@@ -74,7 +74,7 @@ class LayoutLMRegionTrainer(Task):
         device = torch.device(
             "cuda" if torch.cuda.is_available() and self.cuda else "cpu"
         )
-        #device = "cpu"
+        # device = "cpu"
 
         n_gpu = torch.cuda.device_count()
 
@@ -400,7 +400,7 @@ class LayoutLMRegionTrainer(Task):
         if eval_fn is not None:
             preds_parsed = np.argmax(preds)
 
-            score = eval_fn(y_true=out_label _ids, y_pred=preds_parsed)
+            score = eval_fn(y_true=out_label_ids, y_pred=preds_parsed)
 
             logger.info(f"Score:{score}")
 
