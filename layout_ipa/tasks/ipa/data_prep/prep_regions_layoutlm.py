@@ -17,6 +17,17 @@ class PrepareRegionLayoutLMTask(Task):
     def run(self, input_data, largest=512):
         logger.info("*** Preprocessing Data for Region classification ***")
 
+        # instruction: NL intruction,
+        #     regions
+        #     label_regions
+        #     ui: DICT:
+        #             text: text of the ui element,
+        #             x0: bounding box x0,
+        #             x1: bouding box x1,
+        #             y0: bounding box y0,
+        #             y1: bounding box y1,
+        #     label: From the list of UI elements, obtain the one reffered in the sentence.
+
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
         entries = dict()
         for id_d, content in tqdm(input_data.items()):
@@ -153,10 +164,10 @@ class PrepareRegionLayoutLMTask(Task):
         assert len(token_boxes) == max_seq_length
 
         features = {
-            "ui_input_ids": input_ids,
-            "ui_input_mask": input_mask,
-            "ui_segment_ids": segment_ids,
-            "ui_boxes": token_boxes,
+            "ui_input_ids": torch.LongTensor(input_ids),
+            "ui_input_mask": torch.LongTensor(input_mask),
+            "ui_segment_ids": torch.LongTensor(segment_ids),
+            "ui_boxes": torch.LongTensor(token_boxes),
         }
 
         return features
