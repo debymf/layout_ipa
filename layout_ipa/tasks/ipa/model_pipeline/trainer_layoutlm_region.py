@@ -32,7 +32,7 @@ LAYOUT_LM_MODEL = "microsoft/layoutlm-base-uncased"
 
 class LayoutLMRegionTrainer(Task):
     def __init__(self, **kwargs):
-        self.per_gpu_batch_size = kwargs.pop("per_gpu_batch_size", 4)
+        self.per_gpu_batch_size = kwargs.pop("per_gpu_batch_size", 1)
         self.cuda = kwargs.pop("cuda", True)
         self.gradient_accumulation_steps = kwargs.pop("gradient_accumulation_steps", 1)
         self.num_train_epochs = kwargs.pop("num_train_epochs", 5)
@@ -58,8 +58,6 @@ class LayoutLMRegionTrainer(Task):
         train_dataset,
         dev_dataset,
         test_dataset,
-        mapping_dev,
-        mapping_test,
         task_name,
         output_dir,
         bert_model="bert-base-uncased",
@@ -76,6 +74,7 @@ class LayoutLMRegionTrainer(Task):
         device = torch.device(
             "cuda" if torch.cuda.is_available() and self.cuda else "cpu"
         )
+        #device = "cpu"
 
         n_gpu = torch.cuda.device_count()
 
@@ -92,7 +91,7 @@ class LayoutLMRegionTrainer(Task):
 
         self.set_seed(n_gpu)
 
-        criterion = nn.BCEWithLogitsLoss()
+        criterion = nn.CrossEntropyLoss()
 
         outputs = {}
         if mode == "train":
@@ -121,7 +120,6 @@ class LayoutLMRegionTrainer(Task):
                 train_dataloader,
                 dev_dataloader,
                 dev_dataset,
-                mapping_dev,
                 device,
                 criterion,
                 n_gpu,
@@ -152,7 +150,6 @@ class LayoutLMRegionTrainer(Task):
             model,
             dev_dataloader,
             dev_dataset,
-            mapping_dev,
             device,
             n_gpu,
             eval_fn,
@@ -172,7 +169,6 @@ class LayoutLMRegionTrainer(Task):
                 model,
                 test_data_loader,
                 test_dataset,
-                mapping_test,
                 device,
                 n_gpu,
                 eval_fn,
@@ -192,7 +188,6 @@ class LayoutLMRegionTrainer(Task):
         train_dataloader,
         dev_dataloader,
         dev_dataset,
-        mapping_dev,
         device,
         criterion,
         n_gpu,
@@ -263,45 +258,18 @@ class LayoutLMRegionTrainer(Task):
                 model.train()
 
                 batch = tuple(t.to(device) for t in batch)
-                inputs_close_elements = {
+                inputs_elements = {
                     "input_ids": batch[0],
                     "attention_mask": batch[1],
                     "token_type_ids": batch[2],
                     "bbox": batch[3],
                 }
 
-                inputs_ui = {
-                    "input_ids": batch[4],
-                    "attention_mask": batch[5],
-                    "token_type_ids": batch[6],
-                    "bbox": batch[7],
-                }
+                outputs = model(inputs_elements)
 
-                outputs = model(inputs_close_elements, inputs_ui)
+                labels = batch[4]
 
-                labels = batch[8]
-                labels = labels.type_as(outputs)
-
-                # preds = outputs.detach().cpu().numpy()
-                # preds = np.argmax(preds, axis=1)
-
-                # print("\n\n")
-                # print("=====================================")
-                # print("*** PREDS ****")
-                # print(preds)
-                # print("\n\n")
-
-                # print("**** LABEL *****")
-                # print(labels.detach().cpu().numpy())
-                # print("\n\n")
-
-                # print("**** SCORE ******")
-                # score = eval_fn(preds, labels.detach().cpu().numpy())
-                # print(score)
-                # print("\n\n")
-                # print("\n\n")
-
-                loss = criterion(outputs, labels.unsqueeze(1))
+                loss = criterion(outputs, labels)
 
                 if n_gpu > 1:
                     loss = (
@@ -338,7 +306,6 @@ class LayoutLMRegionTrainer(Task):
                 model,
                 dev_dataloader,
                 dev_dataset,
-                mapping_dev,
                 device,
                 n_gpu,
                 eval_fn,
@@ -381,7 +348,6 @@ class LayoutLMRegionTrainer(Task):
         model,
         dataloader,
         dataset,
-        mapping,
         device,
         n_gpu,
         eval_fn,
@@ -400,38 +366,26 @@ class LayoutLMRegionTrainer(Task):
             batch = tuple(t.to(device) for t in batch)
 
             with torch.no_grad():
-                query_ids = batch[9]
-                ui_positions = batch[10]
-
-                inputs_close_elements = {
+                inputs_elements = {
                     "input_ids": batch[0],
                     "attention_mask": batch[1],
                     "token_type_ids": batch[2],
                     "bbox": batch[3],
                 }
 
-                inputs_ui = {
-                    "input_ids": batch[4],
-                    "attention_mask": batch[5],
-                    "token_type_ids": batch[6],
-                    "bbox": batch[7],
-                }
+                outputs = model(inputs_elements)
 
-                outputs = model(inputs_close_elements, inputs_ui)
+                labels = batch[4]
 
-                labels = batch[8]
-
-                loss = criterion(outputs, labels.type_as(outputs).unsqueeze(1))
+                loss = criterion(outputs, labels)
 
                 eval_loss += loss.mean().item()
 
             nb_eval_steps += 1
             if preds is None:
-                index_queries = query_ids.detach().cpu().numpy()
+
                 preds = outputs.detach().cpu().numpy()
                 out_label_ids = labels.detach().cpu().numpy()
-                all_index = batch[11].detach().cpu().numpy()
-                all_ui = ui_positions.detach().cpu().numpy()
 
             else:
                 preds = np.append(preds, outputs.detach().cpu().numpy(), axis=0)
@@ -440,35 +394,13 @@ class LayoutLMRegionTrainer(Task):
                     out_label_ids, labels.detach().cpu().numpy(), axis=0
                 )
 
-                index_queries = np.append(
-                    index_queries, query_ids.detach().cpu().numpy(), axis=0
-                )
-
-                all_index = np.append(
-                    all_index, batch[11].detach().cpu().numpy(), axis=0
-                )
-
-                all_ui = np.append(all_ui, ui_positions.detach().cpu().numpy(), axis=0)
         # eval_loss = eval_loss / nb_eval_steps
         logger.success(f"EVAL LOSS: {eval_loss}")
         score = None
         if eval_fn is not None:
+            preds_parsed = np.argmax(preds)
 
-            preds_parsed = expit(preds)
-            preds_parsed = preds_parsed.squeeze(1)
-
-            # print("**** PREDS ****")
-            # print(preds)
-            # input()
-            # print("**** Preds Parsed ****")
-            # print(preds_parsed)
-            # input()
-            score = eval_fn(preds_parsed, index_queries, all_ui, mapping)
-
-            # if mode == "test":
-            #     out_preds = {"preds": preds.tolist(), "gold": out_label_ids.tolist()}
-            #     with open(f"./cache/output/bin_preds.json", "w") as fp:
-            #         json.dump(out_preds, fp)
+            score = eval_fn(y_true=out_label _ids, y_pred=preds_parsed)
 
             logger.info(f"Score:{score}")
 

@@ -10,7 +10,7 @@ from layout_ipa.tasks.datasets_parse.rico_sca import (
 )
 from layout_ipa.tasks.ipa.data_prep import PrepareRegionLayoutLMTask
 from layout_ipa.tasks.ipa.model_pipeline import LayoutLMRegionTrainer
-from sklearn.metrics import f1_score
+from sklearn.metrics import accuracy_score
 from layout_ipa.util.evaluation import pair_evaluation_vector
 import os
 import argparse
@@ -51,9 +51,9 @@ FILENAME_RESULTS = args.output_file
 # dev_path = settings["sample_rico_sca"]
 # test_path = settings["sample_rico_sca"]
 
-train_path = settings["rico_sca"]["train"]
-dev_path = settings["rico_sca"]["dev"]
-test_path = settings["rico_sca"]["test"]
+train_path = settings["rico_sca_sample"]["train"]
+dev_path = settings["rico_sca_sample"]["dev"]
+test_path = settings["rico_sca_sample"]["test"]
 
 # cache_args = dict(
 #     target="{task_name}-{task_tags}.pkl",
@@ -108,17 +108,15 @@ with Flow("Running flow for Bert and LayouLM") as flow1:
         )
         parsed_test = prepare_rico_region_task(test_input["data"])
         test_dataset = prepare_rico_layout_lm_task(parsed_test)
-    # outputs = layout_lm_trainer_task(
-    #     train_dataset=train_dataset,
-    #     dev_dataset=dev_dataset,
-    #     test_dataset=test_dataset,
-    #     mapping_dev=dev_input["mapping"],
-    #     mapping_test=test_input["mapping"],
-    #     task_name="layout_lm_and_bert",
-    #     output_dir="./cache/layout_lm_and_bert/",
-    #     mode="train",
-    #     eval_fn=pair_evaluation_vector,
-    # )
+    outputs = layout_lm_trainer_task(
+        train_dataset=train_dataset,
+        dev_dataset=dev_dataset,
+        test_dataset=test_dataset,
+        task_name="layout_lm_and_bert",
+        output_dir="./cache/layout_lm_and_bert/",
+        mode="train",
+        eval_fn=accuracy_score,
+    )
     # save_output_results(outputs)
 
 

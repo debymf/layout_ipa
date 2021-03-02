@@ -74,29 +74,12 @@ class LayoutLMRegion(PreTrainedModel):
             LAYOUT_LM_MODEL, config=config.layout_lm
         )
 
-        self.dropout1 = nn.Dropout(p=dropout)
-        self.dropout2 = nn.Dropout(p=dropout)
-        self.dropout3 = nn.Dropout(p=dropout)
-        self.dropout4 = nn.Dropout(p=dropout)
+        self.linear_screen_fc = nn.Linear(768, 1)
 
-        self.linear_layer_instruction = nn.Linear(768, 1)
-        self.linear_screen_fc = nn.Linear(768 * 5, 768)
-        self.linear_screen = nn.Linear(256 * 5, 768)
-        self.linear_ui_element = nn.Linear(768, 768)
-        self.linear_combine = nn.Linear(768 * 4, 128)
-        self.linear_combine_simple = nn.Linear(768, 128)
-        self.linear_combine_double = nn.Linear(768 * 2, 128)
-        self.linear_layer_ui = nn.Linear(768 * 5, 768)
-        self.linear_layer_output = nn.Linear(128, 1)
-        self.activation_ui1 = nn.Tanh()
-        self.activation_ui2 = nn.Tanh()
-        self.activation_instruction = nn.Tanh()
-
-        self.deep_set = DeepSet(768, 5, 256)
         # self.linear_layer1 = nn.Linear(768 * 4, 1)
         # self.linear_layer2 = nn.Linear(512, 1)
 
-    def forward(self, input_close_elements, input_ui):
+    def forward(self, input_elements):
         def convert_screen_elements_input_dimensions(input_close_elements):
 
             input_close_elements["input_ids"] = input_close_elements["input_ids"].view(
@@ -117,112 +100,20 @@ class LayoutLMRegion(PreTrainedModel):
 
             return input_close_elements
 
-        def get_screen_representations_deepset(input_close_elements):
-            output_close_elements = self.model_ui(**input_close_elements)[1]
+        def get_screen_representations(input_elements):
+            output_elements = self.model_ui(**input_elements)[1]
 
-            output_close_elements = output_close_elements.view(-1, 5, 768)
+            output = output_elements.view(-1, 25, 768)
 
-            output_close_elements = self.deep_set(output_close_elements)
-            output_close_elements = self.dropout4(output_close_elements)
+            return output
 
-            output_close_elements = output_close_elements.view(-1, 5 * 256)
+        input_elements = convert_screen_elements_input_dimensions(input_elements)
 
-            screen_embedding = self.linear_screen(output_close_elements)
+        region_representations = get_screen_representations(input_elements)
 
-            output1 = self.dropout1(screen_embedding)
+        classification = self.linear_screen_fc(region_representations)
 
-            return output1
+        classification = classification.squeeze(2)
 
-        def get_screen_representations_fc(input_close_elements):
-            output_close_elements = self.model_ui(**input_close_elements)[1]
-
-            output_close_elements = output_close_elements.view(-1, 5 * 768)
-
-            screen_embedding = self.linear_screen_fc(output_close_elements)
-
-            output1 = self.dropout1(screen_embedding)
-
-            return output1
-
-        def get_screen_representations_average(input_close_elements):
-            output_close_elements = self.model_ui(**input_close_elements)[1]
-
-            output_close_elements = output_close_elements.view(-1, 5, 768)
-            output_close_elements = output_close_elements.mean(1)
-
-            screen_embedding = self.linear_screen_fc(output_close_elements)
-
-            output1 = self.dropout1(screen_embedding)
-
-            return output1
-
-        def get_screen_representations_sum(input_close_elements):
-            output_close_elements = self.model_ui(**input_close_elements)[1]
-
-            output_close_elements = output_close_elements.view(-1, 5, 768)
-            output_close_elements = output_close_elements.sum(1)
-
-            screen_embedding = self.linear_screen_fc(output_close_elements)
-
-            output1 = self.dropout1(screen_embedding)
-
-            return output1
-
-        def get_ui_element_representations(input_ui):
-            output_ui_model = self.model_ui(**input_ui)
-            ui_embedding = output_ui_model[1]
-            ui_embedding = self.linear_ui_element(ui_embedding)
-            output2 = self.dropout2(ui_embedding)
-
-            return output2
-
-        input_close_elements = convert_screen_elements_input_dimensions(
-            input_close_elements
-        )
-
-        print(input_close_elements.shape)
-
-        # help="0 - Deepset + FC; 1- FC; 2- Average; 3- Sum",
-        if self.screen_agg == 0:
-            output1 = get_screen_representations_deepset(input_close_elements)
-        elif self.screen_agg == 1:
-            output1 = get_screen_representations_fc(input_close_elements)
-        elif self.screen_agg == 2:
-            output1 = get_screen_representations_average(input_close_elements)
-        elif self.screen_agg == 3:
-            output1 = get_screen_representations_sum(input_close_elements)
-        else:
-            output1 = get_screen_representations_deepset(input_close_elements)
-
-        output2 = get_ui_element_representations(input_ui)
-
-        # help="0 - Matching; 1 - Concat; 2- Sum; 3- Mult",
-
-        if self.combine_output == 0:
-            output_combined = torch.cat(
-                [output1, output2, torch.abs(output1 - output2), output1 * output2],
-                dim=1,
-            )
-            output_combined = self.linear_combine(output_combined)
-        elif self.combine_output == 1:
-            output_combined = torch.cat([output1, output2], dim=1)
-            output_combined = self.linear_combine_double(output_combined)
-        elif self.combine_output == 2:
-            output_combined = output1 + output2
-            output_combined = self.linear_combine_simple(output_combined)
-        elif self.combine_output == 3:
-            output_combined = output1 * output2
-            output_combined = self.linear_combine_simple(output_combined)
-        else:
-            output_combined = torch.cat(
-                [output1, output2, torch.abs(output1 - output2), output1 * output2],
-                dim=1,
-            )
-            output_combined = self.linear_combine(output_combined)
-
-        output_combined = self.dropout3(output_combined)
-
-        output = self.linear_layer_output(output_combined)
-
-        return output
+        return classification
 
