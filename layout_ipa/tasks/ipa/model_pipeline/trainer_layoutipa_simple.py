@@ -37,7 +37,7 @@ class LayoutIpaSimpleTrainer(Task):
         self.gradient_accumulation_steps = kwargs.pop("gradient_accumulation_steps", 1)
         self.num_train_epochs = kwargs.pop("num_train_epochs", 5)
         self.learning_rate = kwargs.pop("learning_rate", 1e-5)
-        self.weight_decay = kwargs.pop("weight_decay", 0.01)
+        self.weight_decay = kwargs.pop("weight_decay", 0.0001)
         self.adam_epsilon = kwargs.pop("adam_epsilon", 1e-8)
         self.warmup_steps = kwargs.pop("warmup_steps", 0)
         self.max_grad_norm = kwargs.pop("max_grad_norm", 1.0)

@@ -264,12 +264,17 @@ class LayoutLMAndBertSimple(PreTrainedModel):
         output_ui_model = self.model_ui(**input_ui)
         output1 = output_ui_model[1]
 
+        output1 = self.dropout1(output1)
+
         output2 = self.model_ui(**input_close_elements)[1]
 
+        output2 = self.dropout2(output2)
         output_combined = torch.cat(
             [output1, output2, torch.abs(output1 - output2), output1 * output2], dim=1,
         )
         output_combined = self.linear_combine(output_combined)
+
+        output_combined = self.droupout3(output_combined)
 
         output = self.linear_layer_output(output_combined)
 
