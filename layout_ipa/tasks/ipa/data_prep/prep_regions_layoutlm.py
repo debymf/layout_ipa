@@ -17,17 +17,6 @@ class PrepareRegionLayoutLMTask(Task):
     def run(self, input_data, largest=512):
         logger.info("*** Preprocessing Data for Region classification ***")
 
-        # instruction: NL intruction,
-        #     regions
-        #     label_regions
-        #     ui: DICT:
-        #             text: text of the ui element,
-        #             x0: bounding box x0,
-        #             x1: bouding box x1,
-        #             y0: bounding box y0,
-        #             y1: bounding box y1,
-        #     label: From the list of UI elements, obtain the one reffered in the sentence.
-
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
         entries = dict()
         for id_d, content in tqdm(input_data.items()):

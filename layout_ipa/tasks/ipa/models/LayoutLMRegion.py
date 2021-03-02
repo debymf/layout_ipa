@@ -180,6 +180,8 @@ class LayoutLMRegion(PreTrainedModel):
             input_close_elements
         )
 
+        print(input_close_elements.shape)
+
         # help="0 - Deepset + FC; 1- FC; 2- Average; 3- Sum",
         if self.screen_agg == 0:
             output1 = get_screen_representations_deepset(input_close_elements)
