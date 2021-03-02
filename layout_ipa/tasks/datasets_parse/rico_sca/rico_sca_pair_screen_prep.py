@@ -6,12 +6,12 @@ import random
 import math
 from transformers import AutoTokenizer
 
-TOTAL_SELECTED = 5
+TOTAL_SELECTED = 10
 
 
 class PrepareRicoScaScreenPair(Task):
     @staticmethod
-    def get_closest(ui_element, screen_elements):
+    def get_closest(ui_index, ui_element, screen_elements):
         output_dict = dict()
 
         if len(screen_elements) <= TOTAL_SELECTED:
@@ -35,6 +35,7 @@ class PrepareRicoScaScreenPair(Task):
                         smallest_id = id_ui
 
                 output_dict[smallest_id] = screen_elements[smallest_id]
+            output_dict[ui_index] = screen_elements[ui_element]
 
         return output_dict
 
@@ -129,7 +130,9 @@ class PrepareRicoScaScreenPair(Task):
                             "instruction": instruction,
                             "ui": ui_element,
                             "label": label_ui,
-                            "closest": self.get_closest(ui_element, ui_elements_dict),
+                            "closest": self.get_closest(
+                                ui_index, ui_element, ui_elements_dict
+                            ),
                         }
                         total_pairs = total_pairs + 1
 
