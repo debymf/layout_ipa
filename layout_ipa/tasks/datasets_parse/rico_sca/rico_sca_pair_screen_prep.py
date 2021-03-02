@@ -35,7 +35,7 @@ class PrepareRicoScaScreenPair(Task):
                         smallest_id = id_ui
 
                 output_dict[smallest_id] = screen_elements[smallest_id]
-            output_dict[ui_index] = screen_elements[ui_element]
+            output_dict[ui_index] = ui_element
 
         return output_dict
 
