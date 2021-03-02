@@ -103,7 +103,7 @@ class LayoutLMRegion(PreTrainedModel):
         def get_screen_representations(input_elements):
             output_elements = self.model_ui(**input_elements)[1]
 
-            output = output_elements.view(-1, 25, 768)
+            output = output_elements.view(-1, 9, 768)
 
             return output
 

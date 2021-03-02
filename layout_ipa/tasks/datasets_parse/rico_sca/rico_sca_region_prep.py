@@ -9,15 +9,17 @@ import pandas as pd
 import math
 from tqdm import tqdm
 
-NUM_REGIONS = 25
-REGION_MATRIX = [
-    [0, 1, 2, 3, 4],
-    [5, 6, 7, 8, 9],
-    [10, 11, 12, 13, 14],
-    [15, 16, 17, 18, 19],
-    [20, 21, 22, 23, 24],
-]
-REGION_BINS = np.array([0.0, 200.0, 400.0, 600.0, 800.0, 1001.0])
+NUM_REGIONS = 9
+# REGION_MATRIX = [
+#     [0, 1, 2, 3, 4],
+#     [5, 6, 7, 8, 9],
+#     [10, 11, 12, 13, 14],
+#     [15, 16, 17, 18, 19],
+#     [20, 21, 22, 23, 24],
+# ]
+# REGION_BINS = np.array([0.0, 200.0, 400.0, 600.0, 800.0, 1001.0])
+REGION_MATRIX = [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
+REGION_BINS = np.array([0.0, 333.0, 666.0, 1001.0])
 
 
 class PrepareRicoScaRegion(Task):

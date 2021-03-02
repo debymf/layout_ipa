@@ -10,11 +10,11 @@ from torch.utils.data import Dataset
 import torch
 
 tokenizer_model = "microsoft/layoutlm-base-uncased"
-NUM_REGIONS = 25
+NUM_REGIONS = 9
 
 
 class PrepareRegionLayoutLMTask(Task):
-    def run(self, input_data, largest=256):
+    def run(self, input_data, largest=512):
         logger.info("*** Preprocessing Data for Region classification ***")
 
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
