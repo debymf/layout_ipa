@@ -14,7 +14,7 @@ NUM_REGIONS = 25
 
 
 class PrepareRegionLayoutLMTask(Task):
-    def run(self, input_data, largest=512):
+    def run(self, input_data, largest=256):
         logger.info("*** Preprocessing Data for Region classification ***")
 
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
