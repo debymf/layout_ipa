@@ -17,9 +17,9 @@ prepare_rico_task = PrepareRicoScaPair()
 # dev_path = settings["rico_sca"]["dev"]
 # test_path = settings["rico_sca"]["test"]
 
-train_path = settings["rico_sca_sample"]["train"]
-dev_path = settings["rico_sca_sample"]["dev"]
-test_path = settings["rico_sca_sample"]["test"]
+train_path = settings["rico_sca"]["train"]
+dev_path = settings["rico_sca"]["dev"]
+test_path = settings["rico_sca"]["test"]
 
 cache_args = dict(
     target="{task_name}-{task_tags}.pkl",
