@@ -108,6 +108,7 @@ class PrepareRegionLayoutLMTask(Task):
         segment_ids = [0] * len(tokens)
 
         token_boxes.append(sep_token_box)
+        print("======")
         for _, example in examples.items():
             box = [
                 int(example["x0"]),
