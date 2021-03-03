@@ -126,6 +126,7 @@ class PrepareRegionLayoutLMTask(Task):
             token_boxes.append(sep_token_box)
             segment_ids = segment_ids + segment_ids_second
             print(segment_ids)
+            input()
 
         special_tokens_count = 2 if sep_token_extra else 1
         if len(tokens) > max_seq_length - special_tokens_count:
