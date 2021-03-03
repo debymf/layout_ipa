@@ -105,7 +105,7 @@ class PrepareRegionLayoutLMTask(Task):
         tokens.append("[SEP]")
         token_boxes.extend([sep_token_box] * len(tokenised_word))
 
-        segment_ids = [0] * len(tokens)
+        segment_ids = [1] * len(tokens)
 
         token_boxes.append(sep_token_box)
 
@@ -122,7 +122,7 @@ class PrepareRegionLayoutLMTask(Task):
 
             tokens.extend(tokenised_word)
             tokens.append("[SEP]")
-            segment_ids_second = [1] * (len(tokenised_word) + 1)
+            segment_ids_second = [0] * (len(tokenised_word) + 1)
             token_boxes.extend([box] * len(tokenised_word))
             token_boxes.append(sep_token_box)
             segment_ids.extend(segment_ids_second)
