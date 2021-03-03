@@ -121,7 +121,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
             return input_close_elements
 
         def get_screen_representations_deepset(input_close_elements):
-            output_close_elements = self.model_ui(**input_close_elements)[1]
+            output_close_elements = self.model_ui2(**input_close_elements)[1]
 
             output_close_elements = output_close_elements.view(-1, 5, 768)
 
@@ -137,7 +137,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
             return output1
 
         def get_screen_representations_fc(input_close_elements):
-            output_close_elements = self.model_ui(**input_close_elements)[1]
+            output_close_elements = self.model_ui2(**input_close_elements)[1]
 
             output_close_elements = output_close_elements.view(-1, 5 * 768)
 
@@ -148,7 +148,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
             return output1
 
         def get_screen_representations_average(input_close_elements):
-            output_close_elements = self.model_ui(**input_close_elements)[1]
+            output_close_elements = self.model_ui2(**input_close_elements)[1]
 
             output_close_elements = output_close_elements.view(-1, 5, 768)
             output_close_elements = output_close_elements.mean(1)
@@ -160,7 +160,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
             return output1
 
         def get_screen_representations_sum(input_close_elements):
-            output_close_elements = self.model_ui(**input_close_elements)[1]
+            output_close_elements = self.model_ui2(**input_close_elements)[1]
 
             output_close_elements = output_close_elements.view(-1, 5, 768)
             output_close_elements = output_close_elements.sum(1)
@@ -172,7 +172,7 @@ class LayoutLMAndBertSimple(PreTrainedModel):
             return output1
 
         def get_ui_element_representations(input_ui):
-            output_ui_model = self.model_ui(**input_ui)
+            output_ui_model = self.model_ui1(**input_ui)
             ui_embedding = output_ui_model[1]
             ui_embedding = self.linear_ui_element(ui_embedding)
             output2 = self.dropout2(ui_embedding)
