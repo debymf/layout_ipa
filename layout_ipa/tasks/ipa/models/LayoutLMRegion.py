@@ -115,5 +115,7 @@ class LayoutLMRegion(PreTrainedModel):
 
         classification = classification.squeeze(2)
 
+        print(classification)
+
         return classification
 
