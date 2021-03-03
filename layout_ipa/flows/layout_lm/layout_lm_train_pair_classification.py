@@ -32,8 +32,8 @@ cache_args = dict(
     result=LocalResult(dir=f"./cache/datasets/rico/"),
 )
 
-prepare_rico_task = PrepareRicoScaPair(**cache_args)
-prepare_rico_layout_lm_task = PrepareLayoutLMPairTask(**cache_args)
+prepare_rico_task = PrepareRicoScaPair()
+prepare_rico_layout_lm_task = PrepareLayoutLMPairTask()
 layout_lm_trainer_task = LayoutLMPair()
 
 INSTRUCTION_TYPE = [0, 1, 2, 3]
