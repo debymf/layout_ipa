@@ -94,12 +94,18 @@ class PrepareRegionLayoutLMTask(Task):
             `cls_token_segment_id` define the segment id associated to the CLS token (0 for BERT, 2 for XLNet)
         """
 
+        limit_size = int((max_seq_length) / (len(examples) + 1))
+
         tokens = []
         token_boxes = []
         tokenised_word = tokenizer.tokenize(instruction)
+        if len(tokenised_word) > limit_size:
+            tokenised_word = tokenised_word[:limit_size]
         tokens.extend(tokenised_word)
         tokens.append("[SEP]")
         token_boxes.extend([sep_token_box] * len(tokenised_word))
+
+        segment_ids_first = [0] * len(tokens)
 
         token_boxes.append(sep_token_box)
         for _, example in examples.items():
@@ -110,10 +116,17 @@ class PrepareRegionLayoutLMTask(Task):
                 int(example["y1"]),
             ]
             tokenised_word = tokenizer.tokenize(example["text"])
+            if len(tokenised_word) > limit_size:
+                tokenised_word = tokenised_word[:limit_size]
+
+            segment_ids_second = [0] * len(tokenised_word)
+
             tokens.extend(tokenised_word)
             tokens.append("[SEP]")
             token_boxes.extend([box] * len(tokenised_word))
             token_boxes.append(sep_token_box)
+
+        segment_ids = segment_ids_first + segment_ids_second
 
         special_tokens_count = 2 if sep_token_extra else 1
         if len(tokens) > max_seq_length - special_tokens_count:
@@ -126,7 +139,7 @@ class PrepareRegionLayoutLMTask(Task):
         #     # roberta uses an extra separator b/w pairs of sentences
         #     tokens += [sep_token]
         #     token_boxes += [sep_token_box]
-        segment_ids = [sequence_a_segment_id] * len(tokens)
+        # segment_ids = [sequence_a_segment_id] * len(tokens)
 
         if cls_token_at_end:
             tokens += [cls_token]
