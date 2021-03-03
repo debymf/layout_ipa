@@ -192,9 +192,13 @@ class PrepareLayoutIpaBasic(Task):
             `cls_token_segment_id` define the segment id associated to the CLS token (0 for BERT, 2 for XLNet)
         """
 
+        limit_size = int((max_seq_length) / (len(examples) + 1))
+
         tokens = []
         token_boxes = []
         tokenised_word = tokenizer.tokenize(instruction)
+        if len(tokenised_word) > limit_size:
+            tokenised_word = tokenised_word[:limit_size]
         tokens.extend(tokenised_word)
         tokens.append("[SEP]")
         token_boxes.extend([sep_token_box] * len(tokenised_word))
@@ -208,6 +212,8 @@ class PrepareLayoutIpaBasic(Task):
                 int(example["y1"]),
             ]
             tokenised_word = tokenizer.tokenize(example["text"])
+            if len(tokenised_word) > limit_size:
+                tokenised_word = tokenised_word[:limit_size]
             tokens.extend(tokenised_word)
             tokens.append("[SEP]")
             token_boxes.extend([box] * len(tokenised_word))
