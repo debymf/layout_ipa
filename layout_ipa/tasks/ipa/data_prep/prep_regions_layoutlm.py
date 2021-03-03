@@ -105,7 +105,7 @@ class PrepareRegionLayoutLMTask(Task):
         tokens.append("[SEP]")
         token_boxes.extend([sep_token_box] * len(tokenised_word))
 
-        segment_ids_first = [0] * len(tokens)
+        segment_ids = [0] * len(tokens)
 
         token_boxes.append(sep_token_box)
         for _, example in examples.items():
@@ -119,14 +119,12 @@ class PrepareRegionLayoutLMTask(Task):
             if len(tokenised_word) > limit_size:
                 tokenised_word = tokenised_word[:limit_size]
 
-            segment_ids_second = [0] * (len(tokenised_word) + 1)
-
             tokens.extend(tokenised_word)
             tokens.append("[SEP]")
+            segment_ids_second = [1] * (len(tokenised_word) + 1)
             token_boxes.extend([box] * len(tokenised_word))
             token_boxes.append(sep_token_box)
-
-        segment_ids = segment_ids_first + segment_ids_second
+            segment_ids = segment_ids + segment_ids_second
 
         special_tokens_count = 2 if sep_token_extra else 1
         if len(tokens) > max_seq_length - special_tokens_count:
