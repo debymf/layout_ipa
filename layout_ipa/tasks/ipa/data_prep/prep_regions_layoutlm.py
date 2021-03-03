@@ -124,7 +124,7 @@ class PrepareRegionLayoutLMTask(Task):
             segment_ids_second = [1] * (len(tokenised_word) + 1)
             token_boxes.extend([box] * len(tokenised_word))
             token_boxes.append(sep_token_box)
-            segment_ids = segment_ids + segment_ids_second
+            segment_ids.extend(segment_ids_second)
             print(segment_ids)
             input()
 
