@@ -36,7 +36,7 @@ class LayoutLMRegionTrainer(Task):
         self.cuda = kwargs.pop("cuda", True)
         self.gradient_accumulation_steps = kwargs.pop("gradient_accumulation_steps", 1)
         self.num_train_epochs = kwargs.pop("num_train_epochs", 20)
-        self.learning_rate = kwargs.pop("learning_rate", 1e-6)
+        self.learning_rate = kwargs.pop("learning_rate", 1e-4)
         self.weight_decay = kwargs.pop("weight_decay", 0.0)
         self.adam_epsilon = kwargs.pop("adam_epsilon", 1e-8)
         self.warmup_steps = kwargs.pop("warmup_steps", 0)
