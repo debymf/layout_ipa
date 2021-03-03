@@ -103,7 +103,7 @@ class LayoutLMRegion(PreTrainedModel):
         def get_screen_representations(input_elements):
             output_elements = self.model_ui(**input_elements)[1]
 
-            output = output_elements.view(-1, 9, 768)
+            output = output_elements.view(-1, 25, 768)
 
             return output
 
@@ -114,6 +114,48 @@ class LayoutLMRegion(PreTrainedModel):
         classification = self.linear_screen_fc(region_representations)
 
         classification = classification.squeeze(2)
+
+        # # help="0 - Deepset + FC; 1- FC; 2- Average; 3- Sum",
+        # if self.screen_agg == 0:
+        #     output1 = get_screen_representations_deepset(input_close_elements)
+        # elif self.screen_agg == 1:
+        #     output1 = get_screen_representations_fc(input_close_elements)
+        # elif self.screen_agg == 2:
+        #     output1 = get_screen_representations_average(input_close_elements)
+        # elif self.screen_agg == 3:
+        #     output1 = get_screen_representations_sum(input_close_elements)
+        # else:
+        #     output1 = get_screen_representations_deepset(input_close_elements)
+
+        # output2 = get_ui_element_representations(input_ui)
+
+        # # help="0 - Matching; 1 - Concat; 2- Sum; 3- Mult",
+
+        # if self.combine_output == 0:
+        #     output_combined = torch.cat(
+        #         [output1, output2, torch.abs(output1 - output2), output1 * output2],
+        #         dim=1,
+        #     )
+        #     output_combined = self.linear_combine(output_combined)
+        # elif self.combine_output == 1:
+        #     output_combined = torch.cat([output1, output2], dim=1)
+        #     output_combined = self.linear_combine_double(output_combined)
+        # elif self.combine_output == 2:
+        #     output_combined = output1 + output2
+        #     output_combined = self.linear_combine_simple(output_combined)
+        # elif self.combine_output == 3:
+        #     output_combined = output1 * output2
+        #     output_combined = self.linear_combine_simple(output_combined)
+        # else:
+        #     output_combined = torch.cat(
+        #         [output1, output2, torch.abs(output1 - output2), output1 * output2],
+        #         dim=1,
+        #     )
+        #     output_combined = self.linear_combine(output_combined)
+
+        # output_combined = self.dropout3(output_combined)
+
+        # output = self.linear_layer_output(output_combined)
 
         return classification
 
