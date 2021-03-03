@@ -108,7 +108,7 @@ class PrepareRegionLayoutLMTask(Task):
         segment_ids = [0] * len(tokens)
 
         token_boxes.append(sep_token_box)
-        print("======")
+
         for _, example in examples.items():
             box = [
                 int(example["x0"]),
@@ -126,8 +126,6 @@ class PrepareRegionLayoutLMTask(Task):
             token_boxes.extend([box] * len(tokenised_word))
             token_boxes.append(sep_token_box)
             segment_ids.extend(segment_ids_second)
-            print(segment_ids)
-            input()
 
         special_tokens_count = 2 if sep_token_extra else 1
         if len(tokens) > max_seq_length - special_tokens_count:
