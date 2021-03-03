@@ -67,51 +67,51 @@ class PrepareRicoScaRegion(Task):
             for i in range(0, NUM_REGIONS):
                 parsed_data[input_id]["regions"][i] = dict()
 
-            if len(input_content["ui"]) > NUM_REGIONS:
-                try:
-                    x_list = list()
-                    y_list = list()
-                    for ui_id, ui_content in input_content["ui"].items():
-                        x_list.append(ui_content["x0"])
-                        y_list.append(ui_content["y0"])
+            # if len(input_content["ui"]) > NUM_REGIONS:
+            #     try:
+            #         x_list = list()
+            #         y_list = list()
+            #         for ui_id, ui_content in input_content["ui"].items():
+            #             x_list.append(ui_content["x0"])
+            #             y_list.append(ui_content["y0"])
 
-                    qc_x = pd.qcut(
-                        x_list,
-                        q=int(math.sqrt(NUM_REGIONS)),
-                        precision=1,
-                        duplicates="drop",
-                    )
-                    qc_y = pd.qcut(
-                        y_list,
-                        q=int(math.sqrt(NUM_REGIONS)),
-                        precision=1,
-                        duplicates="drop",
-                    )
+            #         qc_x = pd.qcut(
+            #             x_list,
+            #             q=int(math.sqrt(NUM_REGIONS)),
+            #             precision=1,
+            #             duplicates="drop",
+            #         )
+            #         qc_y = pd.qcut(
+            #             y_list,
+            #             q=int(math.sqrt(NUM_REGIONS)),
+            #             precision=1,
+            #             duplicates="drop",
+            #         )
 
-                    x_bins = qc_x.codes
-                    y_bins = qc_y.codes
+            #         x_bins = qc_x.codes
+            #         y_bins = qc_y.codes
 
-                    i = 0
-                    for ui_id, ui_content in input_content["ui"].items():
-                        parsed_data[input_id]["regions"][
-                            REGION_MATRIX[x_bins[i]][y_bins[i]]
-                        ][ui_id] = ui_content
-                        i += 1
-                except IndexError:
-                    for ui_id, ui_content in input_content["ui"].items():
-                        bin_x = np.digitize(ui_content["x0"], REGION_BINS) - 1
-                        bin_y = np.digitize(ui_content["y0"], REGION_BINS) - 1
-                        parsed_data[input_id]["regions"][REGION_MATRIX[bin_x][bin_y]][
-                            ui_id
-                        ] = ui_content
+            #         i = 0
+            #         for ui_id, ui_content in input_content["ui"].items():
+            #             parsed_data[input_id]["regions"][
+            #                 REGION_MATRIX[x_bins[i]][y_bins[i]]
+            #             ][ui_id] = ui_content
+            #             i += 1
+            #     except IndexError:
+            #         for ui_id, ui_content in input_content["ui"].items():
+            #             bin_x = np.digitize(ui_content["x0"], REGION_BINS) - 1
+            #             bin_y = np.digitize(ui_content["y0"], REGION_BINS) - 1
+            #             parsed_data[input_id]["regions"][REGION_MATRIX[bin_x][bin_y]][
+            #                 ui_id
+            #             ] = ui_content
 
-            else:
-                for ui_id, ui_content in input_content["ui"].items():
-                    bin_x = np.digitize(ui_content["x0"], REGION_BINS) - 1
-                    bin_y = np.digitize(ui_content["y0"], REGION_BINS) - 1
-                    parsed_data[input_id]["regions"][REGION_MATRIX[bin_x][bin_y]][
-                        ui_id
-                    ] = ui_content
+            # else:
+            for ui_id, ui_content in input_content["ui"].items():
+                bin_x = np.digitize(ui_content["x0"], REGION_BINS) - 1
+                bin_y = np.digitize(ui_content["y0"], REGION_BINS) - 1
+                parsed_data[input_id]["regions"][REGION_MATRIX[bin_x][bin_y]][
+                    ui_id
+                ] = ui_content
 
             label_region = -1
             for i in range(0, NUM_REGIONS):
