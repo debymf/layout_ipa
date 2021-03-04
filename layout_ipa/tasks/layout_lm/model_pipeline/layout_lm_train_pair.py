@@ -22,7 +22,7 @@ from sklearn.metrics import precision_recall_fscore_support
 class LayoutLMPair(Task):
     def __init__(self, **kwargs):
         super(LayoutLMPair, self).__init__(**kwargs)
-        self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 16)
+        self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 32)
         self.cuda = kwargs.get("cuda", True)
         self.gradient_accumulation_steps = kwargs.get("gradient_accumulation_steps", 1)
         self.num_train_epochs = kwargs.get("num_train_epochs", 5)
@@ -107,23 +107,23 @@ class LayoutLMPair(Task):
             f"{output_dir}/{task_name}", config=bert_config
         )
         model.to(device)
-        # score = self.eval(
-        #     model,
-        #     dev_dataloader,
-        #     dev_dataset,
-        #     mapping_dev,
-        #     device,
-        #     n_gpu,
-        #     eval_fn,
-        #     eval_params,
-        #     mode="dev",
-        #     bert_model=bert_model,
-        # )
-        # outputs["dev"] = {
-        #     "score": score,
-        # }
+        score = self.eval(
+            model,
+            dev_dataloader,
+            dev_dataset,
+            mapping_dev,
+            device,
+            n_gpu,
+            eval_fn,
+            eval_params,
+            mode="dev",
+            bert_model=bert_model,
+        )
+        outputs["dev"] = {
+            "score": score,
+        }
 
-        # logger.info(f"DEV SCORE: {score}")
+        logger.info(f"DEV SCORE: {score}")
         if test_dataset is not None:
             test_data_loader = DataLoader(
                 test_dataset, batch_size=train_batch_size, shuffle=False
