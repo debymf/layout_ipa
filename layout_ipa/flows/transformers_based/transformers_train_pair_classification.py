@@ -8,7 +8,8 @@ from layout_ipa.tasks.datasets_parse.rico_sca import PrepareRicoScaPair
 from layout_ipa.tasks.transformers_based.data_prep import PrepareTransformersPairTask
 from layout_ipa.tasks.transformers_based.model_pipeline import TransformerPair
 from sklearn.metrics import f1_score
-from layout_ipa.util.evaluation import pair_evaluation
+from layout_ipa.util.evaluation import pair_evaluation_2d
+from layout_ipa.tasks.datasets_parse.pixel_help import PreparePixelHelpPair
 
 prepare_rico_task = PrepareRicoScaPair()
 
@@ -32,6 +33,7 @@ INSTRUCTION_TYPE = [0, 1, 2, 3]
 #             1 - Spatial (Relative to screen)
 #             2 - Spatial (Relative to other elements)
 prepare_rico_task = PrepareRicoScaPair()
+prepare_pixel_help_task = PreparePixelHelpPair()
 prepare_rico_transformer_task = PrepareTransformersPairTask()
 transformer_trainer_task = TransformerPair()
 
@@ -44,7 +46,8 @@ with Flow("Running the Transformers for Pair Classification") as flow1:
         dev_input = prepare_rico_task(dev_path, type_instructions=INSTRUCTION_TYPE)
         dev_dataset = prepare_rico_transformer_task(dev_input["data"])
     with tags("test"):
-        test_input = prepare_rico_task(test_path, type_instructions=INSTRUCTION_TYPE)
+        # test_input = prepare_rico_task(test_path, type_instructions=INSTRUCTION_TYPE)
+        test_input = prepare_pixel_help_task(test_path)
         test_dataset = prepare_rico_transformer_task(test_input["data"])
     transformer_trainer_task(
         train_dataset=train_dataset,
@@ -54,8 +57,8 @@ with Flow("Running the Transformers for Pair Classification") as flow1:
         mapping_test=test_input["mapping"],
         task_name="transformer_pair_rico",
         output_dir="./cache/transformer_pair_rico/",
-        mode="train",
-        eval_fn=pair_evaluation,
+        mode="test",
+        eval_fn=pair_evaluation_2d,
     )
 
 
