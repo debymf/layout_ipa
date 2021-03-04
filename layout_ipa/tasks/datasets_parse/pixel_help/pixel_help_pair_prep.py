@@ -48,7 +48,6 @@ class PreparePixelHelpPair(Task):
 
         mapping_query = dict()
         for _, screen_info in input_data.items():
-            index_instruction = 0
             selected_ui_element = screen_info["labels"]
             mapping_query[index_query] = selected_ui_element
             for ui_index, ui_element in screen_info["ui_elements"].items():
