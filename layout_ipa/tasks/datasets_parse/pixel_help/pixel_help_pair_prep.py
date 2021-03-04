@@ -52,7 +52,7 @@ class PreparePixelHelpPair(Task):
             mapping_query[index_query] = int(selected_ui_element)
             for ui_index, ui_element in screen_info["ui_elements"].items():
 
-                if ui_index == selected_ui_element:
+                if int(ui_index) == selected_ui_element:
                     label_ui = 1
                     total_positive_pairs = total_positive_pairs + 1
                 else:

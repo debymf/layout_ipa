@@ -12,7 +12,7 @@ def pair_evaluation_2d(preds, q_ids, ui_ids, mappings):
     preds = preds[:, 1]
     scores = dict()
     choices = dict()
-    print(mappings)
+
     for i in range(0, len(preds)):
         if q_ids[i] not in scores:
             scores[q_ids[i]] = preds[i]
