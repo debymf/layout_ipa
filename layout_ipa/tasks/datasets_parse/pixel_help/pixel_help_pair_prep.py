@@ -67,7 +67,7 @@ class PreparePixelHelpPair(Task):
                     "label": label_ui,
                 }
                 total_pairs = total_pairs + 1
-                index_query = index_query + 1
+            index_query = index_query + 1
 
         logger.info(f"******** LARGEST UI TEXT: {largest_text} ********")
         logger.info(f"***** TOTAL UI ELEMENTS: {total_ui_elements}")
