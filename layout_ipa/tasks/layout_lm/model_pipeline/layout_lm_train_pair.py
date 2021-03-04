@@ -319,6 +319,7 @@ class LayoutLMPair(Task):
         out_label_ids = None
         for batch in tqdm(dataloader, desc="Evaluating"):
             model.eval()
+            print(batch)
             batch = tuple(t.to(device) for t in batch)
 
             with torch.no_grad():
