@@ -15,8 +15,8 @@ prepare_rico_task = PrepareRicoScaPair()
 
 layout_lm_model = settings["layout_lm_base"]
 
-train_path = settings["rico_sca_sample"]["train"]
-dev_path = settings["rico_sca_sample"]["dev"]
+train_path = settings["rico_sca"]["train"]
+dev_path = settings["rico_sca"]["dev"]
 test_path = settings["pixel_help"]
 # test_path = settings["rico_sca"]["test"]
 
