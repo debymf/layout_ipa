@@ -286,25 +286,6 @@ class LayoutIpaSimpleTrainer(Task):
                 labels = batch[8]
                 labels = labels.type_as(outputs)
 
-                # preds = outputs.detach().cpu().numpy()
-                # preds = np.argmax(preds, axis=1)
-
-                # print("\n\n")
-                # print("=====================================")
-                # print("*** PREDS ****")
-                # print(preds)
-                # print("\n\n")
-
-                # print("**** LABEL *****")
-                # print(labels.detach().cpu().numpy())
-                # print("\n\n")
-
-                # print("**** SCORE ******")
-                # score = eval_fn(preds, labels.detach().cpu().numpy())
-                # print(score)
-                # print("\n\n")
-                # print("\n\n")
-
                 loss = criterion(outputs, labels.unsqueeze(1))
 
                 if n_gpu > 1:
