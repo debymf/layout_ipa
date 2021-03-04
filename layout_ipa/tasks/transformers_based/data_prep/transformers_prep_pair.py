@@ -13,7 +13,7 @@ tokenizer_model = settings["layout_lm_base"]
 
 
 class PrepareTransformersPairTask(Task):
-    def run(self, input_data, largest=512):
+    def run(self, input_data, largest=256):
         logger.info("*** Preprocessing Data for Transformer-Based ***")
         tokenizer_instruction = BertTokenizer.from_pretrained("bert-base-uncased")
         entries = dict()
