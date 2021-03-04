@@ -62,7 +62,7 @@ class PreparePixelHelpPair(Task):
 
                 parsed_data[total_pairs] = {
                     "id_query": index_query,
-                    "ui_position": ui_index,
+                    "ui_position": int(ui_index),
                     "instruction": screen_info["instruction"],
                     "ui": ui_element,
                     "label": label_ui,
