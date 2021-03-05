@@ -13,9 +13,9 @@ from layout_ipa.util.evaluation import pair_evaluation
 
 layout_lm_model = settings["layout_lm_base"]
 
-train_path = settings["rico_sca"]["train"]
-dev_path = settings["rico_sca"]["dev"]
-test_path = settings["rico_sca"]["test"]
+train_path = settings["rico_sca_sample"]["train"]
+dev_path = settings["rico_sca_sample"]["dev"]
+test_path = settings["rico_sca_sample"]["test"]
 
 # train_path = settings["sample_rico_sca"]
 # dev_path = settings["sample_rico_sca"]
@@ -31,7 +31,7 @@ prepare_rico_task = PrepareRicoScaSelection()
 prepare_rico_layout_lm_task = PrepareLayoutLMSelectTask()
 layout_lm_trainer_task = LayoutLMSelect()
 
-INSTRUCTION_TYPE = [2]
+INSTRUCTION_TYPE = [0, 1, 2, 3]
 #  where: 0 and 3 - Lexical Matching
 #             1 - Spatial (Relative to screen)
 #             2 - Spatial (Relative to other elements)
