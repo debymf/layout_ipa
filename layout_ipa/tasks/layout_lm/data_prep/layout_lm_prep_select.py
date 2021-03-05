@@ -13,7 +13,7 @@ tokenizer_model = "microsoft/layoutlm-base-uncased"
 
 
 class PrepareLayoutLMSelectTask(Task):
-    def run(self, input_data, largest=256):
+    def run(self, input_data, largest=512):
         logger.info("*** Preprocessing Data for LayoutLM ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
         entries = dict()
