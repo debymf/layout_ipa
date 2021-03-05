@@ -25,7 +25,7 @@ class LayoutLMSelect(Task):
         self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 16)
         self.cuda = kwargs.get("cuda", True)
         self.gradient_accumulation_steps = kwargs.get("gradient_accumulation_steps", 1)
-        self.num_train_epochs = kwargs.get("num_train_epochs", 20)
+        self.num_train_epochs = kwargs.get("num_train_epochs", 5)
         self.learning_rate = kwargs.get("learning_rate", 1e-5)
         self.weight_decay = kwargs.get("weight_decay", 0.0)
         self.adam_epsilon = kwargs.get("adam_epsilon", 1e-8)
