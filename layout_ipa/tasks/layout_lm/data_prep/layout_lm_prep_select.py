@@ -33,7 +33,6 @@ class PrepareLayoutLMSelectTask(Task):
                 ui_elements["ui_segment_ids"].append(encoded_ui["ui_segment_ids"])
                 ui_elements["ui_boxes"].append(encoded_ui["ui_boxes"])
 
-            print(len(ui_elements["ui_input_ids"]))
             if len(ui_elements["ui_input_ids"]) < max_ui_elements:
                 to_add = max_ui_elements - len(ui_elements["ui_input_ids"])
                 for _ in range(0, to_add):
@@ -45,8 +44,7 @@ class PrepareLayoutLMSelectTask(Task):
                     ui_elements["ui_input_mask"].append(encoded_ui["ui_input_mask"])
                     ui_elements["ui_segment_ids"].append(encoded_ui["ui_segment_ids"])
                     ui_elements["ui_boxes"].append(encoded_ui["ui_boxes"])
-            print(len(ui_elements["ui_input_ids"]))
-            input()
+
             entries[id_d] = {
                 "ui_input_ids": encoded_ui["ui_input_ids"],
                 "ui_att_mask": encoded_ui["ui_input_mask"],
