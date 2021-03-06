@@ -55,11 +55,12 @@ class PrepareLayoutLMSelectTask(Task):
                 predictions = model_ui(**ui_elements)[1]
                 if ui_embedding_list is None:
                     ui_embedding_list = predictions
+                    print(f"PREDICIONS {predictions.shape}")
                 else:
                     ui_embedding_list = torch.stack(
                         [ui_embedding_list, predictions.unsqueeze(0)], dim=0
                     )
-                    print(ui_embedding_list.shape)
+                    print(f"EMBEDDING LIST{ui_embedding_list.shape}")
 
             if len(ui_embedding_list) < max_ui_elements:
                 to_add = max_ui_elements - len(ui_embedding_list)
