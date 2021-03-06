@@ -50,7 +50,7 @@ class PrepareLayoutLMSelectTask(Task):
                 "ui_att_mask": ui_elements["ui_input_mask"],
                 "ui_token_ids": ui_elements["ui_segment_ids"],
                 "ui_boxes": ui_elements["ui_boxes"],
-                "label": ui_elements["label"],
+                "label": content["label"],
             }
 
         return TorchDataset(entries)
