@@ -53,7 +53,7 @@ class PrepareLayoutLMSelectTask(Task):
                 ).unsqueeze(0)
                 print("GETTING FIRST")
                 predictions = model_ui(**ui_elements)[1]
-                if ui_embedding_list:
+                if not ui_embedding_list:
                     ui_embedding_list = predictions
                 else:
                     ui_embedding_list = torch.stack(
@@ -80,7 +80,7 @@ class PrepareLayoutLMSelectTask(Task):
                     predictions = model_ui(**ui_elements)[1]
 
                     ui_embedding_list = torch.stack(
-                        [ui_embedding_list, predictions], dim=1
+                        [ui_embedding_list, predictions], dim=0
                     )
 
             entries[id_d] = {
