@@ -24,7 +24,6 @@ class PrepareLayoutLMSelectTask(Task):
             ui_elements["ui_segment_ids"] = list()
             ui_elements["ui_boxes"] = list()
             for _, screen_element in content["ui"].items():
-                print(screen_element)
                 encoded_ui = self.convert_examples_to_features(
                     content["instruction"], screen_element, largest, tokenizer_layout,
                 )
