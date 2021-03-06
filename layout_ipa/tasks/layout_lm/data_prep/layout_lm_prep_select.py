@@ -5,11 +5,13 @@ from loguru import logger
 from dynaconf import settings
 import pandas as pd
 from tqdm import tqdm
+from transformers import AutoModel, AutoConfig
 from transformers import AutoTokenizer, BertTokenizer, RobertaTokenizer
 from torch.utils.data import Dataset
 import torch
 
 tokenizer_model = "microsoft/layoutlm-base-uncased"
+LAYOUT_LM_MODEL = "microsoft/layoutlm-base-uncased"
 
 
 class PrepareLayoutLMSelectTask(Task):
@@ -17,6 +19,8 @@ class PrepareLayoutLMSelectTask(Task):
         logger.info("*** Preprocessing Data for LayoutLM ***")
         tokenizer_instruction = BertTokenizer.from_pretrained("bert-base-uncased")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
+        layout_lm_config = AutoConfig.from_pretrained(LAYOUT_LM_MODEL)
+        model_ui = AutoModel.from_pretrained(LAYOUT_LM_MODEL, config=layout_lm_config)
         entries = dict()
         for id_d, content in tqdm(input_data.items()):
             encoded_instruction = tokenizer_instruction(
@@ -25,41 +29,34 @@ class PrepareLayoutLMSelectTask(Task):
                 max_length=largest,
                 truncation=True,
             )
-            ui_elements = dict()
-            ui_elements["ui_input_ids"] = list()
-            ui_elements["ui_input_mask"] = list()
-            ui_elements["ui_segment_ids"] = list()
-            ui_elements["ui_boxes"] = list()
+            ui_embedding_list = list()
+
             for _, screen_element in content["ui"].items():
                 encoded_ui = self.convert_examples_to_features(
                     content["instruction"], screen_element, largest, tokenizer_layout,
                 )
+                ui_elements = dict()
+                ui_elements["input_ids"] = encoded_ui["ui_input_ids"]
+                ui_elements["attention_mask"] = encoded_ui["ui_input_mask"]
+                ui_elements["token_type_ids"] = encoded_ui["ui_segment_ids"]
+                ui_elements["bbox"] = encoded_ui["ui_boxes"]
+                ui_embedding_list.append(model_ui(ui_elements)[1])
 
-                ui_elements["ui_input_ids"].append(encoded_ui["ui_input_ids"])
-                ui_elements["ui_input_mask"].append(encoded_ui["ui_input_mask"])
-                ui_elements["ui_segment_ids"].append(encoded_ui["ui_segment_ids"])
-                ui_elements["ui_boxes"].append(encoded_ui["ui_boxes"])
-
-            if len(ui_elements["ui_input_ids"]) < max_ui_elements:
+            if len(ui_embedding_list) < max_ui_elements:
                 to_add = max_ui_elements - len(ui_elements["ui_input_ids"])
                 for _ in range(0, to_add):
-                    encoded_ui["ui_input_ids"] = [0] * largest
-                    encoded_ui["ui_input_mask"] = [0] * largest
-                    encoded_ui["ui_segment_ids"] = [0] * largest
-                    encoded_ui["ui_boxes"] = [[0] * 4] * largest
-                    ui_elements["ui_input_ids"].append(encoded_ui["ui_input_ids"])
-                    ui_elements["ui_input_mask"].append(encoded_ui["ui_input_mask"])
-                    ui_elements["ui_segment_ids"].append(encoded_ui["ui_segment_ids"])
-                    ui_elements["ui_boxes"].append(encoded_ui["ui_boxes"])
+                    encoded_ui = dict()
+                    encoded_ui["input_ids"] = [0] * largest
+                    encoded_ui["attention_mask"] = [0] * largest
+                    encoded_ui["token_type_ids"] = [0] * largest
+                    encoded_ui["bbox"] = [[0] * 4] * largest
+                    ui_embedding_list.append(model_ui(encoded_ui)[1])
 
             entries[id_d] = {
                 "input_ids": encoded_instruction["input_ids"],
                 "attention_mask": encoded_instruction["attention_mask"],
                 "token_type_ids": encoded_instruction["token_type_ids"],
-                "ui_input_ids": ui_elements["ui_input_ids"],
-                "ui_att_mask": ui_elements["ui_input_mask"],
-                "ui_token_ids": ui_elements["ui_segment_ids"],
-                "ui_boxes": ui_elements["ui_boxes"],
+                "ui_representation": ui_embedding_list,
                 "label": content["label"],
             }
 

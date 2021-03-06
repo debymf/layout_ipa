@@ -109,9 +109,9 @@ class LayoutLMSelectModel(PreTrainedModel):
 
             return output
 
-        input_screen = convert_screen_elements_input_dimensions(input_screen)
+        # input_screen = convert_screen_elements_input_dimensions(input_screen)
 
-        screen_representation = get_screen_representations(input_screen)
+        # screen_representation = get_screen_representations(input_screen)
 
         classification = self.linear_screen_fc(screen_representation)
 
