@@ -46,11 +46,11 @@ class PrepareLayoutLMSelectTask(Task):
                     ui_elements["ui_boxes"].append(encoded_ui["ui_boxes"])
 
             entries[id_d] = {
-                "ui_input_ids": encoded_ui["ui_input_ids"],
-                "ui_att_mask": encoded_ui["ui_input_mask"],
-                "ui_token_ids": encoded_ui["ui_segment_ids"],
-                "ui_boxes": encoded_ui["ui_boxes"],
-                "label": content["label"],
+                "ui_input_ids": ui_elements["ui_input_ids"],
+                "ui_att_mask": ui_elements["ui_input_mask"],
+                "ui_token_ids": ui_elements["ui_segment_ids"],
+                "ui_boxes": ui_elements["ui_boxes"],
+                "label": ui_elements["label"],
             }
 
         return TorchDataset(entries)
