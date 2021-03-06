@@ -52,9 +52,9 @@ class PrepareLayoutLMSelectTask(Task):
                     encoded_ui["ui_boxes"]
                 ).unsqueeze(0)
                 print("GETTING FIRST")
-                predictions = model_ui(**ui_elements)[1]
+                predictions = model_ui(**ui_elements)[1].unsqueeze(0)
                 if ui_embedding_list is None:
-                    ui_embedding_list = predictions.unsqueeze(0)
+                    ui_embedding_list = predictions
                     print(f"PREDICIONS {predictions.shape}")
                 else:
                     ui_embedding_list = torch.stack(
