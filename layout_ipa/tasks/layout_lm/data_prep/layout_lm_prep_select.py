@@ -46,6 +46,7 @@ class PrepareLayoutLMSelectTask(Task):
                     ui_elements["ui_segment_ids"].append(encoded_ui["ui_segment_ids"])
                     ui_elements["ui_boxes"].append(encoded_ui["ui_boxes"])
             print(len(ui_elements["ui_input_ids"]))
+            input()
             entries[id_d] = {
                 "ui_input_ids": encoded_ui["ui_input_ids"],
                 "ui_att_mask": encoded_ui["ui_input_mask"],
