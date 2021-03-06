@@ -51,7 +51,7 @@ class PrepareLayoutLMSelectTask(Task):
                 ui_embedding_list.append(model_ui(**ui_elements)[1])
 
             if len(ui_embedding_list) < max_ui_elements:
-                to_add = max_ui_elements - len(ui_elements["ui_input_ids"])
+                to_add = max_ui_elements - len(ui_embedding_list)
                 for _ in range(0, to_add):
                     encoded_ui = dict()
                     encoded_ui["input_ids"] = torch.LongTensor([0] * largest).unsqueeze(
