@@ -81,7 +81,7 @@ class LayoutLMSelectModel(PreTrainedModel):
         # self.linear_layer1 = nn.Linear(768 * 4, 1)
         # self.linear_layer2 = nn.Linear(512, 1)
 
-    def forward(self, input_screen, input_instruction):
+    def forward(self, input_instruction, input_screen):
         def convert_screen_elements_input_dimensions(input_close_elements):
 
             input_close_elements["input_ids"] = input_close_elements["input_ids"].view(
