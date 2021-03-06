@@ -19,8 +19,7 @@ class PrepareLayoutLMSelectTask(Task):
         logger.info("*** Preprocessing Data for LayoutLM ***")
         tokenizer_instruction = BertTokenizer.from_pretrained("bert-base-uncased")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
-        layout_lm_config = AutoConfig.from_pretrained(LAYOUT_LM_MODEL)
-        model_ui = AutoModel.from_pretrained(LAYOUT_LM_MODEL, config=layout_lm_config)
+        model_ui = AutoModel.from_pretrained(LAYOUT_LM_MODEL)
         entries = dict()
         for id_d, content in tqdm(input_data.items()):
             encoded_instruction = tokenizer_instruction(
