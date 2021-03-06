@@ -113,7 +113,7 @@ class LayoutLMSelectModel(PreTrainedModel):
 
         # screen_representation = get_screen_representations(input_screen)
 
-        classification = self.linear_screen_fc(screen_representation)
+        classification = self.linear_screen_fc(input_screen)
 
         classification = classification.squeeze(2)
 

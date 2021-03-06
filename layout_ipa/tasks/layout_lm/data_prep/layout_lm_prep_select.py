@@ -40,7 +40,7 @@ class PrepareLayoutLMSelectTask(Task):
                 ui_elements["attention_mask"] = encoded_ui["ui_input_mask"]
                 ui_elements["token_type_ids"] = encoded_ui["ui_segment_ids"]
                 ui_elements["bbox"] = encoded_ui["ui_boxes"]
-                ui_embedding_list.append(model_ui(ui_elements)[1])
+                ui_embedding_list.append(model_ui(**ui_elements)[1])
 
             if len(ui_embedding_list) < max_ui_elements:
                 to_add = max_ui_elements - len(ui_elements["ui_input_ids"])
@@ -50,7 +50,7 @@ class PrepareLayoutLMSelectTask(Task):
                     encoded_ui["attention_mask"] = [0] * largest
                     encoded_ui["token_type_ids"] = [0] * largest
                     encoded_ui["bbox"] = [[0] * 4] * largest
-                    ui_embedding_list.append(model_ui(encoded_ui)[1])
+                    ui_embedding_list.append(model_ui(**encoded_ui)[1])
 
             entries[id_d] = {
                 "input_ids": encoded_instruction["input_ids"],
