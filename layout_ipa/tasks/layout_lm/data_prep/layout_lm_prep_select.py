@@ -32,7 +32,7 @@ class PrepareLayoutLMSelectTask(Task):
                 max_length=largest,
                 truncation=True,
             )
-            ui_embedding_list = list()
+            ui_embedding_list = None
 
             for _, screen_element in content["ui"].items():
                 encoded_ui = self.convert_examples_to_features(
@@ -52,7 +52,14 @@ class PrepareLayoutLMSelectTask(Task):
                     encoded_ui["ui_boxes"]
                 ).unsqueeze(0)
                 print("GETTING FIRST")
-                ui_embedding_list.append(model_ui(**ui_elements)[1])
+                predictions = model_ui(**ui_elements)[1]
+                if ui_embedding_list:
+                    ui_embedding_list = predictions
+                else:
+                    ui_embedding_list = torch.stack(
+                        [ui_embedding_list, predictions], dim=1
+                    )
+                    print(ui_embedding_list.shape)
 
             if len(ui_embedding_list) < max_ui_elements:
                 to_add = max_ui_elements - len(ui_embedding_list)
@@ -70,7 +77,11 @@ class PrepareLayoutLMSelectTask(Task):
                     encoded_ui["bbox"] = torch.LongTensor(
                         [[0] * 4] * largest
                     ).unsqueeze(0)
-                    ui_embedding_list.append(model_ui(**encoded_ui)[1])
+                    predictions = model_ui(**ui_elements)[1]
+
+                    ui_embedding_list = torch.stack(
+                        [ui_embedding_list, predictions], dim=1
+                    )
 
             entries[id_d] = {
                 "input_ids": encoded_instruction["input_ids"],

@@ -112,8 +112,8 @@ with Flow("Running flow for Bert and LayouLM") as flow1:
         train_dataset=train_dataset,
         dev_dataset=dev_dataset,
         test_dataset=test_dataset,
-        task_name="layout_lm_and_bert",
-        output_dir="./cache/layout_lm_and_bert/",
+        task_name="layout_lm_select_version",
+        output_dir="./cache/layout_lm_select_version",
         mode="train",
         eval_fn=accuracy_score,
     )
