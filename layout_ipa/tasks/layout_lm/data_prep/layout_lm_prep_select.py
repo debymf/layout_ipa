@@ -35,7 +35,7 @@ class PrepareLayoutLMSelectTask(Task):
 
             print(len(ui_elements["ui_input_ids"]))
             if len(ui_elements["ui_input_ids"]) < max_ui_elements:
-                to_add = len(ui_elements) - max_ui_elements
+                to_add = max_ui_elements - len(ui_elements)
                 for _ in range(0, to_add):
                     encoded_ui["ui_input_ids"] = [0] * largest
                     encoded_ui["ui_input_mask"] = [0] * largest
