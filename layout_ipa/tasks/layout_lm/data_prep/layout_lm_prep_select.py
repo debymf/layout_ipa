@@ -15,9 +15,16 @@ tokenizer_model = "microsoft/layoutlm-base-uncased"
 class PrepareLayoutLMSelectTask(Task):
     def run(self, input_data, largest=512, max_ui_elements=300):
         logger.info("*** Preprocessing Data for LayoutLM ***")
+        tokenizer_instruction = BertTokenizer.from_pretrained("bert-base-uncased")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
         entries = dict()
         for id_d, content in tqdm(input_data.items()):
+            encoded_instruction = tokenizer_instruction(
+                content["instruction"],
+                padding="max_length",
+                max_length=largest,
+                truncation=True,
+            )
             ui_elements = dict()
             ui_elements["ui_input_ids"] = list()
             ui_elements["ui_input_mask"] = list()
@@ -46,6 +53,9 @@ class PrepareLayoutLMSelectTask(Task):
                     ui_elements["ui_boxes"].append(encoded_ui["ui_boxes"])
 
             entries[id_d] = {
+                "input_ids": encoded_instruction["input_ids"],
+                "attention_mask": encoded_instruction["attention_mask"],
+                "token_type_ids": encoded_instruction["token_type_ids"],
                 "ui_input_ids": ui_elements["ui_input_ids"],
                 "ui_att_mask": ui_elements["ui_input_mask"],
                 "ui_token_ids": ui_elements["ui_segment_ids"],
@@ -283,6 +293,9 @@ class TorchDataset(Dataset):
     def __getitem__(self, index):
         instance = self.dataset[index]
         return (
+            torch.LongTensor(instance["input_ids"]),
+            torch.LongTensor(instance["attention_mask"]),
+            torch.LongTensor(instance["token_type_ids"]),
             torch.LongTensor(instance["ui_input_ids"]),
             torch.LongTensor(instance["ui_att_mask"]),
             torch.LongTensor(instance["ui_token_ids"]),

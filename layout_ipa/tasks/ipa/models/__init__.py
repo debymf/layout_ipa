@@ -2,3 +2,4 @@ from .LayoutLMAndBertSimple import LayoutLMAndBertSimple, LayoutLMAndBertSimpleC
 from .bidaf import BidafAttn
 from .LayoutLMAndBert import LayoutLMAndBert, LayoutLMAndBertConfig
 from .LayoutLMRegion import LayoutLMRegion, LayoutLMRegionConfig
+from .LayoutLMSelectModel import LayoutLMSelectModelConfig, LayoutLMSelectModel

@@ -1,5 +1,6 @@
 import os
 import random
+import torch.nn as nn
 import numpy as np
 import torch
 from loguru import logger
@@ -12,27 +13,37 @@ from transformers import (
     AutoConfig,
     AutoModel,
     AutoModelForSequenceClassification,
-    LayoutLMForSequenceClassification,
     get_linear_schedule_with_warmup,
 )
+from scipy.special import expit, logit
+from torch.utils.data import WeightedRandomSampler
 import json
-from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics import precision_recall_fscore_support, f1_score
+from layout_ipa.tasks.ipa.models import (
+    LayoutLMSelectModel,
+    LayoutLMSelectModelConfig,
+)
+
+np.set_printoptions(threshold=np.inf)
+
+BERT_MODEL = "bert-base-uncased"
+LAYOUT_LM_MODEL = "microsoft/layoutlm-base-uncased"
 
 
 class LayoutLMSelect(Task):
     def __init__(self, **kwargs):
-        super(LayoutLMSelect, self).__init__(**kwargs)
-        self.per_gpu_batch_size = kwargs.get("per_gpu_batch_size", 16)
-        self.cuda = kwargs.get("cuda", True)
-        self.gradient_accumulation_steps = kwargs.get("gradient_accumulation_steps", 1)
-        self.num_train_epochs = kwargs.get("num_train_epochs", 5)
-        self.learning_rate = kwargs.get("learning_rate", 1e-5)
-        self.weight_decay = kwargs.get("weight_decay", 0.0)
-        self.adam_epsilon = kwargs.get("adam_epsilon", 1e-8)
-        self.warmup_steps = kwargs.get("warmup_steps", 0)
-        self.max_grad_norm = kwargs.get("max_grad_norm", 1.0)
-        self.logging_steps = kwargs.get("logging_steps", 5)
+        self.per_gpu_batch_size = kwargs.pop("per_gpu_batch_size", 1)
+        self.cuda = kwargs.pop("cuda", True)
+        self.gradient_accumulation_steps = kwargs.pop("gradient_accumulation_steps", 1)
+        self.num_train_epochs = kwargs.pop("num_train_epochs", 20)
+        self.learning_rate = kwargs.pop("learning_rate", 1e-4)
+        self.weight_decay = kwargs.pop("weight_decay", 0.0)
+        self.adam_epsilon = kwargs.pop("adam_epsilon", 1e-8)
+        self.warmup_steps = kwargs.pop("warmup_steps", 0)
+        self.max_grad_norm = kwargs.pop("max_grad_norm", 1.0)
+        self.logging_steps = kwargs.pop("logging_steps", 5)
         self.args = kwargs
+        super(LayoutLMSelect, self).__init__(**kwargs)
 
     def set_seed(self, n_gpu, seed=42):
         random.seed(seed)
@@ -49,36 +60,59 @@ class LayoutLMSelect(Task):
         test_dataset,
         task_name,
         output_dir,
-        bert_model="microsoft/layoutlm-base-uncased",
-        num_labels=2,
+        bert_model="bert-base-uncased",
+        num_labels=300,
         mode="train",
         eval_fn=None,
         save_optimizer=False,
         eval_params={},
+        screen_arg=0,
+        combine_output=0,
+        dropout=0.1,
     ):
         torch.cuda.empty_cache()
         device = torch.device(
             "cuda" if torch.cuda.is_available() and self.cuda else "cpu"
         )
+        # device = "cpu"
 
         n_gpu = torch.cuda.device_count()
+
         self.logger.info(f"GPUs used {n_gpu}")
+
         train_batch_size = self.per_gpu_batch_size * max(1, n_gpu)
 
         train_dataloader = DataLoader(
-            train_dataset, batch_size=train_batch_size, shuffle=True
+            train_dataset, batch_size=train_batch_size, shuffle=True,
         )
         dev_dataloader = DataLoader(
-            dev_dataset, batch_size=train_batch_size, shuffle=False
+            dev_dataset, batch_size=train_batch_size, shuffle=False,
         )
 
         self.set_seed(n_gpu)
+
+        criterion = nn.CrossEntropyLoss()
+
         outputs = {}
         if mode == "train":
             logger.info("Running train mode")
-            bert_config = AutoConfig.from_pretrained(bert_model, num_labels=num_labels)
-            model = LayoutLMForSequenceClassification.from_pretrained(
-                bert_model, config=bert_config
+            # bert_config = AutoConfig.from_pretrained(BERT_MODEL)
+            layout_lm_config = AutoConfig.from_pretrained(LAYOUT_LM_MODEL)
+
+            config_dict = {
+                "layout_lm_config": layout_lm_config,
+                # "bert_config": bert_config,
+            }
+
+            config = LayoutLMSelectModelConfig.from_layout_lm_bert_configs(
+                **config_dict
+            )
+
+            model = LayoutLMSelectModel(
+                config=config,
+                screen_agg=screen_arg,
+                combine_output=combine_output,
+                dropout=dropout,
             )
             model = model.to(device)
             if n_gpu > 1:
@@ -89,6 +123,7 @@ class LayoutLMSelect(Task):
                 dev_dataloader,
                 dev_dataset,
                 device,
+                criterion,
                 n_gpu,
                 eval_fn,
                 f"{output_dir}/{task_name}",
@@ -98,13 +133,24 @@ class LayoutLMSelect(Task):
             )
             outputs["epoch_results "] = epoch_results
         logger.info("Running evaluation mode")
-        logger.info(f"Loading from {output_dir}/{task_name}")
-        bert_config = AutoConfig.from_pretrained(f"{output_dir}/{task_name}")
-        model = LayoutLMForSequenceClassification.from_pretrained(
-            f"{output_dir}/{task_name}", config=bert_config
+
+        model_config = LayoutLMSelectModelConfig.from_pretrained(
+            f"{output_dir}/{task_name}"
         )
+        # layout_lm_config = AutoConfig.from_pretrained(f"{output_dir}/{task_name}")
+        logger.info(f"Loading from {output_dir}/{task_name}")
+
+        model = LayoutLMSelectModel.from_pretrained(
+            f"{output_dir}/{task_name}",
+            config=model_config,
+            screen_agg=screen_arg,
+            combine_output=combine_output,
+            dropout=dropout,
+        )
+
         model.to(device)
         score = self.eval(
+            criterion,
             model,
             dev_dataloader,
             dev_dataset,
@@ -118,13 +164,12 @@ class LayoutLMSelect(Task):
         outputs["dev"] = {
             "score": score,
         }
-
-        logger.info(f"DEV SCORE: {score}")
         if test_dataset is not None:
             test_data_loader = DataLoader(
                 test_dataset, batch_size=train_batch_size, shuffle=False
             )
             score = self.eval(
+                criterion,
                 model,
                 test_data_loader,
                 test_dataset,
@@ -139,7 +184,6 @@ class LayoutLMSelect(Task):
                 "score": score,
             }
 
-            logger.info(f"TEST SCORE: {score}")
         return outputs
 
     def train(
@@ -149,6 +193,7 @@ class LayoutLMSelect(Task):
         dev_dataloader,
         dev_dataset,
         device,
+        criterion,
         n_gpu,
         eval_fn,
         output_dir,
@@ -164,7 +209,8 @@ class LayoutLMSelect(Task):
             * self.num_train_epochs
         )
 
-        no_decay = ["bias", "LayerNorm.weight"]
+        no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
+
         optimizer_grouped_parameters = [
             {
                 "params": [
@@ -173,6 +219,7 @@ class LayoutLMSelect(Task):
                     if not any(nd in n for nd in no_decay)
                 ],
                 "weight_decay": self.weight_decay,
+                "lr": self.learning_rate,
             },
             {
                 "params": [
@@ -181,6 +228,7 @@ class LayoutLMSelect(Task):
                     if any(nd in n for nd in no_decay)
                 ],
                 "weight_decay": 0.0,
+                "lr": self.learning_rate,
             },
         ]
 
@@ -200,8 +248,10 @@ class LayoutLMSelect(Task):
         train_iterator = trange(
             epochs_trained, int(self.num_train_epochs), desc="Epoch",
         )
+
         for epoch in train_iterator:
             epoch_iterator = tqdm(train_dataloader, desc="Iteration")
+            epoch_loss = 0.0
             for step, batch in enumerate(epoch_iterator):
 
                 # Skip past any already trained steps if resuming training
@@ -210,21 +260,27 @@ class LayoutLMSelect(Task):
                     continue
 
                 model.train()
+
                 batch = tuple(t.to(device) for t in batch)
-                inputs = {
+
+                input_instruction = {
                     "input_ids": batch[0],
-                    "position_ids": batch[1],
+                    "attention_mask": batch[1],
                     "token_type_ids": batch[2],
-                    "bbox": batch[3],
-                    "labels": batch[4],
                 }
 
-                print(batch[0].shape)
-                input()
-                outputs = model(**inputs)
-                loss = outputs[
-                    0
-                ]  # model outputs are always tuple in transformers (see doc)
+                input_screen = {
+                    "input_ids": batch[3],
+                    "attention_mask": batch[4],
+                    "token_type_ids": batch[5],
+                    "bbox": batch[6],
+                }
+
+                outputs = model(input_instruction, input_screen)
+
+                labels = batch[7]
+
+                loss = criterion(outputs, labels)
 
                 if n_gpu > 1:
                     loss = (
@@ -236,6 +292,7 @@ class LayoutLMSelect(Task):
                 loss.backward()
 
                 tr_loss += loss.item()
+                epoch_loss += loss.item()
                 if (step + 1) % self.gradient_accumulation_steps == 0:
                     torch.nn.utils.clip_grad_norm_(
                         model.parameters(), self.max_grad_norm
@@ -253,7 +310,10 @@ class LayoutLMSelect(Task):
                             f"Loss :{loss_scalar} LR: {learning_rate_scalar}"
                         )
                         logging_loss = tr_loss
+
+            logger.debug(f"TRAINING LOSS: {epoch_loss}")
             score = self.eval(
+                criterion,
                 model,
                 dev_dataloader,
                 dev_dataset,
@@ -295,6 +355,7 @@ class LayoutLMSelect(Task):
 
     def eval(
         self,
+        criterion,
         model,
         dataloader,
         dataset,
@@ -316,42 +377,55 @@ class LayoutLMSelect(Task):
             batch = tuple(t.to(device) for t in batch)
 
             with torch.no_grad():
-                inputs = {
+                input_instruction = {
                     "input_ids": batch[0],
-                    "position_ids": batch[1],
+                    "attention_mask": batch[1],
                     "token_type_ids": batch[2],
-                    "bbox": batch[3],
-                    "labels": batch[4],
                 }
-                outputs = model(**inputs)
-                tmp_eval_loss, logits = outputs[:2]
 
-                eval_loss += outputs[0].mean().item()
+                input_screen = {
+                    "input_ids": batch[3],
+                    "attention_mask": batch[4],
+                    "token_type_ids": batch[5],
+                    "bbox": batch[6],
+                }
+
+                outputs = model(input_instruction, input_screen)
+
+                labels = batch[7]
+
+                loss = criterion(outputs, labels)
+
+                eval_loss += loss.mean().item()
+
             nb_eval_steps += 1
             if preds is None:
 
-                preds = logits.detach().cpu().numpy()
-                out_label_ids = inputs["labels"].detach().cpu().numpy()
-                all_index = batch[5].detach().cpu().numpy()
+                preds = outputs.detach().cpu().numpy()
+                out_label_ids = labels.detach().cpu().numpy()
 
             else:
-                preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
+                preds = np.append(preds, outputs.detach().cpu().numpy(), axis=0)
 
                 out_label_ids = np.append(
-                    out_label_ids, inputs["labels"].detach().cpu().numpy(), axis=0
+                    out_label_ids, labels.detach().cpu().numpy(), axis=0
                 )
 
-                all_index = np.append(
-                    all_index, batch[5].detach().cpu().numpy(), axis=0
-                )
+        # eval_loss = eval_loss / nb_eval_steps
 
-        eval_loss = eval_loss / nb_eval_steps
-
+        logger.success(f"EVAL LOSS: {eval_loss}")
         score = None
-
         if eval_fn is not None:
-            score = eval_fn(y_pred=np.argmax(preds, axis=1), y_true=out_label_ids)
-            if mode == "test":
-                logger.info(f"Accuracy:{score}")
+
+            preds_parsed = np.argmax(preds, axis=1)
+            print("PREDS")
+            print(preds_parsed)
+
+            print("REAL")
+            print(out_label_ids)
+
+            score = eval_fn(y_true=out_label_ids, y_pred=preds_parsed)
+
+            logger.info(f"Score:{score}")
 
         return score
