@@ -17,9 +17,13 @@ LAYOUT_LM_MODEL = "microsoft/layoutlm-base-uncased"
 class PrepareLayoutLMSelectTask(Task):
     def run(self, input_data, largest=512, max_ui_elements=300):
         logger.info("*** Preprocessing Data for LayoutLM ***")
+
         tokenizer_instruction = BertTokenizer.from_pretrained("bert-base-uncased")
+
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
+        print("LOADING MODEL")
         model_ui = AutoModel.from_pretrained(LAYOUT_LM_MODEL)
+
         entries = dict()
         for id_d, content in tqdm(input_data.items()):
             encoded_instruction = tokenizer_instruction(
@@ -47,6 +51,7 @@ class PrepareLayoutLMSelectTask(Task):
                 ui_elements["bbox"] = torch.LongTensor(
                     encoded_ui["ui_boxes"]
                 ).unsqueeze(0)
+                print("GETTING FIRST")
                 ui_embedding_list.append(model_ui(**ui_elements)[1])
 
             if len(ui_embedding_list) < max_ui_elements:
