@@ -57,7 +57,7 @@ class PrepareLayoutLMSelectTask(Task):
                     ui_embedding_list = predictions
                 else:
                     ui_embedding_list = torch.stack(
-                        [ui_embedding_list, predictions], dim=0
+                        [ui_embedding_list, predictions.unsqueeze(0)], dim=0
                     )
                     print(ui_embedding_list.shape)
 
