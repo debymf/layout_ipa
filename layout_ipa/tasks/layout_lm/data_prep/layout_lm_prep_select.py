@@ -33,7 +33,7 @@ class PrepareLayoutLMSelectTask(Task):
                 ui_elements["ui_segment_ids"].append(encoded_ui["ui_segment_ids"])
                 ui_elements["ui_boxes"].append(encoded_ui["ui_boxes"])
 
-            if len(ui_elements) < max_ui_elements:
+            if len(ui_elements["ui_input_ids"]) < max_ui_elements:
                 to_add = len(ui_elements) - max_ui_elements
                 for _ in range(0, to_add):
                     encoded_ui["ui_input_ids"] = [0] * largest
