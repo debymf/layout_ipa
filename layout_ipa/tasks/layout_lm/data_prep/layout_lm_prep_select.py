@@ -36,24 +36,36 @@ class PrepareLayoutLMSelectTask(Task):
                     content["instruction"], screen_element, largest, tokenizer_layout,
                 )
                 ui_elements = dict()
-                ui_elements["input_ids"] = torch.LongTensor(encoded_ui["ui_input_ids"])
+                ui_elements["input_ids"] = torch.LongTensor(
+                    encoded_ui["ui_input_ids"]
+                ).unsqueeze()
                 ui_elements["attention_mask"] = torch.LongTensor(
                     encoded_ui["ui_input_mask"]
-                )
+                ).unsqueeze()
                 ui_elements["token_type_ids"] = torch.LongTensor(
                     encoded_ui["ui_segment_ids"]
-                )
-                ui_elements["bbox"] = torch.LongTensor(encoded_ui["ui_boxes"])
+                ).unsqueeze()
+                ui_elements["bbox"] = torch.LongTensor(
+                    encoded_ui["ui_boxes"]
+                ).unsqueeze()
                 ui_embedding_list.append(model_ui(**ui_elements)[1])
 
             if len(ui_embedding_list) < max_ui_elements:
                 to_add = max_ui_elements - len(ui_elements["ui_input_ids"])
                 for _ in range(0, to_add):
                     encoded_ui = dict()
-                    encoded_ui["input_ids"] = torch.LongTensor([0] * largest)
-                    encoded_ui["attention_mask"] = torch.LongTensor([0] * largest)
-                    encoded_ui["token_type_ids"] = torch.LongTensor([0] * largest)
-                    encoded_ui["bbox"] = torch.LongTensor([[0] * 4] * largest)
+                    encoded_ui["input_ids"] = torch.LongTensor(
+                        [0] * largest
+                    ).unsqueeze()
+                    encoded_ui["attention_mask"] = torch.LongTensor(
+                        [0] * largest
+                    ).unsqueeze()
+                    encoded_ui["token_type_ids"] = torch.LongTensor(
+                        [0] * largest
+                    ).unsqueeze()
+                    encoded_ui["bbox"] = torch.LongTensor(
+                        [[0] * 4] * largest
+                    ).unsqueeze()
                     ui_embedding_list.append(model_ui(**encoded_ui)[1])
 
             entries[id_d] = {
