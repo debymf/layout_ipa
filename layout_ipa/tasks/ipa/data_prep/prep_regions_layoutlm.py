@@ -120,8 +120,6 @@ class PrepareRegionLayoutLMTask(Task):
             if len(tokenised_word) > limit_size:
                 tokenised_word = tokenised_word[:limit_size]
 
-            print(limit_size)
-
             tokens.extend(tokenised_word)
             tokens.append("[SEP]")
             segment_ids_second = [0] * (len(tokenised_word) + 1)
