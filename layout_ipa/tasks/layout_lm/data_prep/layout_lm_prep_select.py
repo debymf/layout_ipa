@@ -13,15 +13,38 @@ tokenizer_model = "microsoft/layoutlm-base-uncased"
 
 
 class PrepareLayoutLMSelectTask(Task):
-    def run(self, input_data, largest=512):
+    def run(self, input_data, largest=512, max_ui_elements=300):
         logger.info("*** Preprocessing Data for LayoutLM ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
         entries = dict()
         for id_d, content in tqdm(input_data.items()):
+            ui_elements = dict()
+            ui_elements["ui_input_ids"] = list()
+            ui_elements["ui_input_mask"] = list()
+            ui_elements["ui_segment_ids"] = list()
+            ui_elements["ui_boxes"] = list()
+            for _, screen_element in content["ui"].items():
 
-            encoded_ui = self.convert_ui_to_feature(
-                content["instruction"], content["ui"], largest, tokenizer_layout,
-            )
+                encoded_ui = self.convert_ui_to_feature(
+                    content["instruction"], screen_element, largest, tokenizer_layout,
+                )
+
+                ui_elements["ui_input_ids"].append(encoded_ui["ui_input_ids"])
+                ui_elements["ui_input_mask"].append(encoded_ui["ui_input_mask"])
+                ui_elements["ui_segment_ids"].append(encoded_ui["ui_segment_ids"])
+                ui_elements["ui_boxes"].append(encoded_ui["ui_boxes"])
+
+            if len(ui_elements) < max_ui_elements:
+                to_add = len(ui_elements) - max_ui_elements
+                for _ in range(0, to_add):
+                    encoded_ui["ui_input_ids"] = [0] * largest
+                    encoded_ui["ui_input_mask"] = [0] * largest
+                    encoded_ui["ui_segment_ids"] = [0] * largest
+                    encoded_ui["ui_boxes"] = [[0] * 4] * largest
+                    ui_elements["ui_input_ids"].append(encoded_ui["ui_input_ids"])
+                    ui_elements["ui_input_mask"].append(encoded_ui["ui_input_mask"])
+                    ui_elements["ui_segment_ids"].append(encoded_ui["ui_segment_ids"])
+                    ui_elements["ui_boxes"].append(encoded_ui["ui_boxes"])
 
             entries[id_d] = {
                 "ui_input_ids": encoded_ui["ui_input_ids"],
