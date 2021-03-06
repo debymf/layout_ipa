@@ -219,6 +219,8 @@ class LayoutLMSelect(Task):
                     "labels": batch[4],
                 }
 
+                print(batch[0].shape)
+                input()
                 outputs = model(**inputs)
                 loss = outputs[
                     0
