@@ -104,8 +104,11 @@ class LayoutLMAndBertBasic(PreTrainedModel):
     def forward(self, screen, instruction, ui_element):
 
         instruction_embedding = self.bert(**instruction)[1]
+        instruction_embedding = self.dropout1(instruction_embedding)
         ui_embedding = self.model_ui_element(**ui_element)[1]
+        ui_embedding = self.dropout1(ui_embedding)
         screen_embedding = self.model_screen(**screen)[1]
+        screen_embedding = self.dropout1(screen_embedding)
 
         output = torch.cat(
             [instruction_embedding, ui_embedding, screen_embedding], dim=1
