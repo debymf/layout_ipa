@@ -78,7 +78,7 @@ class LayoutLMAndBertBasic(PreTrainedModel):
         self.model_screen = AutoModel.from_pretrained(
             LAYOUT_LM_MODEL, config=config.layout_lm
         )
-        self.instruction = AutoModel.from_pretrained(BERT_MODEL, config=config.bert)
+        self.bert = AutoModel.from_pretrained(BERT_MODEL, config=config.bert)
 
         self.dropout1 = nn.Dropout(p=dropout)
         self.dropout2 = nn.Dropout(p=dropout)
