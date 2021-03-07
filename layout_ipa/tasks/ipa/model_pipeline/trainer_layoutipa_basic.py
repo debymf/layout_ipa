@@ -20,8 +20,8 @@ from torch.utils.data import WeightedRandomSampler
 import json
 from sklearn.metrics import precision_recall_fscore_support, f1_score
 from layout_ipa.tasks.ipa.models import (
-    LayoutLMAndBertSimple,
-    LayoutLMAndBertSimpleConfig,
+    LayoutLMAndBertBasic,
+    LayoutLMAndBertBasicConfig,
 )
 
 np.set_printoptions(threshold=np.inf)
@@ -97,19 +97,19 @@ class LayoutIpaBasicTrainer(Task):
         outputs = {}
         if mode == "train":
             logger.info("Running train mode")
-            # bert_config = AutoConfig.from_pretrained(BERT_MODEL)
+            bert_config = AutoConfig.from_pretrained(BERT_MODEL)
             layout_lm_config = AutoConfig.from_pretrained(LAYOUT_LM_MODEL)
 
             config_dict = {
                 "layout_lm_config": layout_lm_config,
-                # "bert_config": bert_config,
+                "bert_config": bert_config,
             }
 
-            config = LayoutLMAndBertSimpleConfig.from_layout_lm_bert_configs(
+            config = LayoutLMAndBertBasicConfig.from_layout_lm_bert_configs(
                 **config_dict
             )
 
-            model = LayoutLMAndBertSimple(
+            model = LayoutLMAndBertBasic(
                 config=config,
                 screen_agg=screen_arg,
                 combine_output=combine_output,
@@ -136,13 +136,13 @@ class LayoutIpaBasicTrainer(Task):
             outputs["epoch_results "] = epoch_results
         logger.info("Running evaluation mode")
 
-        model_config = LayoutLMAndBertSimpleConfig.from_pretrained(
+        model_config = LayoutLMAndBertBasicConfig.from_pretrained(
             f"{output_dir}/{task_name}"
         )
         # layout_lm_config = AutoConfig.from_pretrained(f"{output_dir}/{task_name}")
         logger.info(f"Loading from {output_dir}/{task_name}")
 
-        model = LayoutLMAndBertSimple.from_pretrained(
+        model = LayoutLMAndBertBasic.from_pretrained(
             f"{output_dir}/{task_name}",
             config=model_config,
             screen_agg=screen_arg,
