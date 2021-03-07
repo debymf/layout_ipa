@@ -1,5 +1,5 @@
 from .LayoutLMAndBertSimple import LayoutLMAndBertSimple, LayoutLMAndBertSimpleConfig
-from .LayoutLMAndBertBasic import LayoutLMAndBertBasic, LayoutLMAndBertSimpleBasic
+from .LayoutLMAndBertBasic import LayoutLMAndBertBasic, LayoutLMAndBertBasicConfig
 from .bidaf import BidafAttn
 from .LayoutLMAndBert import LayoutLMAndBert, LayoutLMAndBertConfig
 from .LayoutLMRegion import LayoutLMRegion, LayoutLMRegionConfig
