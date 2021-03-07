@@ -308,8 +308,8 @@ class TorchDataset(Dataset):
             instance["id_query"],
             instance["ui_position"],
             torch.LongTensor(instance["input_ids"]),
-            torch.LongTensor(instance["attention_mask"]),
-            torch.LongTensor(instance["token_type_ids"]),
+            torch.LongTensor(instance["att_mask"]),
+            torch.LongTensor(instance["token_ids"]),
             index,
         )
 
