@@ -107,8 +107,6 @@ class LayoutLMAndBertBasic(PreTrainedModel):
         ui_embedding = self.model_ui_element(**ui_element)[1]
         screen_embedding = self.model_screen(**screen)[1]
 
-        print(instruction_embedding.shape)
-
         output = torch.cat(
             [instruction_embedding, ui_embedding, screen_embedding], dim=1
         )
