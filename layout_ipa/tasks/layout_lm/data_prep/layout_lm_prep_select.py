@@ -51,13 +51,14 @@ class PrepareLayoutLMSelectTask(Task):
                 ui_elements["bbox"] = torch.LongTensor(
                     encoded_ui["ui_boxes"]
                 ).unsqueeze(0)
-
+                print("GETTING FIRST")
                 predictions = model_ui(**ui_elements)[1]
                 if ui_embedding_list is None:
                     ui_embedding_list = predictions
-
+                    print(f"PREDICIONS {predictions.shape}")
                 else:
                     ui_embedding_list = torch.cat([ui_embedding_list, predictions])
+                    print(f"EMBEDDING LIST{ui_embedding_list.shape}")
 
             if len(ui_embedding_list) < max_ui_elements:
                 to_add = max_ui_elements - len(ui_embedding_list)
