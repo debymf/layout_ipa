@@ -52,14 +52,12 @@ class PrepareLayoutLMSelectTask(Task):
                     encoded_ui["ui_boxes"]
                 ).unsqueeze(0)
                 print("GETTING FIRST")
-                predictions = model_ui(**ui_elements)[1].unsqueeze(0)
+                predictions = model_ui(**ui_elements)[1]
                 if ui_embedding_list is None:
                     ui_embedding_list = predictions
                     print(f"PREDICIONS {predictions.shape}")
                 else:
-                    ui_embedding_list = torch.stack(
-                        [ui_embedding_list, predictions.unsqueeze(0)], dim=2
-                    )
+                    ui_embedding_list = torch.cat([ui_embedding_list, predictions])
                     print(f"EMBEDDING LIST{ui_embedding_list.shape}")
 
             if len(ui_embedding_list) < max_ui_elements:
@@ -80,9 +78,7 @@ class PrepareLayoutLMSelectTask(Task):
                     ).unsqueeze(0)
                     predictions = model_ui(**ui_elements)[1]
 
-                    ui_embedding_list = torch.stack(
-                        [ui_embedding_list, predictions], dim=0
-                    )
+                    ui_embedding_list = torch.cat([ui_embedding_list, predictions])
 
             entries[id_d] = {
                 "input_ids": encoded_instruction["input_ids"],
