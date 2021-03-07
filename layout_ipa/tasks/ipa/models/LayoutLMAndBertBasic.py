@@ -58,7 +58,7 @@ class LayoutLMAndBertBasicConfig(PretrainedConfig):
     def to_dict(self):
         output = copy.deepcopy(self.__dict__)
         output["layout_lm"] = self.layout_lm.to_dict()
-        output["bert"] = self.bert_config.to_dict()
+        output["bert"] = self.bert.to_dict()
         output["model_type"] = self.__class__.model_type
         return output
 
