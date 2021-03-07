@@ -109,7 +109,9 @@ class LayoutLMAndBertBasic(PreTrainedModel):
 
         print(instruction_embedding.shape)
 
-        output = torch.cat([instruction_embedding, ui_embedding, screen_embedding])
+        output = torch.cat(
+            [instruction_embedding, ui_embedding, screen_embedding], dim=1
+        )
 
         output = self.linear_layer_output(output)
         return output
