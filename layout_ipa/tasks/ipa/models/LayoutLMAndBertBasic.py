@@ -64,7 +64,7 @@ class LayoutLMAndBertBasicConfig(PretrainedConfig):
 
 
 class LayoutLMAndBertBasic(PreTrainedModel):
-    config_class = LayoutLMAndBertSimpleConfig
+    config_class = LayoutLMAndBertBasicConfig
     base_model_prefix = "layout_lm_bert"
 
     def __init__(self, config, screen_agg, combine_output, dropout, *args, **kwargs):
