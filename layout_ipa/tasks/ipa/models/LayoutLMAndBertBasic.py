@@ -23,7 +23,7 @@ LAYOUT_LM_MODEL = "microsoft/layoutlm-base-uncased"
 logger = logging.get_logger(__name__)
 
 
-class LayoutLMSelectModelConfig(PretrainedConfig):
+class LayoutLMAndBertBasicConfig(PretrainedConfig):
     model_type = "layout_lm_and_bert"
     is_composition = True
 
@@ -48,21 +48,23 @@ class LayoutLMSelectModelConfig(PretrainedConfig):
 
     @classmethod
     def from_layout_lm_bert_configs(
-        cls, layout_lm_config: PretrainedConfig, **kwargs
+        cls, layout_lm_config: PretrainedConfig, bert_config=PretrainedConfig, **kwargs
     ) -> PretrainedConfig:
 
-        return cls(layout_lm=layout_lm_config.to_dict(), **kwargs)
+        return cls(
+            bert=bert_config.to_dict(), layout_lm=layout_lm_config.to_dict(), **kwargs
+        )
 
     def to_dict(self):
         output = copy.deepcopy(self.__dict__)
         output["layout_lm"] = self.layout_lm.to_dict()
-
+        output["bert"] = self.bert_config.to_dict()
         output["model_type"] = self.__class__.model_type
         return output
 
 
-class LayoutLMSelectModel(PreTrainedModel):
-    config_class = LayoutLMSelectModelConfig
+class LayoutLMAndBertBasic(PreTrainedModel):
+    config_class = LayoutLMAndBertSimpleConfig
     base_model_prefix = "layout_lm_bert"
 
     def __init__(self, config, screen_agg, combine_output, dropout, *args, **kwargs):
@@ -70,52 +72,43 @@ class LayoutLMSelectModel(PreTrainedModel):
 
         self.screen_agg = screen_agg
         self.combine_output = combine_output
-        self.model_ui = AutoModel.from_pretrained(
+        self.model_ui_element = AutoModel.from_pretrained(
             LAYOUT_LM_MODEL, config=config.layout_lm
         )
-        for param in self.model_ui.parameters():
-            param.requires_grad = False
+        self.model_screen = AutoModel.from_pretrained(
+            LAYOUT_LM_MODEL, config=config.layout_lm
+        )
+        self.instruction = AutoModel.from_pretrained(BERT_MODEL, config=config.bert)
 
-        self.linear_screen_fc = nn.Linear(768, 1)
+        self.dropout1 = nn.Dropout(p=dropout)
+        self.dropout2 = nn.Dropout(p=dropout)
+        self.dropout3 = nn.Dropout(p=dropout)
+        self.dropout4 = nn.Dropout(p=dropout)
+
+        self.linear_layer_instruction = nn.Linear(768 * 3, 1)
+        self.linear_screen_fc = nn.Linear(768 * 5, 768)
+        self.linear_screen = nn.Linear(256 * 5, 768)
+        self.linear_ui_element = nn.Linear(768, 768)
+        self.linear_combine = nn.Linear(768 * 4, 128)
+        self.linear_combine_simple = nn.Linear(768, 128)
+        self.linear_combine_double = nn.Linear(768 * 2, 128)
+        self.linear_layer_ui = nn.Linear(768 * 5, 768)
+        self.linear_layer_output = nn.Linear(768 * 3, 1)
+        self.activation_ui1 = nn.Tanh()
+        self.activation_ui2 = nn.Tanh()
+        self.activation_instruction = nn.Tanh()
 
         # self.linear_layer1 = nn.Linear(768 * 4, 1)
         # self.linear_layer2 = nn.Linear(512, 1)
 
-    def forward(self, input_instruction, input_screen):
-        def convert_screen_elements_input_dimensions(input_close_elements):
+    def forward(self, screen, instruction, ui_element):
 
-            input_close_elements["input_ids"] = input_close_elements["input_ids"].view(
-                -1, input_close_elements["input_ids"].size(-1)
-            )
+        instruction_embedding = self.bert(**instruction)[1]
+        ui_embedding = self.model_ui_element(**ui_element)[1]
+        screen_embedding = self.model_screen(**screen)[1]
 
-            input_close_elements["attention_mask"] = input_close_elements[
-                "attention_mask"
-            ].view(-1, input_close_elements["attention_mask"].size(-1))
+        output = torch.cat([instruction_embedding, ui_embedding, screen_embedding])
 
-            input_close_elements["token_type_ids"] = input_close_elements[
-                "token_type_ids"
-            ].view(-1, input_close_elements["token_type_ids"].size(-1))
-
-            input_close_elements["bbox"] = input_close_elements["bbox"].view(
-                -1, input_close_elements["bbox"].size(-2), 4
-            )
-
-            return input_close_elements
-
-        def get_screen_representations(input_elements):
-            output_elements = self.model_ui(**input_elements)[1]
-
-            output = output_elements.view(-1, 300, 768)
-
-            return output
-
-        # input_screen = convert_screen_elements_input_dimensions(input_screen)
-
-        # screen_representation = get_screen_representations(input_screen)
-
-        classification = self.linear_screen_fc(input_screen)
-
-        classification = classification.squeeze(2)
-
-        return classification
+        output = self.linear_layer_output(output)
+        return output
 

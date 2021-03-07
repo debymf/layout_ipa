@@ -8,7 +8,7 @@ from prefect.engine.flow_runner import FlowRunner
 from prefect.engine.results import LocalResult
 from layout_ipa.tasks.datasets_parse.rico_sca import PrepareRicoScaScreenPair
 from layout_ipa.tasks.ipa.data_prep import PrepareLayoutIpaBasic
-from layout_ipa.tasks.ipa.model_pipeline import LayoutIpaSimpleTrainer
+from layout_ipa.tasks.ipa.model_pipeline import LayoutIpaBasicTrainer
 from sklearn.metrics import f1_score
 from layout_ipa.util.evaluation import pair_evaluation
 import os
@@ -117,7 +117,7 @@ bert_param = {
 }
 
 
-layout_lm_trainer_task = LayoutIpaSimpleTrainer(**bert_param)
+layout_lm_trainer_task = LayoutIpaBasicTrainer(**bert_param)
 
 logger.success(f"*********************************************")
 logger.success(f"***** OUTPUT FILE {FILENAME_RESULTS} *****")
@@ -183,8 +183,8 @@ with Flow("Running the Transformers for Pair Classification") as flow1:
         test_dataset=test_dataset,
         mapping_dev=dev_input["mapping"],
         mapping_test=test_input["mapping"],
-        task_name="layout_ipa_simple_pair_rico",
-        output_dir="./cache/layout_ipa_simple_pair_rico/",
+        task_name="layout_ipa_last_hope",
+        output_dir="./cache/layout_ipa_last_hope/",
         mode="train",
         eval_fn=pair_evaluation,
         screen_arg=SCREEN_AGG,

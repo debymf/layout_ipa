@@ -17,22 +17,29 @@ class PrepareLayoutIpaBasic(Task):
         self,
         input_data,
         bert_model="bert-base-uncased",
-        largest=512,
+        largest_instruction=256,
+        largest_ui=256,
         largest_screen=512,
     ):
         logger.info("*** Preprocessing Data for Layout IPA (simple) ***")
         tokenizer_layout = AutoTokenizer.from_pretrained(tokenizer_model)
+        tokenizer_instruction = BertTokenizer.from_pretrained("bert-base-uncased")
         entries = dict()
         for id_d, content in tqdm(input_data.items()):
             encoded_ui = self.convert_examples_to_features(
-                content["instruction"], content["ui"], largest, tokenizer_layout,
+                content["instruction"], content["ui"], largest_ui, tokenizer_layout,
+            )
+
+            encoded_instruction = tokenizer_instruction(
+                content["instruction"],
+                content["ui"]["text"],
+                padding="max_length",
+                max_length=largest_instruction,
+                truncation=True,
             )
 
             closest_elements = self.convert_screen_to_features(
-                content["instruction"],
-                content["closest"],
-                largest_screen,
-                tokenizer_layout,
+                None, content["closest"], largest_screen, tokenizer_layout,
             )
 
             entries[id_d] = {
@@ -47,6 +54,9 @@ class PrepareLayoutIpaBasic(Task):
                 "ui_token_ids": encoded_ui["ui_segment_ids"],
                 "ui_boxes": encoded_ui["ui_boxes"],
                 "label": content["label"],
+                "input_ids": encoded_instruction["input_ids"],
+                "att_mask": encoded_instruction["attention_mask"],
+                "token_ids": encoded_instruction["token_type_ids"],
             }
 
         return TorchDataset(entries)
@@ -192,18 +202,18 @@ class PrepareLayoutIpaBasic(Task):
             `cls_token_segment_id` define the segment id associated to the CLS token (0 for BERT, 2 for XLNet)
         """
 
-        limit_size = int((max_seq_length) / (len(examples) + 1))
+        limit_size = int((max_seq_length) / (len(examples)))
 
         tokens = []
         token_boxes = []
-        tokenised_word = tokenizer.tokenize(instruction)
-        if len(tokenised_word) > limit_size:
-            tokenised_word = tokenised_word[:limit_size]
-        tokens.extend(tokenised_word)
-        tokens.append("[SEP]")
-        token_boxes.extend([sep_token_box] * len(tokenised_word))
+        # tokenised_word = tokenizer.tokenize(instruction)
+        # if len(tokenised_word) > limit_size:
+        #     tokenised_word = tokenised_word[:limit_size]
+        # tokens.extend(tokenised_word)
+        # tokens.append("[SEP]")
+        # token_boxes.extend([sep_token_box] * len(tokenised_word))
 
-        token_boxes.append(sep_token_box)
+        # token_boxes.append(sep_token_box)
         for _, example in examples.items():
             box = [
                 int(example["x0"]),
@@ -297,6 +307,9 @@ class TorchDataset(Dataset):
             instance["label"],
             instance["id_query"],
             instance["ui_position"],
+            torch.LongTensor(instance["input_ids"]),
+            torch.LongTensor(instance["attention_mask"]),
+            torch.LongTensor(instance["token_type_ids"]),
             index,
         )
 

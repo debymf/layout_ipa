@@ -6,7 +6,7 @@ import random
 import math
 from transformers import AutoTokenizer
 
-TOTAL_SELECTED = 5
+TOTAL_SELECTED = 15
 
 
 class PrepareRicoScaScreenPair(Task):
