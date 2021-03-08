@@ -21,14 +21,14 @@ import pandas as pd
 #             1 - Spatial (Relative to screen)
 #             2 - Spatial (Relative to other elements)
 
-MODEL_LOCATION = "/nobackup/projects/bdman04/layout_ipa/cache/layout_lm_pair_rico"
+MODEL_LOCATION = "/nobackup/projects/bdman04/layout_ipa/cache/layout_lm_pair_rico/layout_lm_pair_rico"
 # MODEL_LOCATION = "bert-base-uncased"
 OUTPUT = "./results/layout_lm_vectors.tsv"
 test_path = settings["rico_sca"]["test"]
 # test_path = settings["sample_rico_sca"]
 
 prepare_rico_task = PrepareRicoScaScreenPair()
-prepare_data_for_probing = PrepareBertProbing()
+prepare_data_for_probing = PrepareLayoutLMProbing()
 get_vectors_task = GetVectorsBertProbing()
 
 

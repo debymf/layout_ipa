@@ -36,7 +36,7 @@ class GetVectorsBertProbing(Task):
         torch.cuda.empty_cache()
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        n_gpu = torch.cuda.device_count()
+        n_gpu = 1
 
         self.logger.info(f"GPUs used {n_gpu}")
 
@@ -59,8 +59,7 @@ class GetVectorsBertProbing(Task):
     def eval(
         self, model, dataloader, dataset, device, n_gpu,
     ):
-        if n_gpu > 1 and not isinstance(model, torch.nn.DataParallel):
-            model = torch.nn.DataParallel(model)
+
         nb_eval_steps = 0
         out_embedding = None
         out_label_ids = None
