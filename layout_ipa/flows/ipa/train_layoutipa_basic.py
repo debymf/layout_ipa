@@ -12,6 +12,7 @@ from layout_ipa.tasks.ipa.model_pipeline import LayoutIpaBasicTrainer
 from sklearn.metrics import f1_score
 from layout_ipa.util.evaluation import pair_evaluation
 import os
+from layout_ipa.tasks.datasets_parse.pixel_help import PreparePixelHelpPair
 import argparse
 
 parser = argparse.ArgumentParser(description="Running flow for Layout IPA.")
@@ -107,6 +108,7 @@ test_path = settings["pixel_help"]
 #     checkpoint=True,
 #     result=LocalResult(dir=f"./cache/datasets/rico/"),
 # )
+prepare_pixel_help_task = PreparePixelHelpPair()
 
 prepare_rico_task = PrepareRicoScaScreenPair()
 prepare_rico_layout_lm_task = PrepareLayoutIpaBasic()
@@ -175,7 +177,8 @@ with Flow("Running the Transformers for Pair Classification") as flow1:
         dev_input = prepare_rico_task(dev_path, type_instructions=INSTRUCTION_TYPE)
         dev_dataset = prepare_rico_layout_lm_task(dev_input["data"])
     with tags("test"):
-        test_input = prepare_rico_task(test_path, type_instructions=INSTRUCTION_TYPE)
+        # test_input = prepare_rico_task(test_path, type_instructions=INSTRUCTION_TYPE)
+        test_input = prepare_pixel_help_task(test_path)
         test_dataset = prepare_rico_layout_lm_task(test_input["data"])
     outputs = layout_lm_trainer_task(
         train_dataset=train_dataset,
