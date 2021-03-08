@@ -100,7 +100,7 @@ DROPOUT = args.dropout
 
 train_path = settings["rico_sca_sample"]["train"]
 dev_path = settings["rico_sca_sample"]["dev"]
-test_path = settings["rico_sca_sample"]["test"]
+test_path = settings["pixel_help"]
 
 # cache_args = dict(
 #     target="{task_name}-{task_tags}.pkl",
@@ -185,7 +185,7 @@ with Flow("Running the Transformers for Pair Classification") as flow1:
         mapping_test=test_input["mapping"],
         task_name="layout_ipa_last_hope",
         output_dir="./cache/layout_ipa_last_hope/",
-        mode="train",
+        mode="test",
         eval_fn=pair_evaluation,
         screen_arg=SCREEN_AGG,
         combine_output=COMBINE_OUTPUT,
