@@ -23,7 +23,8 @@ import pandas as pd
 
 MODEL_LOCATION = "/nobackup/projects/bdman04/layout_ipa/cache/transformer_pair_rico/transformer_pair_rico/"
 # MODEL_LOCATION = "bert-base-uncased"
-OUTPUT = "./results/bert_vectors_out.tsv"
+OUTPUT_METADATA = "./results/bert_vectors_meta_data.tsv"
+OUTPUT_DIM = "./results/bert_vectors_dim.tsv"
 test_path = settings["rico_sca"]["test"]
 # test_path = settings["sample_rico_sca"]
 
@@ -44,9 +45,10 @@ def save_output(semantic, absolute, relative):
     output_dict["instruction"] = list()
     output_dict["ui_text"] = list()
     output_dict["type"] = list()
+    dimensions_out = dict()
 
     for i in range(0, 768):
-        output_dict[f"x{i}"] = list()
+        dimensions_out[f"x{i}"] = list()
 
     for key, content in semantic.items():
         output_dict[key].extend(content)
@@ -57,11 +59,13 @@ def save_output(semantic, absolute, relative):
 
     for representation in tqdm(output_dict["representation"]):
         for i in range(0, len(representation)):
-            output_dict[f"x{i}"].append(representation[i])
+            dimensions_out[f"x{i}"].append(representation[i])
 
     output_dict.pop("representation", None)
-    output_frame = pd.DataFrame.from_dict(output_dict)
-    output_frame.to_csv(OUTPUT, sep="\t")
+    output_dim_frame = pd.DataFrame.from_dict(output_dict)
+    output_dim_frame.to_csv(OUTPUT_DIM, sep="\t", header=False)
+    output_frame_meta = pd.DataFrame.from_dict(output_dict)
+    output_frame_meta.to_csv(OUTPUT_METADATA, sep="\t")
 
 
 # New type semattic = 0 -> Semantic 1-> Absolute 2->Relative
