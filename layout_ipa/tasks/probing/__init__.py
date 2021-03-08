@@ -1,2 +1,3 @@
 from .prep_data_bert import PrepareBertProbing
+from .prep_data_layoutlm import PrepareLayoutLMProbing
 from .get_vectors_bert import GetVectorsBertProbing

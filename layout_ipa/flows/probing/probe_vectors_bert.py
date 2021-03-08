@@ -21,7 +21,7 @@ import pandas as pd
 #             1 - Spatial (Relative to screen)
 #             2 - Spatial (Relative to other elements)
 
-MODEL_LOCATION = "/nobackup/projects/bdman04/layout_ipa/cache/transformer_pair_rico"
+MODEL_LOCATION = "/nobackup/projects/bdman04/layout_ipa/cache/transformer_pair_rico/transformer_pair_rico/"
 # MODEL_LOCATION = "bert-base-uncased"
 OUTPUT = "./results/bert_vectors.tsv"
 test_path = settings["rico_sca"]["test"]
