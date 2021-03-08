@@ -127,7 +127,7 @@ class PrepareRicoScaScreenPair(Task):
                             label_ui = 0
 
                         if "\n" in instruction:
-                            print(instruction)
+                            instruction = instruction.replace("\n", "")
                         parsed_data[total_pairs] = {
                             "id_query": index_query,
                             "ui_position": ui_index,

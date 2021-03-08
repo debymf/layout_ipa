@@ -64,7 +64,7 @@ def save_output(semantic, absolute, relative):
     output_dim_frame = pd.DataFrame.from_dict(dimensions_out)
     output_dim_frame.to_csv(OUTPUT_DIM, sep="\t", header=False, index=False)
     output_frame_meta = pd.DataFrame.from_dict(output_dict)
-    output_frame_meta.to_csv(OUTPUT_METADATA, sep="\t", index=False, quotechar="'")
+    output_frame_meta.to_csv(OUTPUT_METADATA, sep="\t", index=False)
 
 
 # New type semattic = 0 -> Semantic 1-> Absolute 2->Relative
