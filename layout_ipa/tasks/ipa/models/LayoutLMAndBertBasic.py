@@ -120,14 +120,9 @@ class LayoutLMAndBertBasic(PreTrainedModel):
         screen_embedding = self.dropout1(screen_embedding)
         screen_embedding = self.mlp2(screen_embedding)
 
-        output1 = torch.cat([instruction_embedding, ui_embedding], dim=1)
-
-        output1 = self.mlp4(output1)
-
-        output2 = torch.cat([screen_embedding, ui_embedding], dim=1)
-        output2 = self.mlp5(output2)
-
-        output = torch.cat([output1, output2, ui_embedding], dim=1)
+        output = torch.cat(
+            [instruction_embedding, ui_embedding, screen_embedding], dim=1
+        )
 
         output = self.linear_layer_output(output)
         return output
