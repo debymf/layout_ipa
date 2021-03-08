@@ -9,7 +9,7 @@ from transformers import AutoTokenizer, BertTokenizer, RobertaTokenizer
 from torch.utils.data import Dataset
 import torch
 
-tokenizer_model = settings["layout_lm_base"]
+tokenizer_model = "microsoft/layoutlm-base-uncased"
 
 
 class PrepareLayoutLMProbing(Task):

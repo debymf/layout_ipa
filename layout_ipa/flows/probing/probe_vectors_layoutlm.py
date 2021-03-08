@@ -5,8 +5,8 @@ from prefect import Flow, tags, task
 from prefect.engine.flow_runner import FlowRunner
 from prefect.engine.results import LocalResult
 from layout_ipa.tasks.datasets_parse.rico_sca import PrepareRicoScaScreenPair
-from layout_ipa.tasks.probing import PrepareBertProbing
-from layout_ipa.tasks.probing import GetVectorsBertProbing
+from layout_ipa.tasks.probing import PrepareLayoutLMProbing
+from layout_ipa.tasks.probing import GetVectorsLayoutLMProbing
 from layout_ipa.tasks.ipa.data_prep import PrepareBertandLayoutLM
 from layout_ipa.tasks.ipa.model_pipeline import BertandLayoutLMTrainer
 from sklearn.metrics import f1_score
@@ -22,14 +22,14 @@ import pandas as pd
 #             2 - Spatial (Relative to other elements)
 
 MODEL_LOCATION = "/nobackup/projects/bdman04/layout_ipa/cache/layout_lm_pair_rico/layout_lm_pair_rico"
-# MODEL_LOCATION = "bert-base-uncased"
+# MODEL_LOCATION = "microsoft/layoutlm-base-uncased"
 OUTPUT = "./results/layout_lm_vectors.tsv"
 test_path = settings["rico_sca"]["test"]
 # test_path = settings["sample_rico_sca"]
 
 prepare_rico_task = PrepareRicoScaScreenPair()
 prepare_data_for_probing = PrepareLayoutLMProbing()
-get_vectors_task = GetVectorsBertProbing()
+get_vectors_task = GetVectorsLayoutLMProbing()
 
 
 @task

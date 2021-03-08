@@ -145,6 +145,9 @@ class PrepareRicoScaScreenPair(Task):
                 if limit and total_instructions >= limit:
                     break
 
+            if limit and total_instructions >= limit:
+                break
+
         logger.info(f"******** LARGEST UI TEXT: {largest_text} ********")
         logger.info(f"***** TOTAL UI ELEMENTS: {total_ui_elements}")
         logger.info(f"Number of different screens: {number_of_screens}.")
