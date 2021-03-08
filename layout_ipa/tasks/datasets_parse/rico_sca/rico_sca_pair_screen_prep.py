@@ -140,7 +140,7 @@ class PrepareRicoScaScreenPair(Task):
 
                     index_query = index_query + 1
                     index_instruction = index_instruction + 1
-                total_instructions += 1
+                    total_instructions += 1
 
                 if limit and total_instructions >= limit:
                     break
