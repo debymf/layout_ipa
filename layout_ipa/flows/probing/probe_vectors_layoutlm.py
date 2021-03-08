@@ -57,6 +57,10 @@ def save_output(semantic, absolute, relative):
     for key, content in relative.items():
         output_dict[key].extend(content)
 
+    print("REPRESENTATION")
+    print(len(output_dict["representation"]))
+    print("OTHER")
+    print(len(output_dict["labels"]))
     for representation in tqdm(output_dict["representation"]):
         for i in range(0, len(representation)):
             dimensions_out[f"x{i}"].append(representation[i])
