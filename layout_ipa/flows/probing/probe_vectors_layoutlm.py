@@ -69,7 +69,7 @@ def save_output(semantic, absolute, relative):
     print("X0")
     print(len(dimensions_out["x0"]))
 
-    rint("X767")
+    print("X767")
     print(len(dimensions_out["x767"]))
     output_dict.pop("representation", None)
     output_dim_frame = pd.DataFrame.from_dict(dimensions_out)
