@@ -61,10 +61,16 @@ def save_output(semantic, absolute, relative):
     print(len(output_dict["representation"]))
     print("OTHER")
     print(len(output_dict["labels"]))
+
     for representation in tqdm(output_dict["representation"]):
         for i in range(0, len(representation)):
             dimensions_out[f"x{i}"].append(representation[i])
 
+    print("X0")
+    print(len(dimensions_out["x0"]))
+
+    rint("X767")
+    print(len(dimensions_out["x767"]))
     output_dict.pop("representation", None)
     output_dim_frame = pd.DataFrame.from_dict(dimensions_out)
     output_dim_frame.to_csv(OUTPUT_DIM, sep="\t", header=False, index=False)
