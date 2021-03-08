@@ -21,7 +21,7 @@ parser.add_argument(
     metavar="Type of instruction",
     type=int,
     help="Type of instruction",
-    default=[2],
+    default=[0, 1, 2, 3],
     nargs="+",
 )
 
