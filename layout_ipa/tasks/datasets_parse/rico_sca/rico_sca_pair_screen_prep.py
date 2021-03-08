@@ -39,7 +39,7 @@ class PrepareRicoScaScreenPair(Task):
 
         return output_dict
 
-    def run(self, file_location, type_instructions=[0, 1, 2, 3]):
+    def run(self, file_location, type_instructions=[0, 1, 2, 3], limit=None):
         """Parses the RicoSCA dataset for the pair classification task.
 
         Args:
@@ -76,6 +76,7 @@ class PrepareRicoScaScreenPair(Task):
             input_data = json.load(f)
 
         number_of_screens = len(input_data)
+        total_instructions = 0
         total_pairs = 0
         total_negative_pairs = 0
         total_positive_pairs = 0
@@ -109,6 +110,7 @@ class PrepareRicoScaScreenPair(Task):
             index_instruction = 0
 
             for instruction in screen_info["instruction_str"]:
+
                 selected_ui_element = screen_info["ui_target_id_seq"][index_instruction]
                 mapping_query[index_query] = selected_ui_element
                 if (
@@ -138,6 +140,10 @@ class PrepareRicoScaScreenPair(Task):
 
                     index_query = index_query + 1
                     index_instruction = index_instruction + 1
+                total_instructions += 1
+
+                if limit and total_instructions >= limit:
+                    break
 
         logger.info(f"******** LARGEST UI TEXT: {largest_text} ********")
         logger.info(f"***** TOTAL UI ELEMENTS: {total_ui_elements}")
