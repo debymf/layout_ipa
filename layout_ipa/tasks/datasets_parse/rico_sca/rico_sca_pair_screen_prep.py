@@ -126,6 +126,8 @@ class PrepareRicoScaScreenPair(Task):
                             total_negative_pairs = total_negative_pairs + 1
                             label_ui = 0
 
+                        if "\n" in instruction:
+                            print(instruction)
                         parsed_data[total_pairs] = {
                             "id_query": index_query,
                             "ui_position": ui_index,
