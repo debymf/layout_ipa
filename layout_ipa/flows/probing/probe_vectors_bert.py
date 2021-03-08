@@ -60,12 +60,11 @@ def save_output(semantic, absolute, relative):
     for representation in tqdm(output_dict["representation"]):
         for i in range(0, len(representation)):
             dimensions_out[f"x{i}"].append(representation[i])
-
     output_dict.pop("representation", None)
     output_dim_frame = pd.DataFrame.from_dict(dimensions_out)
     output_dim_frame.to_csv(OUTPUT_DIM, sep="\t", header=False, index=False)
     output_frame_meta = pd.DataFrame.from_dict(output_dict)
-    output_frame_meta.to_csv(OUTPUT_METADATA, sep="\t", index=False)
+    output_frame_meta.to_csv(OUTPUT_METADATA, sep="\t", index=False, quotechar="'")
 
 
 # New type semattic = 0 -> Semantic 1-> Absolute 2->Relative
