@@ -12,7 +12,7 @@ from layout_ipa.tasks.ipa.model_pipeline import LayoutIpaBasicTrainer
 from sklearn.metrics import f1_score
 from layout_ipa.util.evaluation import pair_evaluation
 import os
-from layout_ipa.tasks.datasets_parse.pixel_help import PreparePixelHelpPair
+from layout_ipa.tasks.datasets_parse.pixel_help import PreparePixelHelpBasicPair
 import argparse
 
 parser = argparse.ArgumentParser(description="Running flow for Layout IPA.")
@@ -108,7 +108,7 @@ test_path = settings["pixel_help"]
 #     checkpoint=True,
 #     result=LocalResult(dir=f"./cache/datasets/rico/"),
 # )
-prepare_pixel_help_task = PreparePixelHelpPair()
+prepare_pixel_help_task = PreparePixelHelpBasicPair()
 
 prepare_rico_task = PrepareRicoScaScreenPair()
 prepare_rico_layout_lm_task = PrepareLayoutIpaBasic()
