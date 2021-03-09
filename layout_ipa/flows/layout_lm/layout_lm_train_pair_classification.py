@@ -16,12 +16,12 @@ prepare_rico_task = PrepareRicoScaPair()
 layout_lm_model = settings["layout_lm_base"]
 
 # train_path = settings["rico_sca"]["train"]
-dev_path = settings["rico_sca"]["dev"]
+# dev_path = settings["rico_sca"]["dev"]
 test_path = settings["pixel_help"]
 # test_path = settings["rico_sca"]["test"]
 
 train_path = settings["sample_rico_sca"]
-# dev_path = settings["sample_rico_sca"]
+dev_path = settings["sample_rico_sca"]
 # test_path = settings["sample_rico_sca"]
 
 # train_path = settings["rico_sca_sample"]["train"]
