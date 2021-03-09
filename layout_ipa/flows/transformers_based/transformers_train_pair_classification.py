@@ -27,8 +27,8 @@ test_path = settings["rico_sca"]["test"]
 # test_path = settings["pixel_help"]
 
 train_path = settings["rico_sca_sample"]["train"]
-dev_path = settings["rico_sca_sample"]["dev"]
-test_path = settings["rico_sca_sample"]["test"]
+# dev_path = settings["rico_sca_sample"]["dev"]
+# test_path = settings["rico_sca_sample"]["test"]
 
 cache_args = dict(
     target="{task_name}-{task_tags}.pkl",
