@@ -36,7 +36,7 @@ cache_args = dict(
     result=LocalResult(dir=f"./cache/datasets/rico/"),
 )
 
-INSTRUCTION_TYPE = [0, 3]
+INSTRUCTION_TYPE = [2]
 #  where: 0 and 3 - Lexical Matching
 #             1 - Spatial (Relative to screen)
 #             2 - Spatial (Relative to other elements)
