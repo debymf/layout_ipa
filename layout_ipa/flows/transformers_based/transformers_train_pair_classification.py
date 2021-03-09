@@ -19,15 +19,15 @@ prepare_rico_task = PrepareRicoScaPair()
 # test_path = settings["rico_sca"]["test"]
 
 # train_path = settings["rico_sca"]["train"]
-dev_path = settings["rico_sca"]["dev"]
-test_path = settings["rico_sca"]["test"]
+# dev_path = settings["rico_sca"]["dev"]
+# test_path = settings["rico_sca"]["test"]
 
 # train_path = settings["rico_sca"]["train"]
 # dev_path = settings["rico_sca"]["dev"]
-# test_path = settings["pixel_help"]
+test_path = settings["pixel_help"]
 
 train_path = settings["rico_sca_sample"]["train"]
-# dev_path = settings["rico_sca_sample"]["dev"]
+dev_path = settings["rico_sca_sample"]["dev"]
 # test_path = settings["rico_sca_sample"]["test"]
 
 cache_args = dict(
@@ -54,8 +54,8 @@ with Flow("Running the Transformers for Pair Classification") as flow1:
         dev_input = prepare_rico_task(dev_path, type_instructions=INSTRUCTION_TYPE)
         dev_dataset = prepare_rico_transformer_task(dev_input["data"])
     with tags("test"):
-        test_input = prepare_rico_task(test_path, type_instructions=INSTRUCTION_TYPE)
-        # test_input = prepare_pixel_help_task(test_path)
+        # test_input = prepare_rico_task(test_path, type_instructions=INSTRUCTION_TYPE)
+        test_input = prepare_pixel_help_task(test_path)
         test_dataset = prepare_rico_transformer_task(test_input["data"])
     transformer_trainer_task(
         train_dataset=train_dataset,
