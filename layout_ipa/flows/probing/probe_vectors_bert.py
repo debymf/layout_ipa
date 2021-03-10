@@ -21,12 +21,12 @@ import pandas as pd
 #             1 - Spatial (Relative to screen)
 #             2 - Spatial (Relative to other elements)
 
-# MODEL_LOCATION = "/nobackup/projects/bdman04/layout_ipa/cache/transformer_pair_rico/transformer_pair_rico/"
-MODEL_LOCATION = "bert-base-uncased"
+MODEL_LOCATION = "/nobackup/projects/bdman04/layout_ipa/cache/transformer_pair_rico/transformer_pair_rico/"
+# MODEL_LOCATION = "bert-base-uncased"
 # OUTPUT_METADATA = "./results/bert_vectors_meta_data.tsv"
 OUTPUT = "./results/bert_vectors_new_labels.tsv"
-# test_path = settings["rico_sca"]["test"]
-test_path = settings["sample_rico_sca"]
+test_path = settings["rico_sca"]["test"]
+# test_path = settings["sample_rico_sca"]
 
 prepare_rico_task = PrepareRicoScaScreenPair()
 add_extra_labels = AddExtraLabelsTask()
