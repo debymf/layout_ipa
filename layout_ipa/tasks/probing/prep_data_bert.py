@@ -37,6 +37,8 @@ class PrepareBertProbing(Task):
                 "att_mask": encoded_element["attention_mask"],
                 "token_ids": encoded_element["token_type_ids"],
                 "label": content["label"],
+                "is_top": content["is_top"],
+                "is_right": content["is_right"],
             }
 
         return TorchDataset(entries)
@@ -58,6 +60,8 @@ class TorchDataset(Dataset):
             instance["instruction_type"],
             instance["instruction"],
             instance["ui_text"],
+            instance["is_top"],
+            instance["is_right"],
         )
 
     def get_id(self, index):

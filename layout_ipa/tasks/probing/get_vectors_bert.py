@@ -38,6 +38,7 @@ class GetVectorsBertProbing(Task):
 
         n_gpu = 1
 
+        device = "cpu"
         self.logger.info(f"GPUs used {n_gpu}")
 
         logger.info("Obtaining output vectors.")
@@ -72,6 +73,8 @@ class GetVectorsBertProbing(Task):
         output_dict["instruction"] = list()
         output_dict["ui_text"] = list()
         output_dict["type"] = list()
+        output_dict["is_top"] = list()
+        output_dict["is_right"] = list()
         for batch in tqdm(dataloader, desc="Evaluating"):
 
             model.eval()
@@ -89,6 +92,8 @@ class GetVectorsBertProbing(Task):
                 instructions_type = batch[5].tolist()
                 instruction_text = batch[6]
                 ui_text = batch[7]
+                is_top = batch[8].tolist()
+                is_right = batch[9].tolist()
 
                 last_hidden_states = model.bert(**inputs_bert)[0]
                 cls_hidden_state = last_hidden_states[:, 0, :]
@@ -108,6 +113,8 @@ class GetVectorsBertProbing(Task):
             output_dict["ui_text"].extend(ui_text)
             output_dict["instruction"].extend(instruction_text)
             output_dict["type"].extend(instructions_type)
+            output_dict["is_top"].extend(is_top)
+            output_dict["is_right"].extend(is_right)
         output_dict["labels"].extend(out_label_ids.tolist())
         output_dict["representation"].extend(out_embedding.tolist())
         # eval_loss = eval_loss / nb_eval_steps
