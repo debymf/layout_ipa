@@ -37,6 +37,7 @@ class GetVectorsLayoutLMProbing(Task):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         n_gpu = 1
+        device = "cpu"
 
         self.logger.info(f"GPUs used {n_gpu}")
 
