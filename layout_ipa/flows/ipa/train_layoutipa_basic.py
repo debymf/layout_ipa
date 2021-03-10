@@ -188,7 +188,7 @@ with Flow("Running the Transformers for Pair Classification") as flow1:
         mapping_test=test_input["mapping"],
         task_name="layout_ipa_last_hope_20",
         output_dir="./cache/layout_ipa_last_hope_20/",
-        mode="train",
+        mode="test",
         eval_fn=pair_evaluation,
         screen_arg=SCREEN_AGG,
         combine_output=COMBINE_OUTPUT,
