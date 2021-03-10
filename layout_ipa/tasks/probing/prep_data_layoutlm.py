@@ -31,6 +31,8 @@ class PrepareLayoutLMProbing(Task):
                 "ui_token_ids": encoded_element["ui_segment_ids"],
                 "ui_boxes": encoded_element["ui_boxes"],
                 "label": content["label"],
+                "is_top": content["is_top"],
+                "is_right": content["is_right"],
             }
 
         return TorchDataset(entries)
@@ -164,6 +166,8 @@ class TorchDataset(Dataset):
             instance["instruction_type"],
             instance["instruction"],
             instance["ui_text"],
+            instance["is_top"],
+            instance["is_right"],
         )
 
     def get_id(self, index):

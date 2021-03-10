@@ -38,7 +38,7 @@ class GetVectorsBertProbing(Task):
 
         n_gpu = 1
 
-        device = "cpu"
+        # device = "cpu"
         self.logger.info(f"GPUs used {n_gpu}")
 
         logger.info("Obtaining output vectors.")

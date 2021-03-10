@@ -6,7 +6,7 @@ from prefect.engine.flow_runner import FlowRunner
 from prefect.engine.results import LocalResult
 from layout_ipa.tasks.datasets_parse.rico_sca import PrepareRicoScaScreenPair
 from layout_ipa.tasks.probing import PrepareLayoutLMProbing
-from layout_ipa.tasks.probing import GetVectorsLayoutLMProbing
+from layout_ipa.tasks.probing import GetVectorsLayoutLMProbing, AddExtraLabelsTask
 from layout_ipa.tasks.ipa.data_prep import PrepareBertandLayoutLM
 from layout_ipa.tasks.ipa.model_pipeline import BertandLayoutLMTrainer
 from sklearn.metrics import f1_score
@@ -21,14 +21,15 @@ import pandas as pd
 #             1 - Spatial (Relative to screen)
 #             2 - Spatial (Relative to other elements)
 
-MODEL_LOCATION = "/nobackup/projects/bdman04/layout_ipa/cache/layout_lm_pair_rico/layout_lm_pair_rico"
-# MODEL_LOCATION = "microsoft/layoutlm-base-uncased"
-OUTPUT_METADATA = "./results/layout_lm_vectors_meta_data.tsv"
-OUTPUT_DIM = "./results/layout_lm_vectors_dim.tsv"
+# MODEL_LOCATION = "/nobackup/projects/bdman04/layout_ipa/cache/layout_lm_pair_rico/layout_lm_pair_rico"
+MODEL_LOCATION = "microsoft/layoutlm-base-uncased"
+OUTPUT = "./results/layout_lm_vectors_new_labels.tsv"
+# OUTPUT_DIM = "./results/layout_lm_vectors_dim.tsv"
 test_path = settings["rico_sca"]["test"]
 # test_path = settings["sample_rico_sca"]
 
 prepare_rico_task = PrepareRicoScaScreenPair()
+add_extra_labels = AddExtraLabelsTask()
 prepare_data_for_probing = PrepareLayoutLMProbing()
 get_vectors_task = GetVectorsLayoutLMProbing()
 
@@ -70,22 +71,24 @@ def save_output(semantic, absolute, relative):
 # New type semattic = 0 -> Semantic 1-> Absolute 2->Relative
 with Flow("Running flow for Bert and LayouLM") as flow1:
     input_semantic = prepare_rico_task(test_path, type_instructions=[0, 3], limit=50)
-    dataset_semantic = prepare_data_for_probing(input_semantic["data"], 0)
+    input_semantic_parsed = add_extra_labels(input_semantic["data"])
+    dataset_semantic = prepare_data_for_probing(input_semantic_parsed, 0)
 
     input_spatial_absolute = prepare_rico_task(
         test_path, type_instructions=[1], limit=50
     )
+    input_spatial_absolute_parsed = add_extra_labels(input_spatial_absolute["data"])
     dataset_spatial_absolute = prepare_data_for_probing(
-        input_spatial_absolute["data"], 1
+        input_spatial_absolute_parsed, 1
     )
 
     input_spatial_relative = prepare_rico_task(
         test_path, type_instructions=[2], limit=50
     )
+    input_spatial_relative_parsed = add_extra_labels(input_spatial_relative["data"])
     dataset_spatial_relative = prepare_data_for_probing(
-        input_spatial_relative["data"], 2
+        input_spatial_relative_parsed, 2
     )
-
     output_semantic = get_vectors_task(
         dataset=dataset_semantic, model_location=MODEL_LOCATION
     )
