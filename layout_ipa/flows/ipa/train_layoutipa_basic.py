@@ -177,8 +177,8 @@ with Flow("Running the Transformers for Pair Classification") as flow1:
         dev_input = prepare_rico_task(dev_path, type_instructions=INSTRUCTION_TYPE)
         dev_dataset = prepare_rico_layout_lm_task(dev_input["data"])
     with tags("test"):
-        # test_input = prepare_rico_task(test_path, type_instructions=INSTRUCTION_TYPE)
-        test_input = prepare_pixel_help_task(test_path)
+        test_input = prepare_rico_task(test_path, type_instructions=INSTRUCTION_TYPE)
+        # test_input = prepare_pixel_help_task(test_path)
         test_dataset = prepare_rico_layout_lm_task(test_input["data"])
     outputs = layout_lm_trainer_task(
         train_dataset=train_dataset,
