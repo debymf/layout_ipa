@@ -39,6 +39,8 @@ class PrepareBertProbing(Task):
                 "label": content["label"],
                 "is_top": content["is_top"],
                 "is_right": content["is_right"],
+                "relative_is_top": content["relative_is_top"],
+                "relative_is_right": content["relative_is_right"],
             }
 
         return TorchDataset(entries)
@@ -62,6 +64,8 @@ class TorchDataset(Dataset):
             instance["ui_text"],
             instance["is_top"],
             instance["is_right"],
+            instance["relative_is_top"],
+            instance["relative_is_right"],
         )
 
     def get_id(self, index):

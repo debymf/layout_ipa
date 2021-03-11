@@ -48,6 +48,8 @@ def save_output(semantic, absolute, relative):
     output_dict["type"] = list()
     output_dict["is_top"] = list()
     output_dict["is_right"] = list()
+    output_dict["relative_is_top"] = list()
+    output_dict["relative_is_right"] = list()
     dimensions_out = dict()
 
     for i in range(0, 768):

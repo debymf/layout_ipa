@@ -75,6 +75,8 @@ class GetVectorsBertProbing(Task):
         output_dict["type"] = list()
         output_dict["is_top"] = list()
         output_dict["is_right"] = list()
+        output_dict["relative_is_top"] = list()
+        output_dict["relative_is_right"] = list()
         for batch in tqdm(dataloader, desc="Evaluating"):
 
             model.eval()
@@ -94,6 +96,8 @@ class GetVectorsBertProbing(Task):
                 ui_text = batch[7]
                 is_top = batch[8].tolist()
                 is_right = batch[9].tolist()
+                relative_is_top = batch[10].tolist()
+                relative_is_right = batch[11].tolist()
 
                 last_hidden_states = model.bert(**inputs_bert)[0]
                 cls_hidden_state = last_hidden_states[:, 0, :]
@@ -115,6 +119,8 @@ class GetVectorsBertProbing(Task):
             output_dict["type"].extend(instructions_type)
             output_dict["is_top"].extend(is_top)
             output_dict["is_right"].extend(is_right)
+            output_dict["relative_is_top"].extend(is_top)
+            output_dict["relative_is_right"].extend(is_right)
         output_dict["labels"].extend(out_label_ids.tolist())
         output_dict["representation"].extend(out_embedding.tolist())
         # eval_loss = eval_loss / nb_eval_steps
