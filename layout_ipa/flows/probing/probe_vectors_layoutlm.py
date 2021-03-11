@@ -23,7 +23,7 @@ import pandas as pd
 
 MODEL_LOCATION = "/nobackup/projects/bdman04/layout_ipa/cache/layout_lm_pair_rico/layout_lm_pair_rico"
 # MODEL_LOCATION = "microsoft/layoutlm-base-uncased"
-OUTPUT = "./results/layout_lm_vectors_new_labels.tsv"
+OUTPUT = "./results/layout_lm_vectors_new_relative_labels.tsv"
 # OUTPUT_DIM = "./results/layout_lm_vectors_dim.tsv"
 test_path = settings["rico_sca"]["test"]
 # test_path = settings["sample_rico_sca"]

@@ -24,7 +24,7 @@ import pandas as pd
 MODEL_LOCATION = "/nobackup/projects/bdman04/layout_ipa/cache/transformer_pair_rico/transformer_pair_rico/"
 # MODEL_LOCATION = "bert-base-uncased"
 # OUTPUT_METADATA = "./results/bert_vectors_meta_data.tsv"
-OUTPUT = "./results/bert_vectors_new_labels.tsv"
+OUTPUT = "./results/bert_vectors_new_relative_labels.tsv"
 test_path = settings["rico_sca"]["test"]
 # test_path = settings["sample_rico_sca"]
 
